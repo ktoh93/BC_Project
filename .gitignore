@@ -1,2 +1,11 @@
 .env
-.venv
+.venv/
+__pycache__/
+*.pyc
+
+activate_kclass.bat
+jupyter_kclass.bat
+
+db.sqlite3
+/staticfiles/
+media/
