@@ -22,21 +22,5 @@ class Member(models.Model):
 
     def __str__(self):
         return self.user_id
-    
-# -----------------------------------------------------
-# JoinStat (참석 여부) — 복합 PK
-# -----------------------------------------------------
-class JoinStat(models.Model):
-    member_id = models.ForeignKey(Member, on_delete=models.CASCADE)
-    community_id = models.ForeignKey(Community, on_delete=models.CASCADE)
-    join_status = models.IntegerField(default=0)
 
-    class Meta:
-        db_table = "join_stat"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["member", "community"],
-                name="pk_join_stat"
-            )
-        ]
 
