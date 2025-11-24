@@ -116,6 +116,11 @@ body {
   color: white;
   border-color: transparent;
 }
+.header__login-btn>a,
+.header__login-btn>a:visited {
+    color: #2d3748;
+    text-decoration: none;
+}
 
 /* 2 메인 페이지명 */
 .main-title-wrapper {
