@@ -10,12 +10,55 @@
 </head>
 <body>
 
-  <!-- 1 상단 로고 + 로그인 -->
+  <!-- 헤더 -->
   <header class="header">
     <div class="header__left">
-      <div class="header__logo">로고</div>
-      <h1 class="header__page-title">할래말래</h1>
+      <a href="/" class="header__logo">
+        <img src="{% static 'img/logo.png' %}" alt="할래말래 로고" />
+      </a>
     </div>
+    <nav class="header__nav">
+      <!-- 모바일 메뉴: 로그인 섹션 -->
+      <div class="mobile-menu-login">
+        <a href="/login" class="mobile-login-link">로그인 / 회원가입</a>
+        <!-- 로그인 시 표시될 메뉴 (추후 동적으로 표시) -->
+        <div class="mobile-user-menu" style="display: none;">
+          <a href="/mypage" class="mobile-user-link">마이페이지</a>
+          <a href="/logout" class="mobile-user-link">로그아웃</a>
+        </div>
+      </div>
+      <div class="mobile-menu-divider"></div>
+      <!-- 모바일 메뉴: 네비게이션 -->
+      <ul class="header__nav-list">
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">시설 안내</a>
+          <ul class="header__submenu">
+            <li><a href="#">전체 시설</a></li>
+            <li><a href="#">내 지역 시설</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">모집할래</a>
+          <ul class="header__submenu">
+            <li><a href="#">같이 할래말래</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="/reservation" class="header__nav-link">예약할래</a>
+          <ul class="header__submenu">
+            <li><a href="/reservation">예약하기</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">정보알래</a>
+          <ul class="header__submenu">
+            <li><a href="#">공지할래</a></li>
+            <li><a href="#">이벤트볼래</a></li>
+            <li><a href="#">수다떨래</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
     <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
       <span></span>
       <span></span>
@@ -24,56 +67,16 @@
     <button class="header__login-btn"><a href="/login">로그인 / 회원가입</a></button>
   </header>
 
-  <!-- 2 메인 페이지명 (데스크탑) -->
-  <div class="main-title-wrapper">
-    <h1 class="main-title">할래말래</h1>
-  </div>
-
   <!-- 모바일 메뉴 오버레이 -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
-  <!-- 3 상단 메뉴 -->
-  <nav class="gnb" id="gnb">
-    <ul class="gnb__list">
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">시설 안내</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 시설</a></li>
-          <li><a href="#">내 지역 시설</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">모집 게시판</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 모집</a></li>
-          <li><a href="#">내 지역 모집</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">예약</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">예약하기</a></li>
-          <li><a href="#">예약 내역</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">자유 게시판</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 글</a></li>
-          <li><a href="#">인기 글</a></li>
-        </ul>
-      </li>
-    </ul>
-  </nav>
-
   <main class="main">
-
-    <!-- 4 배너 영역 -->
+    <!-- 배너 영역 -->
     <section class="banner">
-      배너 이미지 영역
+      <div style="position: relative; z-index: 1;">배너 이미지 + 링크 삽입입</div>
     </section>
 
-    <!-- 5 오늘의 날씨 + 모집/공지 블록 -->
+    <!-- 위젯 영역: 오늘의 날씨 + 모집/공지 -->
     <section class="main-widgets">
       <div class="widget widget--today">
         <h2>오늘의 날씨</h2>
@@ -83,21 +86,21 @@
       </div>
 
       <div class="widget widget--recruit">
-        <h2>모집 게시판 (조회순)</h2>
+        <h2>같이 할래 말래!(조회순)</h2>
         <ul class="recruit-list" id="recruitList">
           <li class="loading">게시글을 불러오는 중...</li>
         </ul>
       </div>
 
       <div class="widget widget--notice">
-        <h2>공지사항 (최신순)</h2>
+        <h2>애매하긴해 (최신순)</h2>
         <ul class="notice-list" id="noticeList">
           <li class="loading">공지사항을 불러오는 중...</li>
         </ul>
       </div>
     </section>
 
-    <!-- 6 시설 A/B/C -->
+    <!-- 시설 카드 -->
     <section class="facilities" id="facilitiesSection">
       <article class="facility loading">시설 정보를 불러오는 중...</article>
       <article class="facility loading">시설 정보를 불러오는 중...</article>
