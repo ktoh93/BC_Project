@@ -1,0 +1,60 @@
+  {% load static %}
+ <!-- 헤더 -->
+  <header class="header">
+    <div class="header__left">
+      <a href="/" class="header__logo">
+        <img src="{% static 'img/logo.png' %}" alt="할래말래 로고" />
+      </a>
+    </div>
+    <nav class="header__nav">
+      <!-- 모바일 메뉴: 로그인 섹션 -->
+      <div class="mobile-menu-login">
+        <a href="/login" class="mobile-login-link">로그인 / 회원가입</a>
+        <!-- 로그인 시 표시될 메뉴 (추후 동적으로 표시) -->
+        <div class="mobile-user-menu" style="display: none;">
+          <a href="/mypage" class="mobile-user-link">마이페이지</a>
+          <a href="/logout" class="mobile-user-link">로그아웃</a>
+        </div>
+      </div>
+      <div class="mobile-menu-divider"></div>
+      <!-- 모바일 메뉴: 네비게이션 -->
+      <ul class="header__nav-list">
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">시설 안내</a>
+          <ul class="header__submenu">
+            <li><a href="#">전체 시설</a></li>
+            <li><a href="#">내 지역 시설</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">모집할래</a>
+          <ul class="header__submenu">
+            <li><a href="#">같이 할래말래</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="/reservation" class="header__nav-link">예약할래</a>
+          <ul class="header__submenu">
+            <li><a href="/reservation">예약하기</a></li>
+          </ul>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">정보알래</a>
+          <ul class="header__submenu">
+            <li><a href="#">공지할래</a></li>
+            <li><a href="#">이벤트볼래</a></li>
+            <li><a href="#">수다떨래</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <button class="header__login-btn"><a href="/login">로그인 / 회원가입</a></button>
+  </header>
+
+  <!-- 모바일 메뉴 오버레이 -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
