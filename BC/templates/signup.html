@@ -9,34 +9,62 @@
   <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
   <link rel="stylesheet" href="{% static 'css/signup.css' %}" />
 </head>
-<body>
-
+<body class="register-page">
   <!-- 헤더 -->
   <header class="header">
     <div class="header__left">
-      <div class="header__logo" onclick="window.location.href='/'">로고</div>
+      <a href="/" class="header__logo">
+        <img src="{% static 'img/logo.png' %}" alt="할래말래 로고" />
+      </a>
     </div>
-    <h1 class="header__page-title">할래말래</h1>
+    <nav class="header__nav">
+      <!-- 모바일 메뉴: 로그인 섹션 -->
+      <div class="mobile-menu-register">
+        <a href="/register" class="mobile-register-link">로그인 / 회원가입</a>
+        <!-- 로그인 시 표시될 메뉴 (추후 동적으로 표시) -->
+        <div class="mobile-user-menu" style="display: none;">
+          <a href="/mypage" class="mobile-user-link">마이페이지</a>
+          <a href="/logout" class="mobile-user-link">로그아웃</a>
+        </div>
+      </div>
+      <div class="mobile-menu-divider"></div>
+      <!-- 모바일 메뉴: 네비게이션 -->
+      <ul class="header__nav-list">
+        <li class="header__nav-item">
+          <a href="/" class="header__nav-link">시설 안내</a>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">모집할래</a>
+        </li>
+        <li class="header__nav-item">
+          <a href="/reservation" class="header__nav-link">예약할래</a>
+        </li>
+        <li class="header__nav-item">
+          <a href="#" class="header__nav-link">정보알래</a>
+        </li>
+      </ul>
+    </nav>
     <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
       <span></span>
       <span></span>
       <span></span>
     </button>
-    <button class="header__login-btn" onclick="window.location.href='/'">홈으로</button>
+    <button class="header__register-btn" onclick="window.location.href='/'">홈으로</button>
   </header>
+
 
   <!-- 메뉴 오버레이 -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
   <!-- 회원가입 컨테이너 -->
-  <div class="login-container">
-    <div class="login-wrapper">
+  <div class="register-container">
+    <div class="register-wrapper">
 
       <!-- PC 브랜딩 -->
-      <div class="login-brand">
+      <div class="register-brand">
         <h2>할래말래</h2>
         <p>스포츠 시설을 쉽고 빠르게 예약하세요</p>
-        <ul class="login-brand-features">
+        <ul class="register-brand-features">
           <li>간편한 온라인 예약</li>
           <li>다양한 스포츠 시설</li>
           <li>실시간 예약 현황</li>
@@ -45,14 +73,14 @@
       </div>
 
       <!-- 회원가입 카드 -->
-      <div class="login-card">
+      <div class="register-card">
 
-        <div class="login-header">
+        <div class="register-header">
           <h1>회원가입</h1>
           <p>할래말래에 오신 것을 환영합니다</p>
         </div>
 
-        <form class="login-form" method="post" action="/signup">
+        <form class="register-form" method="post" action="/signup">
 
           <!-- 아이디 -->
           <div class="form-group">
@@ -127,13 +155,13 @@
           </div>
 
           <!-- 제출 버튼 -->
-          <button type="submit" class="login-btn">회원가입</button>
+          <button type="submit" class="register-btn">회원가입</button>
 
         </form>
       </div>
 
-    </div> <!-- login-wrapper -->
-  </div> <!-- login-container -->
+    </div> <!-- register-wrapper -->
+  </div> <!-- register-container -->
 
   <script src="{% static 'js/main.js' %}"></script>
 </body>

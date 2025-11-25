@@ -64,8 +64,14 @@
   --transition-slow: 300ms ease;
 }
 
+@media (min-width: 769px) {
+  .register-page .header__nav {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
 
-.login-container {
+.register-container {
   min-height: calc(100vh - 200px);
   display: flex;
   align-items: center;
@@ -73,7 +79,7 @@
   padding: var(--spacing-2xl) var(--spacing-lg);
 }
 
-.login-wrapper {
+.register-wrapper {
   width: 100%;
   max-width: 1000px;
   display: grid;
@@ -81,7 +87,7 @@
   gap: 0;
 }
 
-.login-card {
+.register-card {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
@@ -93,30 +99,28 @@
 }
 
 @media (min-width: 1024px) {
-  .login-wrapper {
+  .register-wrapper {
     grid-template-columns: 1.2fr 1fr;
     gap: var(--spacing-2xl);
     max-width: 1200px;
   }
   
-  .login-card {
+  .register-card {
     max-width: 100%;
     padding: var(--spacing-2xl) var(--spacing-2xl);
   }
   
-  .login-brand {
+  .register-brand {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
     padding: var(--spacing-2xl);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--color-muted-blue) 0%, var(--color-muted-green) 100%);
     color: var(--color-white);
-    box-shadow: var(--shadow-xl);
   }
   
-  .login-brand h2 {
+  .register-brand h2 {
     font-size: 48px;
     font-weight: 900;
     margin-bottom: var(--spacing-lg);
@@ -124,14 +128,14 @@
     line-height: 1.2;
   }
   
-  .login-brand p {
+  .register-brand p {
     font-size: 18px;
     line-height: 1.8;
     opacity: 0.95;
     margin-bottom: var(--spacing-xl);
   }
   
-  .login-brand-features {
+  .register-brand-features {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -140,14 +144,14 @@
     gap: var(--spacing-md);
   }
   
-  .login-brand-features li {
+  .register-brand-features li {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     font-size: 16px;
   }
   
-  .login-brand-features li::before {
+  .register-brand-features li::before {
     content: '✓';
     font-size: 20px;
     font-weight: 900;
@@ -163,43 +167,43 @@
 }
 
 @media (max-width: 1023px) {
-  .login-brand {
+  .register-brand {
     display: none;
   }
 }
 
-.login-header {
+.register-header {
   text-align: center;
   margin-bottom: var(--spacing-2xl);
 }
 
-.login-header h1 {
+.register-header h1 {
   font-size: 32px;
   font-weight: 900;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   margin-bottom: var(--spacing-sm);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(135deg, var(--color-deep-blue) 0%, var(--color-deep-green) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.login-header p {
+.register-header p {
   color: var(--text-tertiary);
   font-size: 14px;
 }
 
 @media (min-width: 1024px) {
-  .login-header h1 {
+  .register-header h1 {
     font-size: 40px;
   }
   
-  .login-header p {
+  .register-header p {
     font-size: 16px;
   }
 }
 
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
@@ -286,28 +290,26 @@
   color: var(--color-primary-dark);
 }
 
-.login-btn {
+.register-btn {
   padding: 16px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: var(--color-deep-blue);
   color: var(--color-white);
   border: none;
-  border-radius: var(--radius-lg);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-base);
-  box-shadow: var(--shadow-md);
   margin-top: var(--spacing-sm);
 }
 
 @media (min-width: 1024px) {
-  .login-btn {
+  .register-btn {
     padding: 18px;
     font-size: 17px;
   }
 }
 
-.login-btn:hover {
+.register-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -329,7 +331,7 @@
   background: var(--color-gray-300);
 }
 
-.social-login {
+.social-register {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
