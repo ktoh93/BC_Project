@@ -186,7 +186,7 @@ body {
   border: 1px solid var(--color-soft-gray-line);
 }
 
-.header__nav-item:hover .header__submenu {
+.header__nav-item.has-submenu:hover .header__submenu {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);

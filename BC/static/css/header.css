@@ -129,7 +129,7 @@
     border: 1px solid var(--color-soft-gray-line);
 }
 
-.header__nav-item:hover .header__submenu {
+.header__nav-item.has-submenu:hover .header__submenu {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
@@ -498,7 +498,7 @@
   }
 
   /* 태블릿에서 hover 시 서브메뉴 표시 */
-  .header__nav-item:hover .header__submenu {
+  .header__nav-item.has-submenu:hover .header__submenu {
     opacity: 1 !important;
     visibility: visible !important;
     transform: translateX(-50%) translateY(0) !important;
@@ -564,7 +564,7 @@
   }
 
   /* 데스크탑에서 hover 시 서브메뉴 표시 */
-  .header__nav-item:hover .header__submenu {
+  .header__nav-item.has-submenu:hover .header__submenu {
     opacity: 1 !important;
     visibility: visible !important;
     transform: translateX(-50%) translateY(0) !important;
