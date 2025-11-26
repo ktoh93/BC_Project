@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}" />
+{% endblock %}
+
+{% block script1 %}
+<script src="{% static 'js/list.js' %}"></script>
+{% endblock %}
+
+{% block contents %}
+
+<!-- 페이지 제목 -->
+<div class="page-title-section">
+  <h2 class="page-title">모집글 목록</h2>
+</div>
+
+
+<!-- 서브 컨테이너 -->
+<div class="sub-container">
+
+    <div class="sub-content">
+        
+    <!-- 검색 섹션 -->
+        <section class="search-section">
+            <div class="search-controls">
+                <select class="search-dropdown" id="searchType">
+                    <option value="all">전체</option>
+                    <option value="facility">시설명</option>
+                    <option value="sport">종목명</option>
+                </select>
+
+                <!-- 시/도 선택 -->
+                <select id="sido" class="search-dropdown">
+                    <option value="">시/도 선택</option>
+                </select>
+
+                    <!-- 구/군 선택 -->
+                <select id="sigungu" class="search-dropdown">
+                    <option value="">구/군 선택</option>
+                </select>
+
+            </div>
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
+                <button type="button" class="search-btn" id="searchBtn">
+                    <span>🔍</span> 검색
+                </button>
+            </div>
+        </section>
+
+        <section class="search-list-section">
+            <h3 class="section-title">모집글 리스트</h3>
+           <div class="facility-list" id="facilityList">
+                <ul>
+                    <li class="facility-item">
+                    <span class="facility-order">1</span>
+                    <span class="facility-title">강남구 테니스 같이 치실 분</span>
+                    <span class="facility-meta">
+                        <span class="facility-date">2025-11-26</span>
+                        <span class="facility-views">조회수 12</span>
+                    </span>
+                    </li>
+
+                    <li class="facility-item">
+                    <span class="facility-order">2</span>
+                    <span class="facility-title">역삼 배드민턴 복식 구해요</span>
+                    <span class="facility-meta">
+                        <span class="facility-date">2025-11-25</span>
+                        <span class="facility-views">조회수 34</span>
+                    </span>
+                    </li>
+                </ul>
+            </div>
+<!--
+DB 작성후 예시
+<ul>
+  {% for item in recruit_list %}
+    <li class="facility-item">
+      <span class="facility-order">{{ forloop.counter }}</span>
+      <span class="facility-title">{{ item.title }}</span>
+      <span class="facility-meta">
+        <span class="facility-date">{{ item.created_at|date:"Y-m-d" }}</span>
+        <span class="facility-views">조회수 {{ item.views }}</span>
+      </span>
+    </li>
+  {% endfor %}
+</ul>
+-->
+
+        </section>
+        <div class="write-btn-container">
+            <a href="/write.html" class="write-btn">작성하기</a>
+        </div>
+
+       
+    </div>
+</div>
+
+{% endblock %}
