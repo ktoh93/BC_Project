@@ -1,0 +1,42 @@
+/* -----------------------------
+   페이지 타이틀
+------------------------------ */
+.page-title-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: var(--spacing-xl) auto;
+    padding: 0 var(--spacing-lg);
+    text-align: center;
+}
+
+.page-title {
+    font-size: 43px;
+    font-weight: 900;
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: var(--spacing-xl) 0;
+    background: linear-gradient(135deg, var(--color-deep-blue) 0%, var(--color-deep-green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+
+/* -----------------------------
+   서브 레이아웃
+------------------------------ */
+.sub-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: var(--spacing-2xl) auto 0;
+    padding: var(--spacing-lg);
+}
+
+.sub-content {
+    width: 100%;
+    background: var(--color-card-box);
+    padding: var(--spacing-xl);
+    min-height: 400px;
+    border: 1px solid var(--color-soft-gray-line);
+    overflow: visible;
+}
