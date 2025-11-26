@@ -59,19 +59,3 @@ body {
     max-width: 1400px;
   }
 }
-
-.header__logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.header__logo img {
-  max-height: 100px;
-  max-width: 400px;
-  height: auto;
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
