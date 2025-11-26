@@ -14,11 +14,11 @@
   gap: 0;
 }
 
-/* 로그인 페이지에서 데스크탑/태블릿 네비게이션 완전히 숨기기 */
+/* 로그인 페이지에서 데스크탑/태블릿 네비게이션 완전히 숨기기 - 페이지 클래스로 구체성 확보 */
 @media (min-width: 769px) {
   .login-page .header__nav {
-    display: none !important;
-    visibility: hidden !important;
+    display: none;
+    visibility: hidden;
   }
 }
 

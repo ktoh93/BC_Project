@@ -7,11 +7,11 @@
   padding: 0;
 }
 
-/* PC — 회원가입 페이지에서 네비게이션 숨기기 */
+/* PC — 회원가입 페이지에서 네비게이션 숨기기 - 페이지 클래스로 구체성 확보 */
 @media (min-width: 769px) {
   .register-page .header__nav {
-    display: none !important;
-    visibility: hidden !important;
+    display: none;
+    visibility: hidden;
   }
 }
 

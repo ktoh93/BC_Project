@@ -6,6 +6,7 @@
 
 /* 제목 */
 .main h2 {
+    margin-top: 10px;
     font-size: 1.8rem;
     margin-bottom: var(--spacing-lg);
     color: var(--color-deep-blue);

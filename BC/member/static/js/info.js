@@ -1,19 +1,19 @@
 // DOM 로드 후 실행
 document.addEventListener("DOMContentLoaded", () => {
-    const btnEdit = document.querySelector(".btn-edit");
-    const btnPassword = document.querySelector(".btn-password");
-    const btnEditCom = document.querySelector(".btn-edit-complete");
+    const btn_edit = document.querySelector(".btn-edit");
+    const btn_password = document.querySelector(".btn-password");
+
 
     // 1) 정보 수정 클릭
-    btnEdit.addEventListener("click", function() {
+    btn_edit.addEventListener("click", function() {
         // console.log("정보 수정 클릭됨");
-        handleEditProfile();
+        handle_edit_profile();
     });
     
     // 2) 비밀번호 변경 클릭
-    btnPassword.addEventListener("click", function() {
+    btn_password.addEventListener("click", function() {
         // console.log("비밀번호 변경 클릭됨");
-        handlePasswordChange();
+        handle_password_change();
     });
 
 });
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // -----------------------------
 
 // 정보 수정 버튼 클릭 시
-function handleEditProfile() {
+function handle_edit_profile() {
     // 예시: 수정 페이지로 이동
     window.location.href = "/member/edit/";
 
@@ -32,7 +32,7 @@ function handleEditProfile() {
 }
 
 // 비밀번호 변경 버튼 클릭 시
-function handlePasswordChange() {
+function handle_password_change() {
     // 예시: 비밀번호 변경 페이지로 이동
     window.location.href = "/member/password/";
     

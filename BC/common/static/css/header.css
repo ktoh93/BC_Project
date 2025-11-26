@@ -309,16 +309,17 @@
         pointer-events: auto;
     }
 
-    /* 모바일 메뉴 네비게이션 */
+    /* 모바일 메뉴 네비게이션 - 오버플로우 방지 */
     .header__nav {
         position: fixed;
         top: 0;
         right: 0;
         width: 280px;
+        max-width: 80vw;
         height: 100vh;
         background: var(--color-card-box);
         border-left: 1px solid var(--color-soft-gray-line);
-        transition: transform 0.3s ease, visibility 0.3s ease, clip-path 0.3s ease;
+        transition: transform 0.3s ease, visibility 0.3s ease;
         z-index: 999;
         padding: 0;
         overflow-y: auto;
@@ -329,14 +330,12 @@
         visibility: hidden;
         transform: translateX(100%);
         pointer-events: none;
-        clip-path: inset(0 100% 0 0);
     }
 
     .header__nav.active {
         transform: translateX(0);
         visibility: visible;
         pointer-events: auto;
-        clip-path: inset(0 0 0 0);
     }
 
     /* 모바일 메뉴 로그인 섹션 */
@@ -454,20 +453,22 @@
     }
 
     /* ================================
-       PATCH: 화면 옆으로 늘어나는 문제 해결
+       모바일 오버플로우 방지
        ================================ */
     html, body {
-        overflow-x: hidden !important;   /* 가로 스크롤 차단 */
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
     }
 
     .header {
-        max-width: 100% !important;      /* header가 모바일 화면 밖으로 나가지 않도록 */
-        box-sizing: border-box !important;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .header__nav {
-        max-width: 100vw !important;     /* nav가 width: 280px 때문에 화면 밀어내는 문제 해결 */
-        box-sizing: border-box !important;
+        max-width: 100vw;
+        box-sizing: border-box;
     }
 }
 
@@ -481,55 +482,59 @@
     display: none;
   }
 
-  /* 데스크탑/태블릿에서 모바일 메뉴 리셋 */
+  /* 태블릿에서 모바일 메뉴 리셋 - responsive.css가 마지막에 로드되므로 우선순위 확보 */
   .header__nav {
-    position: static !important;
-    right: auto !important;
-    width: auto !important;
-    height: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: none !important;
+    position: static;
+    right: auto;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    clip-path: none;
   }
 
   .mobile-menu-login {
-    display: none !important;
+    display: none;
   }
 
   .mobile-menu-divider {
-    display: none !important;
+    display: none;
   }
 
   .mobile-menu-overlay {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .header__nav-list {
-    flex-direction: row !important;
+    flex-direction: row;
   }
 
   .header__submenu {
-    position: absolute !important;
-    transform: translateX(-50%) translateY(-8px) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    max-height: none !important;
+    position: absolute;
+    transform: translateX(-50%) translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    max-height: none;
   }
 
   /* 태블릿에서 hover 시 서브메뉴 표시 */
   .header__nav-item.has-submenu:hover .header__submenu {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateX(-50%) translateY(0) !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
   }
 
   .header__nav-item.active .header__submenu {
-    max-height: none !important;
+    max-height: none;
   }
 }
 
@@ -543,62 +548,66 @@
     display: block;
   }
 
-  /* 데스크탑에서 모바일 메뉴 완전히 리셋 */
+  /* 데스크탑에서 모바일 메뉴 완전히 리셋 - responsive.css가 마지막에 로드되므로 우선순위 확보 */
   .header__nav {
-    position: static !important;
-    right: auto !important;
-    width: auto !important;
-    height: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: none !important;
+    position: static;
+    right: auto;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    clip-path: none;
   }
 
   .mobile-menu-login {
-    display: none !important;
+    display: none;
   }
 
   .mobile-menu-divider {
-    display: none !important;
+    display: none;
   }
 
   .mobile-menu-overlay {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .header__nav-list {
-    flex-direction: row !important;
+    flex-direction: row;
   }
 
   .header__nav-link {
-    border-bottom: none !important;
+    border-bottom: none;
   }
 
   .header__submenu {
-    position: absolute !important;
-    transform: translateX(-50%) translateY(-8px) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    max-height: none !important;
+    position: absolute;
+    transform: translateX(-50%) translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    max-height: none;
   }
 
   /* 데스크탑에서 hover 시 서브메뉴 표시 */
   .header__nav-item.has-submenu:hover .header__submenu {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateX(-50%) translateY(0) !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
   }
 
   .header__nav-item.active .header__submenu {
-    max-height: none !important;
+    max-height: none;
   }
 
   .header__nav-item.active > .header__nav-link {
-    background: transparent !important;
+    background: transparent;
   }
 }
