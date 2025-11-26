@@ -208,23 +208,6 @@
     padding: var(--spacing-lg) var(--spacing-md);
   }
 
-  /* 배너 */
-  .banner {
-    height: 280px;
-    font-size: 20px;
-    margin: 0 calc(-1 * var(--spacing-md)) var(--spacing-xl);
-    width: calc(100% + 2 * var(--spacing-md));
-    max-width: 100vw;
-    box-sizing: border-box;
-  }
-
-  /* 위젯 영역 - 세로 배치 */
-  .main-widgets {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-  }
-  
   .widget {
     min-height: auto;
     padding: var(--spacing-lg);
@@ -234,22 +217,6 @@
     font-size: 20px;
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
-  }
-
-  /* 시설 카드 - 세로 배치 */
-  .facilities {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-2xl);
-  }
-  
-  .facility {
-    min-height: 180px;
-    padding: var(--spacing-lg);
-  }
-  
-  .facility h3 {
-    font-size: 22px;
   }
 
   /* 서브 페이지 반응형 */
@@ -356,22 +323,6 @@
     padding: 0 var(--spacing-xl);
   }
 
-  .main-widgets {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-lg);
-  }
-  
-  .widget--today {
-    grid-column: 1 / -1;
-  }
-
-  .facilities {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .facility:nth-child(3) {
-    grid-column: 1 / -1;
-  }
 
   .sub-container {
     padding: var(--spacing-lg);

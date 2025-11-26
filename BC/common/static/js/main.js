@@ -221,10 +221,11 @@ function formatDate(dateString) {
 }
 
 // ============================================
-// 6번 섹션: 시설 랜덤 표시
+// 랜덤 시설 표시 (템플릿 섹션)
 // ============================================
 async function loadRandomFacilities() {
-  const facilitiesSection = document.getElementById('facilitiesSection');
+  const facilitiesList = document.getElementById('randomFacilitiesList');
+  if (!facilitiesList) return;
   
   try {
     // TODO: 실제 API 호출로 교체
@@ -235,36 +236,40 @@ async function loadRandomFacilities() {
     // 랜덤으로 3개 선택 (서버에서 이미 랜덤 처리된 경우 그대로 사용)
     const selectedFacilities = facilities.slice(0, CONFIG.FACILITIES.COUNT);
     
-    facilitiesSection.innerHTML = selectedFacilities.map(facility => `
-      <article class="facility" data-facility-id="${facility.id}">
-        <h3>${facility.name}</h3>
-        <p>${facility.address}</p>
-        <p>${facility.description}</p>
-      </article>
+    facilitiesList.innerHTML = selectedFacilities.map(facility => `
+      <li class="facility-item">
+        <a href="/facility/${facility.id}" class="facility-link">
+          <span class="facility-name">${facility.name}</span>
+          <span class="facility-address">${facility.address}</span>
+          <span class="facility-description">${facility.description}</span>
+        </a>
+      </li>
     `).join('');
     */
     
     // 임시 더미 데이터 (API 연동 전까지)
     const dummyFacilities = [
-      { id: 1, name: '시설 A', address: '서울시 강남구', description: '체육관' },
-      { id: 2, name: '시설 B', address: '서울시 서초구', description: '수영장' },
-      { id: 3, name: '시설 C', address: '서울시 송파구', description: '운동장' }
+      { id: 1, name: '강남 체육관', address: '서울시 강남구 테헤란로 123', description: '다목적 체육관' },
+      { id: 2, name: '서초 수영장', address: '서울시 서초구 서초대로 456', description: '실내 수영장' },
+      { id: 3, name: '송파 운동장', address: '서울시 송파구 올림픽로 789', description: '야외 운동장' }
     ];
     
-    facilitiesSection.innerHTML = dummyFacilities.map(facility => `
-      <article class="facility" data-facility-id="${facility.id}">
-        <h3>${facility.name}</h3>
-        <p>${facility.address}</p>
-        <p>${facility.description}</p>
-      </article>
+    facilitiesList.innerHTML = dummyFacilities.map(facility => `
+      <li class="facility-item">
+        <a href="/facility/${facility.id}" class="facility-link">
+          <span class="facility-name">${facility.name}</span>
+          <span class="facility-address">${facility.address}</span>
+          <span class="facility-description">${facility.description}</span>
+        </a>
+      </li>
     `).join('');
     
   } catch (error) {
     console.error('시설 정보 로드 실패:', error);
-    facilitiesSection.innerHTML = `
-      <article class="facility error">시설 정보를 불러올 수 없습니다.</article>
-      <article class="facility error">시설 정보를 불러올 수 없습니다.</article>
-      <article class="facility error">시설 정보를 불러올 수 없습니다.</article>
+    facilitiesList.innerHTML = `
+      <li class="facility-item error">시설 정보를 불러올 수 없습니다.</li>
+      <li class="facility-item error">시설 정보를 불러올 수 없습니다.</li>
+      <li class="facility-item error">시설 정보를 불러올 수 없습니다.</li>
     `;
   }
 }
