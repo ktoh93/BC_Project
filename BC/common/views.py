@@ -8,3 +8,6 @@ def signup(request):
 
 def find_id(request):
     return render(request, 'findID.html')
+
+def find_pw(request):
+    return render(request, 'findPW.html')

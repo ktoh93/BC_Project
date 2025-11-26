@@ -1,0 +1,306 @@
+/* --------------------------------------------------------
+   기본 리셋
+--------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --------------------------------------------------------
+   PC에서 signup 페이지는 기존 네비게이션 숨기기
+--------------------------------------------------------- */
+@media (min-width: 769px) {
+  .findPW-page .header__nav {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* --------------------------------------------------------
+   헤더의 홈 버튼
+--------------------------------------------------------- */
+.header__findPW-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--color-soft-gray-line);
+  background: var(--color-card-box);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.header__findPW-btn:hover {
+  background: var(--color-deep-blue);
+  color: var(--color-card-box);
+  border-color: var(--color-deep-blue);
+}
+
+/* --------------------------------------------------------
+   회원가입 페이지 레이아웃
+--------------------------------------------------------- */
+.findPW-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.findPW-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+/* --------------------------------------------------------
+   회원가입 카드
+--------------------------------------------------------- */
+.findPW-card {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  background: var(--color-card-box);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-soft-gray-line);
+}
+
+/* PC 레이아웃 */
+@media (min-width: 1024px) {
+  .findPW-wrapper {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--spacing-2xl);
+    max-width: 1200px;
+  }
+
+  .findPW-card {
+    max-width: 100%;
+  }
+
+  .findPW-brand {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--spacing-2xl);
+    background: linear-gradient(135deg, var(--color-muted-blue) 0%, var(--color-muted-green) 100%);
+    color: var(--color-background);
+  }
+
+  .findPW-brand h2 {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .findPW-brand p {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .findPW-brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .findPW-brand-features li {
+    font-size: 16px;
+  }
+
+  .findPW-brand-features li::before {
+    content: "✓";
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+  }
+}
+
+/* 모바일에서는 브랜드 숨김 */
+@media (max-width: 1023px) {
+  .findPW-brand {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------
+   제목
+--------------------------------------------------------- */
+.findPW-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.findPW-header h1 {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: var(--spacing-sm);
+  background: linear-gradient(135deg, var(--color-deep-blue), var(--color-deep-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.findPW-header p {
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  .findPW-header h1 {
+    font-size: 40px;
+  }
+  .findPW-header p {
+    font-size: 16px;
+  }
+}
+
+/* --------------------------------------------------------
+   Form 스타일
+--------------------------------------------------------- */
+.findPW-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  padding: 14px 18px;
+  border: 1px solid var(--color-soft-gray-line);
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  background: var(--bg-primary);
+  transition: all var(--transition-base);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-deep-blue);
+  box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* date input */
+.form-input[type="date"] {
+  color: var(--text-primary);
+}
+
+/* --------------------------------------------------------
+   Form Row (input + 버튼)
+--------------------------------------------------------- */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-sm);
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------
+   버튼들
+--------------------------------------------------------- */
+.check-btn {
+  padding: 12px 16px;
+  background: var(--color-card-box);
+  border: 1px solid var(--color-soft-gray-line);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.check-btn:hover {
+  border-color: var(--color-deep-blue);
+}
+
+.small-btn {
+  width: 120px;
+  text-align: center;
+}
+
+/* 제출 버튼 */
+.findPW-btn {
+  padding: 16px;
+  margin-top: var(--spacing-sm);
+  background: var(--color-deep-blue);
+  color: var(--color-background);
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.findPW-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* --------------------------------------------------------
+   성별 선택 토글
+--------------------------------------------------------- */
+.gender-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--color-soft-gray-line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.gender-toggle input[type="radio"] {
+  display: none;
+}
+
+.gender-option {
+  text-align: center;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  border-right: 1px solid var(--color-soft-gray-line);
+  background: var(--bg-primary);
+  cursor: pointer;
+}
+
+.gender-option:last-child {
+  border-right: none;
+}
+
+input[type="radio"]:checked + .gender-option {
+  color: var(--color-deep-blue);
+  background: var(--color-background);
+  border-bottom: 2px solid var(--color-deep-blue);
+}
+
+.gender-option:hover {
+  background: var(--color-card-box);
+}
