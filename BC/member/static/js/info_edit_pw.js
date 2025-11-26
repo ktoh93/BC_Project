@@ -1,11 +1,11 @@
 // DOM 로드 후 실행
 document.addEventListener("DOMContentLoaded", () => {
-    const btnEditCom = document.querySelector(".btn-edit-complete");
+    const btn_edit_com = document.querySelector(".btn-edit-complete");
 
     // 3) 정보 수정 완료
-    btnEditCom.addEventListener("click", function() {
+    btn_edit_com.addEventListener("click", function() {
         // console.log("정보 수정 클릭됨");
-        handleEditComProfile();
+        handle_edit_profile();
     });
 });
 
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 함수 분리 (필요 시 기능 바로 추가 가능)
 // -----------------------------
 
-function handleEditComProfile() {
+function handle_edit_profile() {
     // 예시: 수정 페이지로 이동
     window.location.href = "/member/info/";
 

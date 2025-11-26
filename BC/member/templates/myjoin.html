@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+<link rel="stylesheet" href="{% static 'css/mypage.css' %}" />
+{% endblock %}
+{% block script1 %}
+
+{% endblock %}
+{% block title %}
+  할래말래
+{% endblock %}
+{% block contents %}
+
+
+
+    <!-- 컨텐츠 내용 -->
+    <main class="main">
+
+    <h2>나의 운동 참여</h2>
+
+
+
+    <!-- 목록 -->
+    <table class="mypage-table">
+        <thead>
+            <tr>
+                
+                <th>모집글 번호</th>
+                <th>모집글 제목</th>
+                <th>참여 날짜</th>
+                <th>참여 여부</th>
+            </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>이거슨</td>
+            <td>가라</td>
+            <td>데이터</td>
+            <td>이힣</td>
+            
+          </tr>
+          <!-- {% for post in list %} -->
+            <!-- {% endfor %} -->
+        </tbody>
+    </table>
+
+
+
+
+    </main>
+
+
+
+
+{% endblock %}

@@ -36,6 +36,12 @@
 
       <form class="register-form" method="post" action="/signup">
 
+        <!-- 이름  -->
+        <div class="form-group">
+          <label class="form-label" for="name">이름</label>
+          <input type="text" id="name" name="name" class="form-input" placeholder="이름 입력" required />
+        </div>
+
         <!-- 아이디 -->
         <div class="form-group">
           {% csrf_token %}

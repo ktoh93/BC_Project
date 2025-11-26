@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+<link rel="stylesheet" href="{% static 'css/mypage.css' %}" />
+{% endblock %}
+{% block script1 %}
+
+{% endblock %}
+{% block title %}
+  할래말래
+{% endblock %}
+{% block contents %}
+
+
+
+    <!-- 컨텐츠 내용 -->
+    <main class="main">
+
+    <h2>나의 시설 예약</h2>
+
+
+
+    <!-- 목록 -->
+    <table class="mypage-table">
+        <thead>
+            <tr>
+                
+                <th>예약 번호</th>
+                <th>예약 시설</th>
+                <th>예약 일정</th>
+                <th>예약 확정 날짜</th>
+            </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="/reservation">이거슨</a></td>
+            <td><a href="/facility">가라</a></td>
+            <td>데이터</td>
+            <td>이힣</td>
+            
+          </tr>
+          <!-- {% for post in list %} -->
+            <!-- {% endfor %} -->
+        </tbody>
+    </table>
+
+
+
+
+    </main>
+
+
+
+
+{% endblock %}
