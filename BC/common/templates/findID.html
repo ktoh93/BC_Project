@@ -1,64 +1,13 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>회원가입 - 할래말래</title>
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/findID.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-
-</head>
-<body class="findID-page">
-  <!-- 헤더 -->
-  <header class="header">
-    <div class="header__left">
-      <a href="/" class="header__logo">
-        <img src="{% static 'img/logo.png' %}" alt="할래말래 로고" />
-      </a>
-    </div>
-    <nav class="header__nav">
-      <!-- 모바일 메뉴: 로그인 섹션 -->
-      <div class="mobile-menu-findID">
-        <a href="/findID" class="mobile-findID-link">로그인 / 회원가입</a>
-        <!-- 로그인 시 표시될 메뉴 (추후 동적으로 표시) -->
-        <div class="mobile-user-menu" style="display: none;">
-          <a href="/mypage" class="mobile-user-link">마이페이지</a>
-          <a href="/logout" class="mobile-user-link">로그아웃</a>
-        </div>
-      </div>
-      <div class="mobile-menu-divider"></div>
-      <!-- 모바일 메뉴: 네비게이션 -->
-      <ul class="header__nav-list">
-        <li class="header__nav-item">
-          <a href="/" class="header__nav-link">시설 안내</a>
-        </li>
-        <li class="header__nav-item">
-          <a href="#" class="header__nav-link">모집할래</a>
-        </li>
-        <li class="header__nav-item">
-          <a href="/reservation" class="header__nav-link">예약할래</a>
-        </li>
-        <li class="header__nav-item">
-          <a href="#" class="header__nav-link">정보알래</a>
-        </li>
-      </ul>
-    </nav>
-    <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <button class="header__findID-btn" onclick="window.location.href='/'">홈으로</button>
-  </header>
-
-
-  <!-- 메뉴 오버레이 -->
-  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-
-  <!-- 회원가입 컨테이너 -->
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/findID.css' %}" />
+{% endblock %}
+{% block title %}
+아이디찾기 - 할래말래
+{% endblock %}
+{% block contents %}
+ <!-- 회원가입 컨테이너 -->
   <div class="findID-container">
     <div class="findID-wrapper">
 
@@ -91,7 +40,7 @@
 
     </div> <!-- findID-wrapper -->
   </div> <!-- findID-container -->
+{% endblock %}
 
-  <script src="{% static 'js/main.js' %}"></script>
-</body>
-</html>
+ 
+

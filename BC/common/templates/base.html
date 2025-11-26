@@ -1,71 +1,34 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>서브 페이지</title>
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/header.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
+    {% block css %}
+    {% endblock %}
+  
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    {% block script1 %}
+    {% endblock %}
+
+    <title>
+        {% block title %}
+        {% endblock %}
+    </title>
 </head>
 
-<body>
+{% block script2 %}
+{% endblock %}
 
-<header class="header">
-    <div class="header__left">
-        <div class="header__logo">LOGO</div>
-    </div>
-    <h1 class="header__page-title">할래말래</h1>
-    <button class="header__login-btn">로그인 / 회원가입</button>
-    
-</header>
-<nav class="gnb" id="gnb">
-    <ul class="gnb__list">
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">시설 안내</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 시설</a></li>
-          <li><a href="#">내 지역 시설</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">모집 게시판</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 모집</a></li>
-          <li><a href="#">내 지역 모집</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">예약</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">예약하기</a></li>
-          <li><a href="#">예약 내역</a></li>
-        </ul>
-      </li>
-      <li class="gnb__item">
-        <a href="#" class="gnb__link">자유 게시판</a>
-        <ul class="gnb__submenu">
-          <li><a href="#">전체 글</a></li>
-          <li><a href="#">인기 글</a></li>
-        </ul>
-      </li>
-    </ul>
-  </nav>
-
-<div class="sub-container">
-
-    <aside class="sub-sidebar">
-        {% block submenu %}
-        서브메뉴
-        {% endblock %}
-    </aside>
-
-    <main class="sub-content">
-        {% block content %}
-        {% endblock %}
-    </main>
-
-</div>
-
-<script src="./index.js"></script>
+<body style="margin-bottom: 200px;">
+    {% include 'layout/header.html' %}
+    {% block contents %}
+    {% endblock %}
+    {% include 'layout/footer.html' %}
 </body>
+
 </html>
