@@ -13,14 +13,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 calc(-1 * var(--spacing-lg)) var(--spacing-2xl);
-  width: calc(100% + 2 * var(--spacing-lg));
+  margin: 0 auto var(--spacing-2xl);
+  width: 100%;
   color: var(--color-card-box);
   font-size: 32px;
   font-weight: 800;
   position: relative;
   overflow: hidden;
   border: none;
+  box-sizing: border-box;
 }
 
 .banner::before {
@@ -344,6 +345,8 @@
         font-size: 20px;
         margin: 0 calc(-1 * var(--spacing-md)) var(--spacing-xl);
         width: calc(100% + 2 * var(--spacing-md));
+        max-width: 100vw;
+        box-sizing: border-box;
     }
 
     /* 위젯 영역 - 세로 배치 */
@@ -391,8 +394,8 @@
 
   /* 배너 */
   .banner {
-    margin: 0 calc(-1 * var(--spacing-xl));
-    width: calc(100% + 2 * var(--spacing-xl));
+    margin: 0 auto;
+    width: 100%;
   }
 
   .main-widgets {
@@ -412,4 +415,12 @@
     grid-column: 1 / -1;
   }
 
+}
+
+/* PC 화면 (1025px 이상) - 배너를 헤더와 같은 너비로 맞춤 */
+@media (min-width: 1025px) {
+  .banner {
+    margin: 0 calc(-1 * var(--spacing-lg)) var(--spacing-2xl);
+    width: calc(100% + 2 * var(--spacing-lg));
+  }
 }

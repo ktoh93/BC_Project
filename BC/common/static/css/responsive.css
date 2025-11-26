@@ -4,6 +4,13 @@
 
 /* 모바일 (768px 이하) */
 @media (max-width: 768px) {
+  /* 가로 스와이프 방지 */
+  html,
+  body {
+    overscroll-behavior-x: none;
+    overflow-x: hidden;
+  }
+
   /* 메뉴가 열릴 때 body 스크롤 방지 */
   body.menu-open {
     overflow: hidden;
@@ -66,12 +73,12 @@
   .header__nav {
     position: fixed;
     top: 0;
-    right: -100%;
-    width: 280px;
+    right: 0px;
+    width: 200px;
     height: 100vh;
     background: var(--color-card-box);
     border-left: 1px solid var(--color-soft-gray-line);
-    transition: right 0.3s ease;
+    transition: transform 0.3s ease, visibility 0.3s ease, clip-path 0.3s ease;
     z-index: 999;
     padding: 0;
     overflow-y: auto;
@@ -79,10 +86,17 @@
     display: flex;
     flex-direction: column;
     -webkit-overflow-scrolling: touch;
+    visibility: hidden;
+    transform: translateX(100%);
+    pointer-events: none;
+    clip-path: inset(0 100% 0 0);
   }
   
   .header__nav.active {
-    right: 0;
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    clip-path: inset(0 0 0 0);
   }
 
   /* 모바일 메뉴 로그인 섹션 */
@@ -197,7 +211,10 @@
   .banner {
     height: 280px;
     font-size: 20px;
-    margin-bottom: var(--spacing-xl);
+    margin: 0 calc(-1 * var(--spacing-md)) var(--spacing-xl);
+    width: calc(100% + 2 * var(--spacing-md));
+    max-width: 100vw;
+    box-sizing: border-box;
   }
 
   /* 위젯 영역 - 세로 배치 */
@@ -322,7 +339,11 @@
     transform: translateX(-50%) translateY(0) !important;
   }
 
+  /* 태블릿에서 active 클래스로 서브메뉴 표시 (터치 디바이스 대응) */
   .header__nav-item.active .header__submenu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(-50%) translateY(0) !important;
     max-height: none !important;
   }
 
@@ -417,7 +438,11 @@
     transform: translateX(-50%) translateY(0) !important;
   }
 
+  /* 데스크탑에서 active 클래스로 서브메뉴 표시 (터치 디바이스 대응) */
   .header__nav-item.active .header__submenu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(-50%) translateY(0) !important;
     max-height: none !important;
   }
 

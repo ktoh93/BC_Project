@@ -58,6 +58,292 @@ body {
 
 
 
+/* ============================================
+   서브 페이지 스타일
+   ============================================ */
+.sub-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: var(--spacing-2xl) auto 0;
+  padding: var(--spacing-lg);
+}
+
+.sub-content {
+  width: 100%;
+  background: var(--color-card-box);
+  padding: var(--spacing-xl);
+  min-height: 400px;
+  border: 1px solid var(--color-soft-gray-line);
+}
+
+.page-title-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: var(--spacing-xl) auto;
+  padding: 0 var(--spacing-lg);
+  text-align: center;
+}
+
+.page-title {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: var(--spacing-xl) 0;
+  background: linear-gradient(135deg, var(--color-deep-blue) 0%, var(--color-deep-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   검색 섹션
+   ============================================ */
+.search-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.search-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.search-dropdown {
+  padding: 12px 20px;
+  border: 1px solid var(--color-soft-gray-line);
+  background: var(--color-card-box);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  min-width: 140px;
+  transition: all var(--transition-base);
+}
+
+.search-dropdown:hover {
+  border-color: var(--color-deep-blue);
+}
+
+.search-input-group {
+  display: flex;
+  flex: 1;
+  gap: var(--spacing-xs);
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 20px;
+  border: 1px solid var(--color-soft-gray-line);
+  background: var(--color-card-box);
+  font-size: 14px;
+  transition: all var(--transition-base);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-deep-blue);
+}
+
+.search-btn {
+  padding: 12px 24px;
+  background: var(--color-deep-blue);
+  color: var(--color-card-box);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.search-btn:hover {
+  background: var(--color-deep-blue-hover);
+}
+
+/* ============================================
+   필터 섹션
+   ============================================ */
+.filter-section {
+  margin-bottom: var(--spacing-2xl);
+  padding: var(--spacing-xl);
+  background: var(--color-background);
+  border: 1px solid var(--color-soft-gray-line);
+}
+
+.filter-group {
+  margin-bottom: var(--spacing-xl);
+}
+
+.filter-group:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.filter-all-btn {
+  padding: 10px 20px;
+  background: var(--color-card-box);
+  border: 1px solid var(--color-soft-gray-line);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-bottom: var(--spacing-md);
+}
+
+.filter-all-btn:hover {
+  background: var(--color-deep-blue);
+  color: var(--color-card-box);
+  border-color: var(--color-deep-blue);
+}
+
+.filter-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.filter-checkbox,
+.filter-radio {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--color-card-box);
+  border: 1px solid var(--color-soft-gray-line);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.filter-checkbox:hover,
+.filter-radio:hover {
+  border-color: var(--color-deep-blue);
+  background: rgba(47, 92, 156, 0.05);
+}
+
+.filter-checkbox input[type="checkbox"],
+.filter-radio input[type="radio"] {
+  margin-right: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.filter-checkbox input[type="checkbox"]:checked + span,
+.filter-radio input[type="radio"]:checked + span {
+  color: var(--color-deep-blue);
+  font-weight: 600;
+}
+
+.filter-checkbox:has(input:checked),
+.filter-radio:has(input:checked) {
+  border-color: var(--color-deep-blue);
+  background: rgba(44, 95, 45, 0.1);
+}
+
+/* ============================================
+   검색 리스트 섹션
+   ============================================ */
+.search-list-section {
+  margin-top: var(--spacing-2xl);
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 3px solid var(--color-deep-blue);
+}
+
+.facility-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.facility-item {
+  background: var(--color-card-box);
+  border: 1px solid var(--color-soft-gray-line);
+  padding: var(--spacing-xl);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.facility-item:hover {
+  border-color: var(--color-muted-blue);
+}
+
+/* ============================================
+   버튼 스타일
+   ============================================ */
+/* 기본 버튼 */
+.btn {
+  padding: 12px 24px;
+  background: var(--color-deep-blue);
+  color: var(--color-card-box);
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--color-deep-blue-hover);
+}
+
+/* 취소 버튼 */
+.btn--cancel {
+  background: var(--color-soft-gray-line);
+  color: var(--color-text-primary);
+}
+
+.btn--cancel:hover {
+  background: var(--color-soft-gray-line);
+  opacity: 0.8;
+}
+
+/* 참가/신청/확정 버튼 */
+.btn--confirm,
+.btn--apply,
+.btn--join {
+  background: var(--color-deep-green);
+  color: var(--color-card-box);
+}
+
+.btn--confirm:hover,
+.btn--apply:hover,
+.btn--join:hover {
+  background: #5CB352;
+}
+
+/* 시설 예약 버튼 */
+.facility-reserve-btn {
+  padding: 10px 20px;
+  background: var(--color-deep-blue);
+  color: var(--color-card-box);
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-top: var(--spacing-md);
+}
+
+.facility-reserve-btn:hover {
+  background: var(--color-deep-blue-hover);
+}
+
 /* 큰 화면 (1440px 이상) */
 @media (min-width: 1440px) {
   .main,
