@@ -13,7 +13,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: var(--spacing-2xl);
+  margin: 0 calc(-1 * var(--spacing-lg)) var(--spacing-2xl);
+  width: calc(100% + 2 * var(--spacing-lg));
   color: var(--color-card-box);
   font-size: 32px;
   font-weight: 800;
@@ -621,7 +622,8 @@
     .banner {
         height: 280px;
         font-size: 20px;
-        margin-bottom: var(--spacing-xl);
+        margin: 0 calc(-1 * var(--spacing-md)) var(--spacing-xl);
+        width: calc(100% + 2 * var(--spacing-md));
     }
 
     /* 위젯 영역 - 세로 배치 */
@@ -684,6 +686,12 @@
 @media (min-width: 769px) and (max-width: 1024px) {
      .main {
     padding: 0 var(--spacing-xl);
+  }
+
+  /* 배너 */
+  .banner {
+    margin: 0 calc(-1 * var(--spacing-xl));
+    width: calc(100% + 2 * var(--spacing-xl));
   }
 
   .main-widgets {
