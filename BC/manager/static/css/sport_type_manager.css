@@ -1,9 +1,31 @@
-body {
+/* -------------------------
+   공통 CSS 리셋 및 배경
+--------------------------*/
+* {
+    box-sizing: border-box;
     margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+    background: #F4F8FB;
+    min-height: 100vh;
+    color: #1A2A43;
+    line-height: 1.6;
+}
+
+/* -------------------------
+   전체 레이아웃
+--------------------------*/
+.layout {
     display: flex;
     min-height: 100vh;
 }
 
+/* -------------------------
+   사이드바
+--------------------------*/
 .admin-sidebar {
     width: 230px;
     background: #1A2A43;
@@ -14,71 +36,263 @@ body {
     flex-direction: column;
 }
 
-
-/* 기본 목록 스타일 제거 */
 .sidebar-menu {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* li 간격 */
 .sidebar-menu li {
     margin: 8px 0;
 }
 
-/* 모든 링크 공통 스타일 */
 .sidebar-menu a {
     color: white;
     text-decoration: none;
     font-size: 16px;
     display: block;
     padding: 8px 5px;
-    border-radius: 4px;
+
 }
 
-/* hover 효과 */
 .sidebar-menu a:hover {
     background: #2F4266;
 }
 
-/* 1Depth 제목 */
 .menu-title {
     margin-top: 20px;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #9fb3d1; /* 은은한 회색-블루톤 */
+    color: #9fb3d1;
     font-weight: 600;
 }
 
-/* 2Depth 메뉴 */
 .submenu {
+    padding-left: 10px;
     list-style: none;
-    padding: 0 0 0 10px;
-    margin: 0 0 10px 0;
 }
 
 .submenu li {
     margin: 6px 0;
 }
 
-.submenu li a {
-    color: #ffffff !important;
-    text-decoration: none;
-    display: block;
-    padding: 6px 5px;
-    border-radius: 4px;
-    font-size: 15px;
-}
-
-/* hover 은은하게 */
 .submenu li a:hover {
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-
+/* -------------------------
+   메인 화면
+--------------------------*/
 .admin-main {
-    flex: 1;
-    padding: 30px 40px;
-    background: #F4F8FB;
+    width: calc(100% - 230px);
+    padding: 40px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 중앙 정렬 */
+}
+
+/* -------------------------
+   카드 박스 (종목 추가 / 목록)
+--------------------------*/
+.sport-type-list {
+    background: #ffffff;
+    padding: 25px;
+    width: 100%;
+    max-width: 1400px; /* 화면이 넓어도 중앙 유지 */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 40px;
+}
+
+
+/* 등록 버튼 */
+.btn-add {
+    margin-top: 10px;
+    width: 100%;
+    padding: 12px;
+    background: #2e5aa3;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background: #1e3f7f;
+}
+
+/* -------------------------
+   테이블 목록
+--------------------------*/
+.sport-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.sport-table thead th {
+    background: #f4f6fa;
+    padding: 14px;
+    font-size: 15px;
+    border-bottom: 2px solid #ddd;
+    text-align: center;
+}
+
+.sport-table tbody td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.sport-table tbody td:nth-child(3) {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.no-data {
+    padding: 20px 0;
+    font-size: 15px;
+    color: #666;
+}
+
+
+
+.btn-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding: 5px 10px;
+}
+
+/* 삭제 버튼 */
+.btn-delete {
+    background: #d9534f;
+    color: #fff;
+    padding: 10px 40px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #b52b27;
+}
+.btn-register {
+    background:var(--color-deep-blue);
+    color: #fff;
+    padding: 10px 40px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-register:hover {
+    background:var(--color-deep-blue-hover);
+}
+
+/* 제목과 목록 사이 선 */
+.sport-type-list h2 {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e3e6ea; /* 얇은 라인 */
+}
+
+/* no-data (데이터 없는 경우) */
+.no-data {
+    padding: 15px 0;
+    color: #333;
+    list-style: none; /* 혹시 ul/li 구조일 때 대비 */
+}
+
+/* ============================
+   팝업 오버레이 (공통 톤 적용)
+============================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 42, 67, 0.55);  /* 사이드바 컬러 기반 반투명 */
+    backdrop-filter: blur(3px);          /* 고급스러운 유리 느낌 */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+/* ============================
+   팝업 박스
+============================ */
+.modal {
+    background: var(--color-card-box);
+    width: 550px;                                /* ✔ 크기 크게 확장 */
+    padding: var(--spacing-2xl);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);  /* ✔ 강한 입체감 */
+    animation: popupFadeIn 0.25s ease-out;
+    text-align: center;
+}
+
+/* 팝업 애니메이션 */
+@keyframes popupFadeIn {
+    0%   { opacity: 0; transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* ============================
+   팝업 제목
+============================ */
+.modal h3 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-xl);
+    color: var(--color-text-primary);
+}
+
+/* ============================
+   팝업 입력 필드
+============================ */
+.modal input {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-soft-gray-line);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-xl);
+    background: #F9FBFD;
+}
+
+/* ============================
+   등록 버튼
+============================ */
+.btn-submit {
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--color-deep-blue);
+    color: white;
+    font-size: 1.05rem;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.btn-submit:hover {
+    background: var(--color-deep-blue-hover);
+}
+
+/* ============================
+   닫기 버튼
+============================ */
+.btn-close {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: #d9534f;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-size: 0.95rem;
+}
+
+.btn-close:hover {
+    background: #b52b27;
 }

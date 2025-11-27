@@ -11,38 +11,101 @@
 </head>
 
 <body>
+
+<div class="layout">
+
+    <!-- 사이드바 -->
     <aside class="admin-sidebar">
         <div class="sidebar-title">관리자님<br>어서오십시오</div>
         <ul class="sidebar-menu">
-
-            <!-- 1Depth: 시설 -->
             <li class="menu-title">시설</li>
-            <ul class="submenu">
-                <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
-                <li><a href="#">시설 목록</a></li>
-                <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
-            </ul>
+            <li>
+                <ul class="submenu">
+                    <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
+                    <li><a href="#">시설 목록</a></li>
+                    <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
+                </ul>
+            </li>
 
-            <!-- 1Depth: 웹관리 -->
             <li class="menu-title">웹관리</li>
-            <ul class="submenu">
-                <li><a href="#">모집글관리</a></li>
-                <li><a href="#">공지사항 관리</a></li>
-                <li><a href="#">이벤트 관리</a></li>
-                <li><a href="#">배너관리</a></li>
-            </ul>
+            <li>
+                <ul class="submenu">
+                    <li><a href="#">모집글관리</a></li>
+                    <li><a href="#">공지사항 관리</a></li>
+                    <li><a href="#">이벤트 관리</a></li>
+                    <li><a href="#">배너관리</a></li>
+                </ul>
+            </li>
 
-            <!-- 1Depth: 통계 -->
             <li class="menu-title">통계</li>
-            <ul class="submenu">
-                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
-                <li><a href="#">시설 통계</a></li>
-            </ul>
+            <li>
+                <ul class="submenu">
+                    <li><a href="{% url 'dashboard' %}">대시보드</a></li>
+                    <li><a href="#">시설 통계</a></li>
+                </ul>
+            </li>
+        </ul>
+    </aside>
+
+
+    <!-- 메인 콘텐츠 -->
+    <main class="admin-main">
+
+        <!-- 종목 목록 -->
+        <div class="sport-type-list">
+            <h2>등록된 종목 목록</h2>
+
+            <form method="post" action="#">
+                {% csrf_token %}
+
+                <ul class="sport-list">
+                    {% for sport in sport_list %}
+                    <li>
+                        <span>{{ sport.name }}</span>
+                        <input type="checkbox" name="delete_ids" value="{{ sport.id }}">
+                    </li>
+                    {% empty %}
+                    <div class="sport-list no-data">
+                        등록된 운동 종목이 없습니다.
+                    </div>
+                    {% endfor %}
+                </ul>
+                <div class="btn-area">
+                    <button type="button" class="btn-register" id="openModal">등록</button>
+                    <button type="submit" class="btn-delete">삭제</button>
+                </div>
+            </form>
+        </div>
+
+
         </ul>
     </aside>
     <main class="dashboard-main">
     
+
     </main>
+
+</div> <!-- layout 끝 -->
+
+
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3>운동 종목 등록</h3>
+
+        <form action="{% url 'sport_type' %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="sport_name" placeholder="예: 축구" required>
+            <button type="submit" class="btn-submit">등록하기</button>
+        </form>
+
+        <button class="btn-close" id="closeModal">닫기</button>
+    </div>
+</div>
+
+<script src="{% static 'js/sport_type_manager.js' %}"></script>
+
+
 
 </body>
 </html>
