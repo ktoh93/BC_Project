@@ -25,11 +25,11 @@ def manager(request):
     return render(request, 'login_manager.html')
 
 def facility(request):
-
     DATA_API_KEY = os.getenv("DATA_API_KEY")
-    cp_nm = request.GET.get('cpNm', "")
-    cpb_nm = request.GET.get('cpbNm', "")
-    keyword = request.GET.get('keyword', "")
+
+    cp_nm = request.GET.get("cpNm", "") or "서울특별시"
+    cpb_nm = request.GET.get("cpbNm", "")
+    keyword = request.GET.get("keyword", "")
 
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
@@ -39,7 +39,7 @@ def facility(request):
     params = {
         "serviceKey": DATA_API_KEY,
         "numOfRows": 500,
-        "pageNo": 1,                      # API는 크게 1페이지만 가져오고
+        "pageNo": 1,
         "faci_gb_nm": "공공",
         "cp_nm": cp_nm,
         "cpb_nm": cpb_nm,
@@ -58,7 +58,7 @@ def facility(request):
         try:
             data = json.loads(text)
             items = data["response"]["body"]["items"].get("item", [])
-        except Exception:
+        except:
             xml = xmltodict.parse(text)
             items = xml["response"]["body"]["items"].get("item", [])
 
@@ -77,12 +77,9 @@ def facility(request):
                 "phone": item.get("faci_tel_no", ""),
             })
 
-    except Exception as e:
-        print("API 파싱 오류:", e)
+    except:
+        pass
 
-    # ---------------------------
-    # Pagination
-    # ---------------------------
     paginator = Paginator(merged, per_page)
     page_obj = paginator.get_page(page)
 
@@ -91,11 +88,11 @@ def facility(request):
     block_start = current_block * block_size + 1
     block_end = min(block_start + block_size - 1, paginator.num_pages)
 
-    # ✅ 여기에서 번호(row_no)를 미리 계산해서 넣어버림
     start_index = (page_obj.number - 1) * per_page
     facility_page = []
+
     for idx, item in enumerate(page_obj.object_list):
-        obj = dict(item)      # 원래 dict 복사
+        obj = dict(item)
         obj["row_no"] = start_index + idx + 1
         facility_page.append(obj)
 
@@ -104,15 +101,12 @@ def facility(request):
         "paginator": paginator,
         "per_page": per_page,
         "page": page,
-
         "block_range": range(block_start, block_end + 1),
         "block_start": block_start,
         "block_end": block_end,
-
         "cpNm": cp_nm,
         "cpbNm": cpb_nm,
         "keyword": keyword,
-
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
     }
 

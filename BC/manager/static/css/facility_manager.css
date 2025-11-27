@@ -246,3 +246,18 @@ body {
     width: 18px;
     height: 18px;
 }
+
+.box-header {
+    width: 100%;
+    text-align: center;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: var(--color-text-primary);
+    padding-bottom: var(--spacing-md);
+
+    border-bottom: 2px solid var(--color-soft-gray-line);
+
+    margin-bottom: var(--spacing-lg);
+}

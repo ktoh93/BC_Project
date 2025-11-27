@@ -11,7 +11,6 @@
 
 <body>
 
-    <!--  좌측 메뉴 -->
     <aside class="admin-sidebar">
         <div class="sidebar-title">관리자님<br>어서오십시오</div>
 
@@ -20,21 +19,17 @@
             <li class="submenu">- 시설목록</li>
             <li class="submenu">- 종목관리</li>
             <li class="submenu">- 시설관리</li>
-
             <li>모집글관리</li>
-
             <li>공지사항 관리</li>
-
             <li>이벤트 관리</li>
-
             <li>배너관리</li>
         </ul>
     </aside>
 
 
     <main class="admin-main">
-
-        <!-- 화면 상단: 시/도 / 구군 + 검색 -->
+  
+        <!-- 시도/구군/검색 -->
         <form method="GET" class="filter-container">
 
             <select id="sido" name="cpNm" class="filter-select">
@@ -46,19 +41,18 @@
             </select>
 
             <div class="search-wrap">
-                <input type="text" id="searchKeyword" name="keyword" class="search-input" placeholder="검색어" value="{{ keyword }}">
+                <input type="text" id="searchKeyword" name="keyword" class="search-input" 
+                       placeholder="검색어" value="{{ keyword }}">
                 <button type="submit" class="search-btn">검색</button>
             </div>
-
         </form>
         
         <script id="facilityData" type="application/json">
             {{ facility_json|safe }}
         </script>
 
-
         <div class="facility-box">
-
+            <h1 class="box-header">시설 목록</h1>
             <select id="perPageSelect" class="filter-select">
                 <option value="15">15개</option>
                 <option value="30">30개</option>
@@ -75,15 +69,16 @@
                         <th>주소</th>
                     </tr>
                 </thead>
-                <tbody id="facilityList">
-                    <!-- JS 렌더링 -->
-                </tbody>
+                <tbody id="facilityList"></tbody>
             </table>
+
             <div class="pagination">
 
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
-                    class="page-btn arrow">◀ 이전</a>
+                    <a class="page-btn arrow"
+                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
+                        ◀ 이전
+                    </a>
                 {% else %}
                     <span class="page-btn arrow disabled">◀ 이전</span>
                 {% endif %}
@@ -92,21 +87,23 @@
                     {% if num == page_obj.number %}
                         <span class="page-btn active">{{ num }}</span>
                     {% else %}
-                        <a href="?page={{ num }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
-                        class="page-btn">{{ num }}</a>
+                        <a class="page-btn"
+                            href="?page={{ num }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
+                            {{ num }}
+                        </a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
-                    class="page-btn arrow">다음 ▶</a>
+                    <a class="page-btn arrow"
+                        href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
+                        다음 ▶
+                    </a>
                 {% else %}
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
 
             </div>
-
-
 
             <button class="register-btn">등록</button>
 

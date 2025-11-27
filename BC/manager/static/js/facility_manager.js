@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sigunguEl = document.getElementById("sigungu");
     const perPageEl = document.getElementById("perPageSelect");
 
-    // 시/도 목록 채우기
+    /* ---------- 시도 목록 채우기 ---------- */
     Object.keys(regionData).forEach((sido) => {
         const option = document.createElement("option");
         option.value = sido;
@@ -88,40 +88,17 @@ document.addEventListener("DOMContentLoaded", function () {
         sidoEl.appendChild(option);
     });
 
-    // URL 파라미터 기반 선택값 복원
-    const nowSido = params.get("cpNm") || "";
+    /* ---------- URL 기반 기본값 ---------- */
+    const nowSido = params.get("cpNm") || "서울특별시";
     const nowSigungu = params.get("cpbNm") || "";
 
-    if (nowSido && regionData[nowSido]) {
+    if (regionData[nowSido]) {
         sidoEl.value = nowSido;
 
         sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
-        regionData[nowSido].forEach((gu) => {
-            const option = document.createElement("option");
-            option.value = gu;
-            option.textContent = gu;
-            sigunguEl.appendChild(option);
-        });
-
-        if (nowSigungu) sigunguEl.value = nowSigungu;
     }
 
-    sidoEl.addEventListener("change", function () {
-        const selected = this.value;
-
-        sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
-
-        if (!selected || !regionData[selected]) return;
-
-        regionData[selected].forEach((gu) => {
-            const option = document.createElement("option");
-            option.value = gu;
-            option.textContent = gu;
-            sigunguEl.appendChild(option);
-        });
-    });
-
-    // perPage 처리
+    /* ---------- perPage ---------- */
     if (perPageEl) {
         const nowPer = params.get("per_page") || "15";
         perPageEl.value = nowPer;
@@ -133,6 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    /* ---------- 리스트 렌더 ---------- */
     function renderFacilityList(data) {
         const listBox = document.getElementById("facilityList");
         listBox.innerHTML = "";
@@ -146,20 +124,19 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        data.forEach((item, index) => {
-            const rowNumber = item.row_no ?? (index + 1);
+        data.forEach((item) => {
             listBox.innerHTML += `
                 <tr>
-                    <td>${rowNumber}</td>
+                    <td>${item.row_no}</td>
                     <td><input type="checkbox" class="facility-check" value="${item.id}"></td>
                     <td>${item.name}</td>
                     <td>${item.address}</td>
                 </tr>
             `;
         });
-    }   // ← 🔥 renderFacilityList 함수는 여기서 끝나는 것이 정답!
+    }
 
-    // 🔥 그리고 renderFacilityList 밖에서 JSON 로드하는 코드가 와야 함
+    /* ---------- JSON 로드 ---------- */
     const raw = document.getElementById("facilityData").textContent.trim();
 
     try {
