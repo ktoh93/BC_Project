@@ -26,11 +26,11 @@
                 <div class="admin-error">{{ error }}</div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" action="{% url 'manager_login' %}">
                 {% csrf_token %}
-                <input type="text" name="admin_id" placeholder="ID" required>
-                <input type="password" name="admin_pw" placeholder="PASSWORD" required>
-                <a href="/manager/facility_add" type="submit" class="admin-login-btn">로그인</a>
+                <input type="text" name="admin_id" placeholder="ID" autofocus>
+                <input type="password" name="admin_pw" placeholder="PASSWORD">
+                <button type="submit" class="admin-login-btn">로그인</button>
             </form>
 
         </div>
