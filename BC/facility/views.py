@@ -42,7 +42,7 @@ def facility_list(request):
             facilities.append({
                 "id": item.get("faci_cd", ""),
                 "name": item.get("faci_nm", ""),
-                "address": item.get("faci_addr", ""), 
+                "address": item.get("faci_road_addr", ""), 
                 "sido": item.get("cp_nm", ""),
                 "sigungu": item.get("cpb_nm", ""),
                 "phone": item.get("faci_tel_no", ""),
