@@ -6,14 +6,13 @@
 
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
 </head>
 
 <body>
-
     <aside class="admin-sidebar">
         <div class="sidebar-title">관리자님<br>어서오십시오</div>
-
         <ul class="sidebar-menu">
 
             <!-- 1Depth: 시설 -->
@@ -36,15 +35,13 @@
             <!-- 1Depth: 통계 -->
             <li class="menu-title">통계</li>
             <ul class="submenu">
+                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
                 <li><a href="#">시설 통계</a></li>
-                <li><a href="#">?? 통계</a></li>
             </ul>
-
         </ul>
     </aside>
 
-
-    <main class="admin-main">
+    <main class="dashboard-main">
   
         <!-- 시도/구군/검색 -->
         <form method="GET" class="filter-container">
