@@ -1,6 +1,7 @@
+// static/js/list.js
 
 document.addEventListener("DOMContentLoaded", function () {
-/* 대한민국 시/도 + 시/군/구 전체 데이터 */
+    /* 대한민국 시/도 + 시/군/구 전체 데이터 */
     const regionData = {
         "서울특별시": [
             "강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구",
@@ -75,72 +76,98 @@ document.addEventListener("DOMContentLoaded", function () {
         "제주특별자치도": ["제주시","서귀포시"]
     };
 
-    // HTML 요소 불러오기
-    const sidoEl = document.getElementById("sido");
-    const sigunguEl = document.getElementById("sigungu");
-
-    /* 1) 시/도 목록 자동 삽입 */
-    Object.keys(regionData).forEach(sido => {
-        const option = document.createElement("option");
-        option.value = sido;
-        option.textContent = sido;
-        sidoEl.appendChild(option);
-    });
-
-    /* 2) 시/도 선택 → 구/군 업데이트 */
-    sidoEl.addEventListener("change", function () {
-        const selected = this.value;
-
-        // 기존 구/군 초기화
-        sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
-
-        if (!selected) return;
-
-        // 선택된 시/도의 구/군 채우기
-        regionData[selected].forEach(gu => {
-            const option = document.createElement("option");
-            option.value = gu;
-            option.textContent = gu;
-            sigunguEl.appendChild(option);
-        });
-    });
-});
-
-
-
-
-
-// 페이징 처리
-document.addEventListener("DOMContentLoaded", function () {
-    const perPage = document.getElementById("perPageSelect");
-
-    // 현재 GET 파라미터에서 per_page 값을 읽어서 셀렉터에 적용
-    const currentParams = new URLSearchParams(window.location.search);
-    const nowPer = currentParams.get("per_page") || "15";
-    perPage.value = nowPer;
-
-    // 변경되면 페이지 새로고침
-    perPage.addEventListener("change", function () {
-        currentParams.set("per_page", this.value);
-        currentParams.set("page", 1);  // 개수 바뀌면 1페이지로 이동
-        window.location.search = currentParams.toString();
-    });
-});
-
-
-
-// sort 처리 
-document.addEventListener("DOMContentLoaded", function () {
-    const sortSelect = document.getElementById("sortSelect");
+    // 공통 URL 파라미터 객체
     const params = new URLSearchParams(window.location.search);
 
-    // 현재 정렬 적용 (GET 기준)
-    const nowSort = params.get("sort") || "recent";
-    sortSelect.value = nowSort;
+    /* ---------- 요소 가져오기 ---------- */
+    const sidoEl     = document.getElementById("sido");
+    const sigunguEl  = document.getElementById("sigungu");
+    const perPageEl  = document.getElementById("perPageSelect");
+    const sortEl     = document.getElementById("sortSelect");
 
-    sortSelect.addEventListener("change", function () {
-        params.set("sort", this.value);
-        params.set("page", 1); 
-        window.location.search = params.toString();
-    });
+    /* ===========================
+       1) 시/도 / 구·군 셀렉터 처리
+       =========================== */
+    if (sidoEl && sigunguEl) {
+
+        // 1-1. 시/도 목록 채우기
+        Object.keys(regionData).forEach((sido) => {
+            const option = document.createElement("option");
+            option.value = sido;
+            option.textContent = sido;
+            sidoEl.appendChild(option);
+        });
+
+        // 1-2. 시/도 변경 시 구/군 목록 갱신
+        sidoEl.addEventListener("change", function () {
+            const selected = this.value;
+
+            // 기본 옵션으로 초기화
+            sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
+
+            if (!selected || !regionData[selected]) return;
+
+            regionData[selected].forEach((gu) => {
+                const option = document.createElement("option");
+                option.value = gu;
+                option.textContent = gu;
+                sigunguEl.appendChild(option);
+            });
+        });
+
+        // 1-3. URL에 시/도, 구/군이 있을 경우 기존 값 복원 (선택 유지)
+        const nowSido    = params.get("sido")    || "";
+        const nowSigungu = params.get("sigungu") || "";
+
+        if (nowSido && regionData[nowSido]) {
+            // 시/도 선택 복원
+            sidoEl.value = nowSido;
+
+            // 먼저 구/군 목록 채우고
+            sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
+            regionData[nowSido].forEach((gu) => {
+                const option = document.createElement("option");
+                option.value = gu;
+                option.textContent = gu;
+                sigunguEl.appendChild(option);
+            });
+
+            // 구/군 선택 복원
+            if (nowSigungu) {
+                sigunguEl.value = nowSigungu;
+            }
+        }
+    }
+
+    /* ===========================
+       2) 페이지당 개수(per_page) 처리
+       =========================== */
+    if (perPageEl) {
+        const nowPer = params.get("per_page") || "15";
+        perPageEl.value = nowPer;
+
+        perPageEl.addEventListener("change", function () {
+            const newParams = new URLSearchParams(window.location.search);
+            newParams.set("per_page", this.value);
+            newParams.set("page", 1); // 개수 바꾸면 1페이지로
+            // sort, sido, sigungu 등 기존 값은 그대로 유지됨
+            window.location.search = newParams.toString();
+        });
+    }
+
+    /* ===========================
+       3) sort 처리 (정렬 유지)
+       =========================== */
+    if (sortEl) {
+        const nowSort = params.get("sort") || "recent";
+        sortEl.value = nowSort;
+
+        sortEl.addEventListener("change", function () {
+            const newParams = new URLSearchParams(window.location.search);
+            newParams.set("sort", this.value);
+            newParams.set("page", 1); // 정렬 바꾸면 1페이지로
+            // per_page, sido, sigungu 등 기존 값 유지
+            window.location.search = newParams.toString();
+        });
+    }
 });

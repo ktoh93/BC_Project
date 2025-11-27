@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/recruitment_list.css' %}" />
+{% endblock %}
+
+
+{% block title %}
+모집할래 - 할래말래
+{% endblock %}
+
+{% block contents %}
+
+<!-- 페이지 제목 -->
+<div class="page-title-section">
+  <h2 class="page-title">모집글 목록</h2>
+</div>
+
+
+<!-- 서브 컨테이너 -->
+<div class="sub-container">
+
+    <div class="sub-content">
+        
+    <!-- 검색 섹션 -->
+        <section class="search-section">
+            <div class="search-controls">
+                <select class="search-dropdown" id="searchType">
+                    <option value="all">전체</option>
+                    <option value="facility">시설명</option>
+                    <option value="sport">종목명</option>
+                </select>
+
+                <!-- 시/도 선택 -->
+                <select id="sido" class="search-dropdown">
+                    <option value="">시/도 선택</option>
+                </select>
+
+                    <!-- 구/군 선택 -->
+                <select id="sigungu" class="search-dropdown">
+                    <option value="">구/군 선택</option>
+                </select>
+
+            </div>
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
+                <button type="button" class="search-btn" id="searchBtn">
+                    <span>🔍</span> 검색
+                </button>
+            </div>
+        </section>
+
+        <section class="search-list-section">
+            
+            <div class="sort-page-container">
+                
+                <!-- 정렬 선택 -->
+                <select class="search-dropdown" id="sortSelect">
+                    <option value="recent">최신순</option>
+                    <option value="title">제목순</option>
+                    <option value="views">조회수순</option>
+                </select>
+
+                <!-- <h3 class="section-title">모집글 리스트</h3> -->
+                <!-- 기존 페이지당 개수 선택 -->
+                <div class="page-selector">
+                    <select class="search-dropdown" id="perPageSelect">
+                        <option value="15">15개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="dividing-line">
+           <div class="facility-list" id="facilityList">
+                <ul>
+                    {% for item in page_obj %}
+                        <li class="facility-item">
+                            <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                            <span class="facility-title">{{ item.title }}</span>
+                            <span class="facility-meta">
+                                <span class="facility-date">{{ item.date }}</span>
+                                <span class="facility-views">조회수 {{ item.views }}</span>
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li>등록된 모집글이 없습니다.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+<!--
+DB 작성후 예시
+<ul>
+  {% for item in recruit_list %}
+    <li class="facility-item">
+      <span class="facility-order">{{ forloop.counter }}</span>
+      <span class="facility-title">{{ item.title }}</span>
+      <span class="facility-meta">
+        <span class="facility-date">{{ item.created_at|date:"Y-m-d" }}</span>
+        <span class="facility-views">조회수 {{ item.views }}</span>
+      </span>
+    </li>
+  {% endfor %}
+</ul>
+-->
+
+        </section>
+        <div class="write-btn-container">
+            <a href="/recruitment/write/" class="write-btn">작성하기</a>
+        </div>
+
+        <div class="pagination">
+
+            <!-- 🔹 이전 블록 -->
+            {% if block_start > 1 %}
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn arrow">◀ 이전</a>
+            {% else %}
+                <span class="page-btn arrow disabled">◀ 이전</span>
+            {% endif %}
+
+            <!-- 🔹 페이지 번호 5개씩 블록 -->
+            {% for num in block_range %}
+                {% if num == page_obj.number %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- 🔹 다음 블록 -->
+            {% if block_end < paginator.num_pages %}
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ now_sort }}" class="page-btn arrow">다음 ▶</a>
+            {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+            {% endif %}
+
+        </div>
+
+
+    </div>
+</div>
+
+
+{% block script3 %}
+<script src="{% static 'js/recruitment_list.js' %}"></script>
+{% endblock %}
+
+{% endblock %}
