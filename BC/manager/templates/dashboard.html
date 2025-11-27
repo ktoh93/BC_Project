@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 사이드바 -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-title">관리자 대시보드</div>
+            <ul class="sidebar-menu">
+                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
+                <li><a href="{% url 'facility' %}">시설 관리</a></li>
+                <li><a href="{% url 'manager_login' %}">로그아웃</a></li>
+            </ul>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="dashboard-main">
+            <!-- 필터 -->
+            <div class="filter-section">
+                <form method="GET" class="filter-form">
+                    <select name="region" class="filter-select">
+                        <option value="">전체 지역</option>
+                        {% for region in regions %}
+                        <option value="{{ region }}" {% if selected_region == region %}selected{% endif %}>
+                            {{ region }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <select name="sport" class="filter-select">
+                        <option value="">전체 종목</option>
+                        {% for sport in sports %}
+                        <option value="{{ sport }}" {% if selected_sport == sport %}selected{% endif %}>
+                            {{ sport }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <select name="date_range" class="filter-select">
+                        <option value="7" {% if date_range == '7' %}selected{% endif %}>최근 7일</option>
+                        <option value="30" {% if date_range == '30' %}selected{% endif %}>최근 30일</option>
+                        <option value="90" {% if date_range == '90' %}selected{% endif %}>최근 90일</option>
+                    </select>
+                    <button type="submit" class="filter-btn">적용</button>
+                </form>
+            </div>
+
+            <!-- KPI 카드 -->
+            <div class="kpi-section">
+                <div class="kpi-card">
+                    <div class="kpi-label">오늘의 예약</div>
+                    <div class="kpi-value">{{ kpi_data.today_reservations }}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">오늘의 모집글</div>
+                    <div class="kpi-value">{{ kpi_data.today_communities }}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">오늘의 신규 회원</div>
+                    <div class="kpi-value">{{ kpi_data.today_members }}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">활성 모집글</div>
+                    <div class="kpi-value">{{ kpi_data.active_communities }}</div>
+                </div>
+            </div>
+
+            <!-- 차트 섹션 -->
+            <div class="charts-section">
+                <!-- 예약/모집글 추이 -->
+                <div class="chart-card">
+                    <h3>예약/모집글 일별 추이</h3>
+                    <canvas id="dailyTrendChart"></canvas>
+                </div>
+
+                <!-- 모집 완료 추이 -->
+                <div class="chart-card">
+                    <h3>모집 완료 추이</h3>
+                    <canvas id="completionChart"></canvas>
+                </div>
+
+                <!-- 회원 가입 추이 -->
+                <div class="chart-card">
+                    <h3>회원 가입 추이</h3>
+                    <canvas id="memberChart"></canvas>
+                </div>
+
+                <!-- 성별 분포 -->
+                <div class="chart-card">
+                    <h3>성별 분포</h3>
+                    <canvas id="genderChart"></canvas>
+                </div>
+
+                <!-- 게시판 통계 -->
+                <div class="chart-card">
+                    <h3>게시판별 게시글 수</h3>
+                    <canvas id="boardChart"></canvas>
+                </div>
+
+                <!-- 평점 통계 -->
+                <div class="chart-card">
+                    <h3>지역별 평균 평점</h3>
+                    <canvas id="ratingChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 통계 요약 -->
+            <div class="stats-summary">
+                <div class="stat-box">
+                    <h4>예약 취소율</h4>
+                    <div class="stat-value">{{ cancellation_rate }}%</div>
+                </div>
+                <div class="stat-box">
+                    <h4>참여율</h4>
+                    <div class="stat-value">{{ participation_rate }}%</div>
+                </div>
+                <div class="stat-box">
+                    <h4>평균 평점</h4>
+                    <div class="stat-value">{{ rating_stats.avg }}/5.0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>댓글 수</h4>
+                    <div class="stat-value">{{ comment_count }}</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script>
+        // 데이터 전달
+        const dailyRecruitment = {{ daily_recruitment|safe }};
+        const dailyReservations = {{ daily_reservations|safe }};
+        const completionTrend = {{ completion_trend|safe }};
+        const dailyMembers = {{ daily_members|safe }};
+        const genderData = {{ gender_data|safe }};
+        const boardStats = {{ board_stats|safe }};
+        const regionRatings = {{ region_ratings|safe }};
+    </script>
+</body>
+</html>
+

@@ -15,10 +15,8 @@
         <div class="sidebar-title">관리자님<br>어서오십시오</div>
 
         <ul class="sidebar-menu">
-            <li>시설</li>
-            <li class="submenu">- 시설목록</li>
-            <li class="submenu">- 종목관리</li>
-            <li class="submenu">- 시설관리</li>
+            <li><a href="{% url 'dashboard' %}">대시보드</a></li>
+            <li><a href="{% url 'facility' %}">시설 관리</a></li>
             <li>모집글관리</li>
             <li>공지사항 관리</li>
             <li>이벤트 관리</li>
