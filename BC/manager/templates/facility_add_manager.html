@@ -15,14 +15,31 @@
         <div class="sidebar-title">관리자님<br>어서오십시오</div>
 
         <ul class="sidebar-menu">
-            <li>시설</li>
-            <li class="submenu">- 시설목록</li>
-            <li class="submenu">- 종목관리</li>
-            <li class="submenu">- 시설관리</li>
-            <li>모집글관리</li>
-            <li>공지사항 관리</li>
-            <li>이벤트 관리</li>
-            <li>배너관리</li>
+
+            <!-- 1Depth: 시설 -->
+            <li class="menu-title">시설</li>
+            <ul class="submenu">
+                <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
+                <li><a href="#">시설 목록</a></li>
+                <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
+            </ul>
+
+            <!-- 1Depth: 웹관리 -->
+            <li class="menu-title">웹관리</li>
+            <ul class="submenu">
+                <li><a href="#">모집글관리</a></li>
+                <li><a href="#">공지사항 관리</a></li>
+                <li><a href="#">이벤트 관리</a></li>
+                <li><a href="#">배너관리</a></li>
+            </ul>
+
+            <!-- 1Depth: 통계 -->
+            <li class="menu-title">통계</li>
+            <ul class="submenu">
+                <li><a href="#">시설 통계</a></li>
+                <li><a href="#">?? 통계</a></li>
+            </ul>
+
         </ul>
     </aside>
 

@@ -111,3 +111,6 @@ def facility(request):
     }
 
     return render(request, "facility_add_manager.html", context)
+
+def sport_type(request):
+    return render(request, 'sport_type_manager.html')
