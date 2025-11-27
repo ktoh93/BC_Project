@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시설 목록 관리</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/facility_manager.css' %}">
+</head>
+
+<body>
+
+    <!--  좌측 메뉴 -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-title">관리자님<br>어서오십시오</div>
+
+        <ul class="sidebar-menu">
+            <li>시설</li>
+            <li class="submenu">- 시설목록</li>
+            <li class="submenu">- 종목관리</li>
+            <li class="submenu">- 시설관리</li>
+
+            <li>모집글관리</li>
+
+            <li>공지사항 관리</li>
+
+            <li>이벤트 관리</li>
+
+            <li>배너관리</li>
+        </ul>
+    </aside>
+
+
+    <main class="admin-main">
+
+        <!-- 화면 상단: 시/도 / 구군 + 검색 -->
+        <form method="GET" class="filter-container">
+
+            <select id="sido" name="cpNm" class="filter-select">
+                <option value="">시/도 선택</option>
+            </select>
+
+            <select id="sigungu" name="cpbNm" class="filter-select">
+                <option value="">구/군 선택</option>
+            </select>
+
+            <div class="search-wrap">
+                <input type="text" id="searchKeyword" name="keyword" class="search-input" placeholder="검색어" value="{{ keyword }}">
+                <button type="submit" class="search-btn">검색</button>
+            </div>
+
+        </form>
+        
+        <script id="facilityData" type="application/json">
+            {{ facility_json|safe }}
+        </script>
+
+
+        <div class="facility-box">
+
+            <select id="perPageSelect" class="filter-select">
+                <option value="15">15개</option>
+                <option value="30">30개</option>
+                <option value="50">50개</option>
+                <option value="100">100개</option>
+            </select>
+            
+            <table class="facility-table">
+                <thead class="facility-table-header">
+                    <tr>
+                        <th style="width: 50px;">번호</th>
+                        <th style="width: 50px;">✔</th>
+                        <th>시설명</th>
+                        <th>주소</th>
+                    </tr>
+                </thead>
+                <tbody id="facilityList">
+                    <!-- JS 렌더링 -->
+                </tbody>
+            </table>
+            <div class="pagination">
+
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
+                    class="page-btn arrow">◀ 이전</a>
+                {% else %}
+                    <span class="page-btn arrow disabled">◀ 이전</span>
+                {% endif %}
+
+                {% for num in block_range %}
+                    {% if num == page_obj.number %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
+                        class="page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}" 
+                    class="page-btn arrow">다음 ▶</a>
+                {% else %}
+                    <span class="page-btn arrow disabled">다음 ▶</span>
+                {% endif %}
+
+            </div>
+
+
+
+            <button class="register-btn">등록</button>
+
+        </div>
+    </main>
+
+    <script src="{% static 'js/facility_manager.js' %}"></script>
+
+</body>
+</html>
