@@ -58,15 +58,23 @@ def recruitment_list(request):
 
 def write(request):
     return render(request, 'recruitment_write.html')
-def update(request):
+def update(request,pk):
     return render(request, 'recruitment_update.html')
-def detail(request):
-    # recruit={
-    #     'sido':,
+def detail(request, pk):
+    recruit={
+        'pk':pk,
+        'title':'제목~ 운동같이할랭?',
+        'sido':'서울특별시',
+        'sigungu':'양천구',
+        'sport':'축구',
+        'personnel':10,
+        'facility_name':'체육센터',
+        'content' : """sodyudaspjdofpasdjfp;oijwerpoaskdlgj
+        asldifj;oawiejr내용입니다!!ㄴ아아아아아아아아앙아아아아아아""",
 
-    # }
-    # context ={
-    #     'recruit':recruit,
-    # }
-    return render(request, 'recruitment_detail.html')
-    # return render(request, 'recruitment_detail.html', context)
+    }
+    context ={
+        'recruit':recruit,
+    }
+    # return render(request, 'recruitment_detail.html')
+    return render(request, 'recruitment_detail.html', context)

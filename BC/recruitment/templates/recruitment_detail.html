@@ -17,78 +17,64 @@
 
 {% block contents %}
 <!-- 페이지 제목 -->
-<div class="page-title-section">
-  <h2 class="page-title">모집할래</h2>
-</div>
 
 
 <div class="sub-container">
-     <div class="sub-content">
+<div class="sub-content">
+<div class="page-title-section">
+<h2 class="page-title">{{ recruit.title }}</h2>
+</div>
+<br>
 <div class="form-wrapper">
 <!-- 모집글 상세 -->
-    <section class="recruit-detail">
+<section class="recruit-detail">
 
-        <!-- 1. 제목 -->
-        <div class="form-group full-row">
-            <label class="form-label">제목</label>
-            <p class="form-readonly">{{ recruit.title }}</p>
-        </div>
+  <!-- 상단: 제목 + 메타 뱃지 -->
+  <div class="detail-header">
+    <!-- <h3 class="detail-title">{{ recruit.title }}</h3> -->
 
-        <!-- 2. 시/도 / 구/군 / 종목 / 모집인원 -->
-        <div class="form-row">
-            <div class="form-group small">
-                <label class="form-label">시 / 도</label>
-                <p class="form-readonly">{{ recruit.sido }}</p>
-            </div>
+    <div class="detail-meta">
+      <span class="detail-badge">모집지역 : {{ recruit.sido }} {{ recruit.sigungu }}</span>
+      <span class="detail-badge">운동 : {{ recruit.sport }}</span>
+      <span class="detail-badge">모집 : {{ recruit.personnel }}명</span>
+      {% if recruit.facility_name %}
+        <span class="detail-badge">시설 {{ recruit.facility_name }}</span>
+      {% endif %}
+    </div>
+  </div>
 
-            <div class="form-group small">
-                <label class="form-label">구 / 군</label>
-                <p class="form-readonly">{{ recruit.sigungu }}</p>
-            </div>
+  <!-- 본문 정보 그리드 -->
+  <div class="detail-grid">
+    <div class="detail-row">
+      <div class="detail-label">시설</div>
+      <div class="detail-value">{{ recruit.facility_name }}</div>
+    </div>
 
-            <div class="form-group small">
-                <label class="form-label">종목</label>
-                <p class="form-readonly">{{ recruit.sport }}</p>
-            </div>
+    <div class="detail-row detail-row-content">
+      <div class="detail-label">내용</div>
+      <div class="detail-value detail-content">{{ recruit.content|linebreaksbr }}
+      </div>
+    </div>
 
-            <div class="form-group small">
-                <label class="form-label">모집 인원</label>
-                <p class="form-readonly">{{ recruit.personnel }}명</p>
-            </div>
-        </div>
+    <div class="detail-row">
+      <div class="detail-label">오픈카톡</div>
+      <div class="detail-value">
+        {% if recruit.openchat_url %}
+          <a href="{{ recruit.openchat_url }}" target="_blank" class="detail-link">
+            {{ recruit.openchat_url }}
+          </a>
+        {% else %}
+          등록된 오픈카톡 링크가 없습니다.
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-        <!-- 3. 시설 -->
-        <div class="form-group full-row">
-            <label class="form-label">시설</label>
-            <p class="form-readonly">{{ recruit.facility_name }}</p>
-        </div>
-
-        <!-- 4. 내용 -->
-        <div class="form-group full-row">
-            <label class="form-label">내용</label>
-            <div class="form-readonly form-readonly-multiline">
-                {{ recruit.content|linebreaksbr }}
-            </div>
-        </div>
-
-        <!-- 5. 오픈카톡 URL -->
-        <div class="form-group full-row">
-            <label class="form-label">오픈카톡 URL</label>
-            {% if recruit.openchat_url %}
-                <a href="{{ recruit.openchat_url }}" target="_blank"
-                class="form-readonly form-link">
-                    {{ recruit.openchat_url }}
-                </a>
-            {% else %}
-                <p class="form-readonly">등록된 오픈카톡 링크가 없습니다.</p>
-            {% endif %}
-        </div>
-
-    </section>
+</section>
 
     <!-- 7. 버튼 -->
     <div class="btn-row">
-        <!-- <button class="btn btn-submit">작성</button> -->
+        <button class="btn btn-update">수정</button>
         <button class="btn btn-list">목록</button>
     </div>
 
