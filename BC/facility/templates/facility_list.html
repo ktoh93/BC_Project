@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/facility_list.css' %}" />
+{% endblock %}
+
+
+{% block title %}
+모집할래 - 할래말래
+{% endblock %}
+
+{% block contents %}
+
+<!-- 페이지 제목 -->
+<div class="page-title-section">
+    <h2 class="page-title">시설 목록</h2>
+</div>
+
+
+<!-- 서브 컨테이너 -->
+<div class="sub-container">
+
+    <div class="sub-content">
+
+        <!-- 검색 섹션 -->
+        <section class="search-section">
+            <div class="search-controls">
+                <!-- 시/도 선택 -->
+                <select id="sido" class="search-dropdown">
+                    <option value="">시/도 선택</option>
+                </select>
+
+                <!-- 구/군 선택 -->
+                <select id="sigungu" class="search-dropdown">
+                    <option value="">구/군 선택</option>
+                </select>
+
+            </div>
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
+                <button type="button" class="search-btn" id="searchBtn">
+                    <span>🔍</span> 검색
+                </button>
+            </div>
+        </section>
+
+        <section class="search-list-section">
+            총 {{ merged_count }} 개
+            <hr class="dividing-line">
+            <div class="facility-list" id="facilityList">
+               <ul>
+                    {% for item in page_obj %}
+                    <li class="facility-item">
+                        <span class="facility-order">{{ forloop.counter }}</span>
+                        <span class="facility-title"><a href="detail/{{ item.id }}">{{ item.name }}</a></span>
+                        <span class="facility-meta">
+                            <span class="facility-views"> {{ item.phone }}</span>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul> 
+            </div>
+
+        </section>
+
+        <div class="pagination">
+
+            <!-- 🔹 이전 블록 -->
+            {% if block_start > 1 %}
+            <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}" class="page-btn arrow">◀ 이전</a>
+            {% else %}
+            <span class="page-btn arrow disabled">◀ 이전</span>
+            {% endif %}
+
+            <!-- 🔹 페이지 번호 5개씩 블록 -->
+            {% for num in block_range %}
+            {% if num == page_obj.number %}
+            <span class="page-btn active">{{ num }}</span>
+            {% else %}
+            <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            <!-- 🔹 다음 블록 -->
+            {% if block_end < paginator.num_pages %} <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}"
+                class="page-btn arrow">다음 ▶</a>
+                {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+                {% endif %}
+
+        </div>
+
+
+    </div>
+</div>
+
+
+{% block script3 %}
+<script src="{% static 'js/facility_list.js' %}"></script>
+{% endblock %}
+
+{% endblock %}
