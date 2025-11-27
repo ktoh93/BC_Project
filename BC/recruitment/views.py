@@ -54,8 +54,8 @@ def recruitment_list(request):
         "block_end": block_end,
     }
 
-    return render(request, "recruitment_list.html", context)
+    return render(request, "recruitment.html", context)
 
 
 def write(request):
-    return render(request, 'write.html')
+    return render(request, 'recruitment_write.html')
