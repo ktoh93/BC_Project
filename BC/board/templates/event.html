@@ -44,26 +44,6 @@
 
         <section class="search-list-section">
             
-            <div class="sort-page-container">
-                
-                <!-- 정렬 선택 -->
-                <select class="search-dropdown" id="sortSelect">
-                    <option value="recent">최신순</option>
-                    <option value="title">제목순</option>
-                    <option value="views">조회수순</option>
-                </select>
-
-                <!-- 페이지당 개수 선택 -->
-                <div class="page-selector">
-                    <select class="search-dropdown" id="perPageSelect">
-                        <option value="15">15개</option>
-                        <option value="30">30개</option>
-                        <option value="50">50개</option>
-                        <option value="100">100개</option>
-                    </select>
-                </div>
-            </div>
-            <hr class="dividing-line">
             
             <!-- 고정 게시글 섹션 -->
             <div class="pinned-section" id="pinnedSection">
@@ -83,6 +63,26 @@
                             <li class="no-pinned">고정된 게시글이 없습니다.</li>
                         {% endfor %}
                     </ul>
+                </div>
+            </div>
+            
+            <div class="sort-page-container">
+                
+                <!-- 정렬 선택 -->
+                <select class="search-dropdown" id="sortSelect">
+                    <option value="recent">최신순</option>
+                    <option value="title">제목순</option>
+                    <option value="views">조회수순</option>
+                </select>
+
+                <!-- 페이지당 개수 선택 -->
+                <div class="page-selector">
+                    <select class="search-dropdown" id="perPageSelect">
+                        <option value="15">15개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
                 </div>
             </div>
             

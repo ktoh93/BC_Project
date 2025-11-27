@@ -1,0 +1,66 @@
+.post-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+/* 상단 이미지 + 대제목 */
+.post-hero {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--spacing-2xl);
+  overflow: hidden;
+  padding: var(--spacing-2xl);
+  min-height: 300px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-image: url('/static/img/post_hero.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 20px;
+}
+
+.post-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.post-hero h1 {
+  font-size: 80px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -2px;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  text-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 0, 0, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 768px) {
+  .post-hero {
+    padding: var(--spacing-xl);
+    min-height: 250px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .post-hero h1 {
+    font-size: 28px;
+    text-align: center;
+  }
+}
+

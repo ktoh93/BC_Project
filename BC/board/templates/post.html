@@ -1,23 +1,120 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/board_list.css' %}" />
+<link rel="stylesheet" href="{% static 'css/post.css' %}" />
+{% endblock %}
+
+{% block script1 %}
+<script src="{% static 'js/board_list.js' %}"></script>
+{% endblock %}
 
 {% block title %}
 수다떨래 - 할래말래
 {% endblock %}
 
 {% block contents %}
-<div class="sub-container">
-  <div class="sub-content">
-    <div class="page-title-section">
-      <h1 class="page-title">수다떨래</h1>
-    </div>
-    
-    <div style="text-align: center; margin-top: var(--spacing-2xl);">
-      <p style="font-size: 18px; color: var(--color-text-secondary);">
-        자유게시판 페이지입니다.
-      </p>
-    </div>
-  </div>
-</div>
-{% endblock %}
 
+<div class="post-container">
+
+  <!-- 상단 이미지 + 대제목 -->
+  <div class="post-hero">
+    <h1>수다떨래</h1>
+  </div>
+
+  <!-- 서브 컨테이너 -->
+  <div class="sub-container">
+
+    <div class="sub-content">
+        
+    <!-- 검색 섹션 -->
+        <section class="search-section">
+            <div class="search-controls">
+                <select class="search-dropdown" id="searchType">
+                    <option value="title_content">제목 + 내용</option>
+                    <option value="title">제목</option>
+                    <option value="author">작성자</option>
+                </select>
+            </div>
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
+                <button type="button" class="search-btn" id="searchBtn">
+                    <span>🔍</span> 검색
+                </button>
+            </div>
+        </section>
+
+        <section class="search-list-section">
+            
+            <div class="sort-page-container">
+                
+                <!-- 정렬 선택 -->
+                <select class="search-dropdown" id="sortSelect">
+                    <option value="recent">최신순</option>
+                    <option value="title">제목순</option>
+                    <option value="views">조회수순</option>
+                </select>
+
+                <!-- 페이지당 개수 선택 -->
+                <div class="page-selector">
+                    <select class="search-dropdown" id="perPageSelect">
+                        <option value="15">15개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="dividing-line">
+            
+           <div class="facility-list" id="facilityList">
+                <ul>
+                    {% for item in page_obj %}
+                        <li class="facility-item">
+                            <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
+                            <span class="facility-title">{{ item.title }}</span>
+                            <span class="facility-author">{{ item.author }}</span>
+                            <span class="facility-date">{{ item.date }}</span>
+                            <span class="facility-views">조회수 {{ item.views }}</span>
+                        </li>
+                    {% empty %}
+                        <li>등록된 게시글이 없습니다.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </section>
+        <div class="write-btn-container">
+            <a href="/board/post/write/" class="write-btn">작성하기</a>
+        </div>
+
+       <div class="pagination">
+
+            <!-- 🔹 이전 블록 -->
+            {% if block_start > 1 %}
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
+            {% else %}
+                <span class="page-btn arrow disabled">◀ 이전</span>
+            {% endif %}
+
+            <!-- 🔹 페이지 번호 5개씩 블록 -->
+            {% for num in block_range %}
+                {% if num == page_obj.number %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- 🔹 다음 블록 -->
+            {% if block_end < paginator.num_pages %}
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
+            {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
