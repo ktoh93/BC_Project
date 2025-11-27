@@ -53,7 +53,7 @@ def recruitment_list(request):
         "block_end": block_end,
     }
 
-    return render(request, "recruitment.html", context)
+    return render(request, "recruitment_list.html", context)
 
 
 def write(request):
