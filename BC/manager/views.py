@@ -18,3 +18,6 @@ def manager(request):
             })
         """
     return render(request, 'login_manager.html')
+
+def facility(request):
+    return render(request, 'facility_manager.html')
