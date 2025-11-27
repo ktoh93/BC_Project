@@ -51,10 +51,10 @@
     padding: 12px 20px;
     border: 1px solid var(--color-soft-gray-line);
     background: var(--color-card-box);
-    font-size: 14px;
+    font-size: 18px;
     color: var(--color-text-primary);
     cursor: pointer;
-    min-width: 140px;
+    min-width: 160px;
     transition: all var(--transition-base);
 }
 
@@ -314,3 +314,178 @@
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+
+.page-selector{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-xs);
+}
+
+.pagination {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--color-soft-gray-line);
+    border-radius: 6px;
+    background: var(--color-card-box);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.page-btn:hover {
+    background: var(--color-muted-blue);
+    color: white;
+}
+
+.page-btn.active {
+    background: var(--color-deep-blue);
+    color: white;
+    border-color: var(--color-deep-blue);
+    font-weight: 700;
+}
+
+.page-btn.arrow {
+    font-weight: 600;
+}
+
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.page-dots {
+    padding: 6px 10px;
+    color: var(--color-text-secondary);
+}
+
+.sort-page-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.sort-page-container .search-dropdown {
+    min-width: 140px;
+}
+
+.page-selector {
+    display: flex;
+    justify-content: flex-end;
+    width: 150px; /* 원하면 조절 가능 */
+}
+
+.dividing-line {
+    border: 0;
+    border-top: 2px solid var(--color-muted-blue);
+    margin: 20px 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ====== 시설 리스트 테이블 스타일 ====== */
+
+.facility-list {
+    width: 100%;
+    margin-top: var(--spacing-md);
+    background: var(--color-card-box);
+    border-radius: 8px;
+    border: 1px solid var(--color-soft-gray-line);
+    overflow: hidden;
+}
+
+/* ul 기본 리셋 */
+.facility-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* 헤더 + 아이템 공통 레이아웃 */
+.facility-header,
+.facility-item {
+    display: grid;
+    grid-template-columns: 1.2fr 2.5fr 1.6fr 1.4fr 1fr; /* 시설번호 / 시설명 / 시도 / 구군 / 조회수 */
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    column-gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* 헤더 스타일 */
+.facility-header {
+    background-color: #F5F7FA;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* 행 스타일 */
+.facility-item {
+    border-bottom: 1px solid var(--color-soft-gray-line);
+    background-color: var(--color-card-box);
+    transition: background-color var(--transition-base);
+}
+
+.facility-item:last-child {
+    border-bottom: none;
+}
+
+.facility-item:hover {
+    background-color: #F9FBFF;
+}
+
+/* 조회수 정렬 */
+.facility-views {
+    text-align: right;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+/* 데이터 없을 때 */
+.facility-empty {
+    grid-template-columns: 1fr;
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-lg);
+}
+
+/* 좁은 화면일 때 살짝 줄이기 (선택) */
+@media (max-width: 768px) {
+    .facility-header,
+    .facility-item {
+        grid-template-columns: 1.4fr 2.6fr 1.6fr 1.4fr 1.1fr;
+        padding: 0.7rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+
+
+
+
+
+

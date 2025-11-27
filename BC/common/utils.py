@@ -7,6 +7,7 @@ import random
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 _notice_pinned_posts_cache = None
 _recruitment_dummy_list_cache = None
+_reservation_dummy_list_cache = None
 _notice_dummy_list_cache = None
 _event_dummy_list_cache = None
 _event_pinned_posts_cache = None
@@ -54,6 +55,38 @@ def get_recruitment_dummy_list():
     # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
     return [item.copy() for item in _recruitment_dummy_list_cache]
 
+# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
+def get_reservation_dummy_list():
+    """모집 게시글 더미 리스트 생성 (한 번 생성 후 재사용)"""
+    global _reservation_dummy_list_cache
+    
+    # 캐시가 없으면 생성
+    if _reservation_dummy_list_cache is None:
+        _reservation_dummy_list_cache = [
+            {
+                "facility_num": f"시설 숫자~ {i}",
+                "facility_name": "시설명임다~",
+                "facility_addr1": "서울특별시",
+                "facility_addr2": "양천구",
+                "views": i * 3
+            }
+            for i in range(1, 201)
+        ]
+    
+    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
+    return [item.copy() for item in _reservation_dummy_list_cache]
+    
+
+
+
+# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
+def reset_reservation_cache():
+    """공지사항 고정 게시글 캐시 초기화"""
+    global _reservation_dummy_list_cache
+    _reservation_dummy_list_cache = None
+
+
+
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 def reset_notice_pinned_posts_cache():
@@ -100,6 +133,9 @@ def get_notice_dummy_list():
     
     # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
     return [item.copy() for item in _notice_dummy_list_cache]
+
+
+
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
