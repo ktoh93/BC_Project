@@ -1,0 +1,84 @@
+body {
+    margin: 0;
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 230px;
+    background: #1A2A43;
+    color: white;
+    padding: 25px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* 기본 목록 스타일 제거 */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* li 간격 */
+.sidebar-menu li {
+    margin: 8px 0;
+}
+
+/* 모든 링크 공통 스타일 */
+.sidebar-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    display: block;
+    padding: 8px 5px;
+    border-radius: 4px;
+}
+
+/* hover 효과 */
+.sidebar-menu a:hover {
+    background: #2F4266;
+}
+
+/* 1Depth 제목 */
+.menu-title {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #9fb3d1; /* 은은한 회색-블루톤 */
+    font-weight: 600;
+}
+
+/* 2Depth 메뉴 */
+.submenu {
+    list-style: none;
+    padding: 0 0 0 10px;
+    margin: 0 0 10px 0;
+}
+
+.submenu li {
+    margin: 6px 0;
+}
+
+.submenu li a {
+    color: #ffffff !important;
+    text-decoration: none;
+    display: block;
+    padding: 6px 5px;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+/* hover 은은하게 */
+.submenu li a:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+
+.admin-main {
+    flex: 1;
+    padding: 30px 40px;
+    background: #F4F8FB;
+}
