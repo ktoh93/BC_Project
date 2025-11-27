@@ -9,6 +9,10 @@
 모집할래 - 할래말래
 {% endblock %}
 
+{% block script1 %}
+<script src="{% static 'js/recruitment_list.js' %}"></script>
+{% endblock %}
+
 {% block contents %}
 
 <!-- 페이지 제목 -->
@@ -142,8 +146,5 @@ DB 작성후 예시
 </div>
 
 
-{% block script3 %}
-<script src="{% static 'js/recruitment_list.js' %}"></script>
-{% endblock %}
 
 {% endblock %}
