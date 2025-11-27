@@ -56,7 +56,7 @@ def myreservation(request):
     return render('', 'myreservation.html', {'list' : list})
 
 
-def mycommunity(request):
+def myrecruitment(request):
     list =[
         {
             'community_id':'게시글번호 예시',
@@ -66,7 +66,7 @@ def mycommunity(request):
             'view_cnt' : '조회수임다',
         },
     ]
-    return render('', 'mycommunity.html',{'list':list})
+    return render('', 'myrecruitment.html',{'list':list})
 
 
 def myarticle(request):

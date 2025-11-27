@@ -6,7 +6,7 @@ urlpatterns = [
     path('edit/', views.edit),
     path('password/', views.edit_password),
     path('myreservation/', views.myreservation),
-    path('mycommunity/', views.mycommunity),
+    path('myrecruitment/', views.myrecruitment),
     path('myarticle/', views.myarticle),
     path('myjoin/', views.myjoin),
     

@@ -104,3 +104,39 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+
+// DOM 로드 후 실행
+document.addEventListener("DOMContentLoaded", () => {
+    const btn_submit = document.querySelector(".btn-submit");
+    const btn_list = document.querySelector(".btn-list");
+
+
+    // 1) 정보 수정 클릭
+    btn_submit.addEventListener("click", function() {
+        // console.log("sumbit 클릭됨");
+        handle_submit();
+    });
+    
+    // 2) 비밀번호 변경 클릭
+    btn_list.addEventListener("click", function() {
+        // console.log("list 클릭됨");
+        handle_list();
+    });
+
+});
+
+function handle_submit() {
+    // 예시: 수정 페이지로 이동
+    window.location.href = "/recruitment/detail";
+
+    // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
+    // alert("정보 수정 기능 준비중");
+}
+function handle_list() {
+    // 예시: 수정 페이지로 이동
+    window.location.href = "/recruitment";
+
+    // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
+    // alert("정보 수정 기능 준비중");
+}
