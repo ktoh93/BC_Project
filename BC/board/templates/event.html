@@ -115,7 +115,7 @@
 
             <!-- 🔹 이전 블록 -->
             {% if block_start > 1 %}
-                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}" class="page-btn arrow">◀ 이전</a>
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
             {% else %}
                 <span class="page-btn arrow disabled">◀ 이전</span>
             {% endif %}
@@ -125,13 +125,13 @@
                 {% if num == page_obj.number %}
                     <span class="page-btn active">{{ num }}</span>
                 {% else %}
-                    <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- 🔹 다음 블록 -->
             {% if block_end < paginator.num_pages %}
-                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}" class="page-btn arrow">다음 ▶</a>
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
             {% else %}
                 <span class="page-btn arrow disabled">다음 ▶</span>
             {% endif %}
