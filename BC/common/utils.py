@@ -25,6 +25,7 @@ def get_notice_pinned_posts():
             days_ago = random.randint(0, 30)  # 최근 30일 내
             random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
             pinned_posts.append({
+                "id": 1000 + i,  # 고정 게시글은 1000번대 ID
                 "title": f"🔒 [중요] 고정 공지사항 {i} - 반드시 확인해주세요",
                 "date": random_date,
                 "views": random.randint(100, 10000),
@@ -124,6 +125,7 @@ def get_notice_dummy_list():
             random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
             
             dummy_list.append({
+                "id": i,
                 "title": f"{random_title} {i}번째 공지사항입니다",
                 "date": random_date,
                 "views": random.randint(10, 5000),
@@ -160,6 +162,7 @@ def get_event_dummy_list():
             random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
             
             dummy_list.append({
+                "id": i,
                 "title": f"{random_title} {i}번째 이벤트가 진행 중입니다!",
                 "date": random_date,
                 "views": random.randint(10, 5000),
@@ -183,6 +186,7 @@ def get_event_pinned_posts():
             days_ago = random.randint(0, 30)  # 최근 30일 내
             random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
             pinned_posts.append({
+                "id": 2000 + i,  # 고정 이벤트는 2000번대 ID
                 "title": f"🎉 [진행중] 고정 이벤트 {i} - 지금 바로 참여하세요!",
                 "date": random_date,
                 "views": random.randint(100, 10000),

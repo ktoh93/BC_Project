@@ -102,7 +102,7 @@
                     {% for item in page_obj %}
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                            <span class="facility-title">{{ item.title }}</span>
+                            <a href="/board/notice/{{ item.id }}/" class="facility-title">{{ item.title }}</a>
                             <span class="facility-author">{{ item.author }}</span>
                             <span class="facility-date">{{ item.date }}</span>
                             <span class="facility-views">{{ item.views }}</span>
