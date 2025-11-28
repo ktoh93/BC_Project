@@ -1,37 +1,56 @@
 import os
+import time
+import json
 import requests
-from django.shortcuts import render
-from django.core.paginator import Paginator
 import urllib.request
 import urllib.parse
-import json
+from django.core.cache import cache
+from django.shortcuts import render
+from django.core.paginator import Paginator
 
 # 시설 api 가져오기
-def facility(data):
+FACILITY_CACHE_TIMEOUT = 60 * 10  # 10분
+GEO_CACHE_TTL = 60 * 30  # 30분
+_geo_cache = {}
+
+
+def facility(data, rows=200):
     DATA_API_KEY = os.getenv("DATA_API_KEY")  
-    cp_nm = data.get('cp_nm')
-    cpb_nm = data.get('cpb_nm')
-    keyword = data.get('keyword')
+    cp_nm = (data.get('cp_nm') or "").strip()
+    cpb_nm = (data.get('cpb_nm') or "").strip()
+    keyword = (data.get('keyword') or "").strip()
+
+    cache_key = f"facility:{cp_nm}:{cpb_nm}:{keyword}:{rows}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     API_URL = "https://apis.data.go.kr/B551014/SRVC_API_FACI_SCHK_RESULT/TODZ_API_FACI_SAFETY"
     params = {
         "serviceKey": DATA_API_KEY,
-        "numOfRows": 300,
+        "numOfRows": rows,
         "pageNo": 1,
         "faci_gb_nm": "공공",
-        "cp_nm": cp_nm,
-        "cpb_nm": cpb_nm,
+        "cp_nm": cp_nm or None,
+        "cpb_nm": cpb_nm or None,
         "resultType": "json"
     }
     if keyword:
         params["faci_nm"] = keyword
 
+    # None 값은 API 호출 시 제외
+    params = {k: v for k, v in params.items() if v not in (None, "")}
+
     facilities = []
 
     try:
         res = requests.get(API_URL, params=params, timeout=5)
+        res.raise_for_status()
         data = res.json()
-        items = data["response"]["body"]["items"]["item"]
+        items = data["response"]["body"]["items"].get("item", [])
+
+        if isinstance(items, dict):
+            items = [items]
 
         for item in items:
             facilities.append({
@@ -50,6 +69,8 @@ def facility(data):
                 "lat": None,
                 "lng": None,
             })
+
+        cache.set(cache_key, facilities, FACILITY_CACHE_TIMEOUT)
 
     except Exception as e:
         print("공공데이터 API 오류:", e)
@@ -106,6 +127,23 @@ def facility_list(request):
 
 
 # 주소를 기반으로 지도에 표시하기 위한 작업
+def _get_cached_geo(address):
+    entry = _geo_cache.get(address)
+    if not entry:
+        return None
+    if time.time() - entry["ts"] > GEO_CACHE_TTL:
+        _geo_cache.pop(address, None)
+        return None
+    return entry["coords"]
+
+
+def _set_cached_geo(address, lat, lng):
+    _geo_cache[address] = {
+        "coords": (lat, lng),
+        "ts": time.time()
+    }
+
+
 def kakao_for_map(page_obj):
     KAKAO_REST_KEY = os.getenv("KAKAO_REST_API_KEY")
     headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"} if KAKAO_REST_KEY else None
@@ -122,6 +160,11 @@ def kakao_for_map(page_obj):
         if not (headers and full_addr):
             continue
 
+        cached_coords = _get_cached_geo(full_addr)
+        if cached_coords:
+            fac["lat"], fac["lng"] = cached_coords
+            continue
+
         try:
             resp = requests.get(
                 "https://dapi.kakao.com/v2/local/search/address.json",
@@ -133,8 +176,11 @@ def kakao_for_map(page_obj):
             docs = data.get("documents")
 
             if docs:
-                fac["lat"] = float(docs[0]["y"])
-                fac["lng"] = float(docs[0]["x"])
+                lat = float(docs[0]["y"])
+                lng = float(docs[0]["x"])
+                fac["lat"] = lat
+                fac["lng"] = lng
+                _set_cached_geo(full_addr, lat, lng)
 
         except Exception as e:
             print("카카오 지오코딩 오류:", e)
