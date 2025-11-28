@@ -7,7 +7,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/facility_list_manager.css' %}">
+    <link rel="stylesheet" href="{% static 'css/recruitment_manager.css' %}">
 </head>
 
 <body>
@@ -40,43 +40,27 @@
 
     <main class="dashboard-main">
 
-        <form method="GET" class="filter-container">
-
-            <select id="sido" name="sido" class="filter-select">
-                <option value="">시/도 선택</option>
-            </select>
-
-            <select id="sigungu" name="sigungu" class="filter-select">
-                <option value="">구/군 선택</option>
-            </select>
-            <div class="search-wrap">
-                <input type="text" id="searchKeyword" name="keyword" class="search-input"
-                       placeholder="검색어" value="{{ keyword }}">
-                <button type="submit" class="search-btn">검색</button>
-            </div>
-        </form>
-
         <script id="facilityData" type="application/json">
             {{ facility_json|safe }}
         </script>
 
         <div class="facility-box">
-            <h1 class="box-header">시설 목록</h1>
-
+            <h1 class="box-header">모집글 관리</h1>
+            
             <select id="perPageSelect" class="filter-select">
                 <option value="15">15개</option>
                 <option value="30">30개</option>
                 <option value="50">50개</option>
                 <option value="100">100개</option>
             </select>
-
             <table class="facility-table">
+                
                 <thead class="facility-table-header">
                     <tr>
                         <th>번호</th>
                         <th>✔</th>
-                        <th>시설명</th>
-                        <th>주소</th>
+                        <th>제목</th>
+                        <th>작성자 ID</th>
                     </tr>
                 </thead>
                 <tbody id="facilityList"></tbody>
@@ -86,7 +70,7 @@
             <div class="pagination">
                 {% if page_obj.has_previous %}
                     <a class="page-btn arrow"
-                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}">◀ 이전</a>
+                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
                 {% else %}
                     <span class="page-btn arrow disabled">◀ 이전</span>
                 {% endif %}
@@ -96,13 +80,13 @@
                         <span class="page-btn active">{{ num }}</span>
                     {% else %}
                         <a class="page-btn"
-                           href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}"">{{ num }}</a>
+                           href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
                     <a class="page-btn arrow"
-                       href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}"">다음 ▶</a>
+                       href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">다음 ▶</a>
                 {% else %}
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
@@ -111,7 +95,7 @@
         </div>
     </main>
 
-    <script src="{% static 'js/facility_list_manager.js' %}"></script>
+
 
 </body>
 </html>

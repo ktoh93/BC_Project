@@ -514,6 +514,7 @@ def facility_list(request):
     # ============================
     # 페이징
     # ============================
+    
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
@@ -542,11 +543,59 @@ def facility_list(request):
 
 
 def recruitment_manager(request):
+    queryset = []  
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+
+    for idx, item in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": item.id,
+            "name": item.facility_name,
+            "address": item.addr_full,
+            "row_no": start_index + idx + 1,
+        })
     return render(request, 'recruitment_manager.html')
 
 def event_manager(request):
+    queryset = []  
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+
+    for idx, item in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": item.id,
+            "name": item.facility_name,
+            "address": item.addr_full,
+            "row_no": start_index + idx + 1,
+        })
     return render(request, 'event_manager.html')
 
 
 def board_manager(request):
+    queryset = []  
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+
+    for idx, item in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": item.id,
+            "name": item.facility_name,
+            "address": item.addr_full,
+            "row_no": start_index + idx + 1,
+        })
     return render(request, 'board_manager.html')

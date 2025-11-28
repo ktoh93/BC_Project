@@ -1,0 +1,352 @@
+body {
+    margin: 0;
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 230px;
+    background: #1A2A43;
+    color: white;
+    padding: 25px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* 기본 목록 스타일 제거 */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* li 간격 */
+.sidebar-menu li {
+    margin: 8px 0;
+}
+
+/* 모든 링크 공통 스타일 */
+.sidebar-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    display: block;
+    padding: 8px 5px;
+    border-radius: 4px;
+}
+
+/* hover 효과 */
+.sidebar-menu a:hover {
+    background: #2F4266;
+}
+
+/* 1Depth 제목 */
+.menu-title {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #9fb3d1; /* 은은한 회색-블루톤 */
+    font-weight: 600;
+}
+
+/* 2Depth 메뉴 */
+.submenu {
+    list-style: none;
+    padding: 0 0 0 10px;
+    margin: 0 0 10px 0;
+}
+
+.submenu li {
+    margin: 6px 0;
+}
+
+.submenu li a {
+    color: #ffffff !important;
+    text-decoration: none;
+    display: block;
+    padding: 6px 5px;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+/* hover 은은하게 */
+.submenu li a:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+
+.admin-main {
+    flex: 1;
+    padding: 30px 40px;
+    background: #F4F8FB;
+}
+
+.filter-container {
+    display: flex;
+    justify-content: flex-end;   /* 오른쪽 정렬 */
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-select {
+    height: 40px;
+    padding: 8px;
+    border: 1px solid #cdd3da;
+    border-radius: 6px;
+}
+
+.search-wrap {
+    display: flex;
+    gap: 8px;
+}
+
+.search-input {
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid #cdd3da;
+    border-radius: 6px;
+}
+
+.search-btn {
+    height: 40px;
+    padding: 0 14px;
+    background: var(--color-deep-blue);
+    color: white;
+    border-radius: 6px;
+    border: none;
+}
+.facility-box {
+    position: relative;           
+    background: #fff;
+    border: 1px solid #cdd3da;
+    padding: 20px;
+    border-radius: 10px;
+    min-height: 200px;           
+}
+
+.facility-box select#perPageSelect {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+}
+
+.facility-item {
+    padding: 8px 0;
+    font-size: 15px;
+}
+
+.pages {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.register-btn {
+    position: absolute;
+    right: 20px;                  
+    bottom: 20px;                
+    padding: 10px 20px;
+    background: var(--color-deep-blue);
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+/* 페이징 */
+.page-selector{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-xs);
+}
+
+.pagination {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--color-soft-gray-line);
+    border-radius: 6px;
+    background: var(--color-card-box);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.page-btn:hover {
+    background: var(--color-muted-blue);
+    color: white;
+}
+
+.page-btn.active {
+    background: var(--color-deep-blue);
+    color: white;
+    border-color: var(--color-deep-blue);
+    font-weight: 700;
+}
+
+.page-btn.arrow {
+    font-weight: 600;
+}
+
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.page-dots {
+    padding: 6px 10px;
+    color: var(--color-text-secondary);
+}
+
+.sort-page-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.sort-page-container .search-dropdown {
+    min-width: 140px;
+}
+
+.page-selector {
+    display: flex;
+    justify-content: flex-end;
+    width: 150px; /* 원하면 조절 가능 */
+}
+
+#perPageSelect {
+    margin-bottom: var(--spacing-md);
+    
+}
+
+.facility-table td:nth-child(1),
+.facility-table th:nth-child(1) {
+    width: 80px;
+    white-space: nowrap;
+}
+
+/* 시설 리스트 테이블 (common.css 디자인 기반) */
+.facility-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-md);
+    background: var(--color-card-box);
+    border: 1px solid var(--color-soft-gray-line);
+    font-size: 15px;
+    margin-top: 50px;
+}
+
+/* 헤더 */
+.facility-table-header th {
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-soft-gray-line);
+    padding: var(--spacing-sm);
+    text-align: center;
+    font-weight: 600;
+}
+
+/* 일반 셀 */
+.facility-table td {
+    border-bottom: 1px solid var(--color-soft-gray-line);
+    padding: var(--spacing-sm);
+    color: var(--color-text-secondary);
+}
+
+/* 번호, 체크 */
+.facility-table td:nth-child(1),
+.facility-table td:nth-child(2) {
+    text-align: center;
+    color: var(--color-text-primary);
+}
+
+/* 시설명, 주소 */
+.facility-table td:nth-child(3),
+.facility-table td:nth-child(4) {
+    text-align: left;
+}
+
+/* 홀수/짝수 배경 */
+.facility-table tbody tr:nth-child(odd) {
+    background: #FAFCFF;
+}
+
+.facility-table tbody tr:nth-child(even) {
+    background: #FFFFFF;
+}
+
+/* 호버 효과 */
+.facility-table tbody tr:hover {
+    background: #EDF4FF;
+    transition: var(--transition-base);
+}
+
+/* 체크박스 */
+.facility-check {
+    width: 18px;
+    height: 18px;
+}
+
+.box-header {
+    width: 100%;
+    text-align: center;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: var(--color-text-primary);
+    padding-bottom: var(--spacing-md);
+
+    border-bottom: 2px solid var(--color-soft-gray-line);
+
+    margin-bottom: var(--spacing-lg);
+}
+
+.delete-btn {
+    position: absolute;
+    right: 20px;                  
+    bottom: 20px;                
+    padding: 10px 20px;
+    background: #d9534f;
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #b52b27;
+}
+
+/* 테이블 컬럼 비율 조정 */
+.facility-table th:nth-child(1),
+.facility-table td:nth-child(1) {
+    width: 100px; /* 번호 */
+}
+
+.facility-table th:nth-child(2),
+.facility-table td:nth-child(2) {
+    width: 80px; /* 체크박스 */
+    text-align: center;
+}
+
+.facility-table th:nth-child(3),
+.facility-table td:nth-child(3) {
+    width: 60%; /* 제목 – 가장 넓게 */
+}
+
+.facility-table th:nth-child(4),
+.facility-table td:nth-child(4) {
+    width: 25%; /* 작성자 ID – 제목의 1/3 정도 */
+}

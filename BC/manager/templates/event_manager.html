@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시설 목록 관리</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/event_manager.css' %}">
+</head>
+
+<body>
+    <aside class="admin-sidebar">
+        <div class="sidebar-title">관리자님<br>어서오십시오</div>
+        <ul class="sidebar-menu">
+
+            <li class="menu-title">시설</li>
+            <ul class="submenu">
+                <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
+                <li><a href="{% url 'facility_list' %}">시설 목록</a></li>
+                <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
+            </ul>
+
+            <li class="menu-title">웹관리</li>
+            <ul class="submenu">
+                <li><a href="{%url 'recruitment_manager'%}">모집글관리</a></li>
+                <li><a href="{%url 'board_manager'%}">공지사항 관리</a></li>
+                <li><a href="{%url 'event_manager'%}">이벤트 관리</a></li>
+                <li><a href="#">배너관리</a></li>
+            </ul>
+
+            <li class="menu-title">통계</li>
+            <ul class="submenu">
+                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
+                <li><a href="#">시설 통계</a></li>
+            </ul>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main">
+
+        <script id="facilityData" type="application/json">
+            {{ facility_json|safe }}
+        </script>
+
+        <div class="facility-box">
+            <h1 class="box-header">이벤트 관리</h1>
+            
+            <select id="perPageSelect" class="filter-select">
+                <option value="15">15개</option>
+                <option value="30">30개</option>
+                <option value="50">50개</option>
+                <option value="100">100개</option>
+            </select>
+            <table class="facility-table">
+                
+                <thead class="facility-table-header">
+                    <tr>
+                        <th>번호</th>
+                        <th>✔</th>
+                        <th>제목</th>
+                        <th>작성자 ID</th>
+                    </tr>
+                </thead>
+                <tbody id="facilityList"></tbody>
+            </table>
+
+            <!-- 페이징 -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a class="page-btn arrow"
+                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
+                {% else %}
+                    <span class="page-btn arrow disabled">◀ 이전</span>
+                {% endif %}
+
+                {% for num in block_range %}
+                    {% if num == page_obj.number %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% else %}
+                        <a class="page-btn"
+                           href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="page-btn arrow"
+                       href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">다음 ▶</a>
+                {% else %}
+                    <span class="page-btn arrow disabled">다음 ▶</span>
+                {% endif %}
+            </div>
+            <button class="delete-btn">삭제</button>
+        </div>
+    </main>
+
+
+
+</body>
+</html>
