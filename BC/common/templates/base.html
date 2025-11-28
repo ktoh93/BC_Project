@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/header.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
-    {% block css %}
-    {% endblock %}
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
-    {% block template_css %}
-    {% endblock %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+    {% block css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    {% block template_css %}{% endblock %}
+
     <script src="{% static 'js/menu.js' %}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    {% block script1 %}
-    {% endblock %}
 
-    <title>
-        {% block title %}
-        {% endblock %}
-    </title>
+    {% block script1 %}{% endblock %}
+
+    <title>{% block title %}{% endblock %}</title>
 </head>
 
-{% block script2 %}
-{% endblock %}
+<body>
 
-<body style="margin-bottom: 200px;">
-    {% include 'layout/header.html' %}
-    {% block contents %}
-    {% endblock %}
-    {% include 'layout/footer.html' %}
+    <!-- 헤더 -->
+    <div class="layout-header-wrapper">
+        {% include 'layout/header.html' %}
+    </div>
 
-    {% block script3 %}
-    {% endblock %}
+    <!-- 페이지 컨텐츠 -->
+    {% block contents %}{% endblock %}
+
+    <!-- 푸터 -->
+    <div class="layout-footer-wrapper">
+        {% include 'layout/footer.html' %}
+    </div>
+
+    {% block script3 %}{% endblock %}
 </body>
 </html>
