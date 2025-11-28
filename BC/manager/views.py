@@ -507,8 +507,9 @@ def facility_list(request):
     # ============================
     # DB가 아직 없으므로 빈 리스트로 대체
     # 나중에 DB 만들어지면 FacilityInfo.objects.all()로 변경
+    
     # ============================
-    queryset = []   # <<<<<<<< 요거 때문에 오류 해결됨
+    queryset = []  
 
     # ============================
     # 페이징
@@ -538,3 +539,14 @@ def facility_list(request):
     }
 
     return render(request, "facility_list_manager.html", context)
+
+
+def recruitment_manager(request):
+    return render(request, 'recruitment_manager.html')
+
+def event_manager(request):
+    return render(request, 'event_manager.html')
+
+
+def board_manager(request):
+    return render(request, 'board_manager.html')

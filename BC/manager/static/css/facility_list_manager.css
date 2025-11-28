@@ -312,3 +312,20 @@ body {
 
     margin-bottom: var(--spacing-lg);
 }
+
+.delete-btn {
+    position: absolute;
+    right: 20px;                  
+    bottom: 20px;                
+    padding: 10px 20px;
+    background: #d9534f;
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #b52b27;
+}
+
