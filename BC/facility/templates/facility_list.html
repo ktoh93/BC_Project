@@ -29,27 +29,33 @@
 
 <div class="sub-container">
     <div class="sub-content">
-
         <!-- 검색 영역 -->
         <section class="search-section">
-            <div class="search-controls">
-                <select id="sido" class="search-dropdown">
-                    <option value="">시/도 선택</option>
-                </select>
+            <form id="facilitySearchForm" action="{% url 'list' %}" method="GET">
 
-                <select id="sigungu" class="search-dropdown">
-                    <option value="">구/군 선택</option>
-                </select>
-            </div>
+                <!-- 시/도 + 구/군 -->
+                <div class="search-controls">
+                    <select name="cpNm" id="sido" class="search-dropdown">
+                        <option value="">시/도 선택</option>
+                    </select>
 
-            <div class="search-input-group">
-                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
-                <button type="button" class="search-btn" id="searchBtn">
-                    <span>🔍</span> 검색
-                </button>
-            </div>
+                    <select name="cpbNm" id="sigungu" class="search-dropdown">
+                        <option value="">구/군 선택</option>
+                    </select>
+                </div>
+
+                <!-- 검색 input -->
+                <div class="search-input-group">
+                    <input type="text" class="search-input" id="searchKeyword" name="keyword" placeholder="검색어를 입력하세요"
+                        value="{{ keyword }}">
+
+                    <button type="submit" class="search-btn">
+                        <span>🔍</span> 검색
+                    </button>
+                </div>
+
+            </form>
         </section>
-
         <!-- 지도 -->
         <section class="map">
             <div id="map" style="width:100%; height:400px; border-radius:10px;"></div>
@@ -82,26 +88,36 @@
 
         <!-- 페이지네이션 -->
         <div class="pagination">
+
+            <!-- 이전 버튼 -->
             {% if block_start > 1 %}
-            <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}" class="page-btn arrow">◀ 이전</a>
+            <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}"
+                class="page-btn arrow">◀ 이전</a>
             {% else %}
             <span class="page-btn arrow disabled">◀ 이전</span>
             {% endif %}
 
+
+            <!-- 번호 버튼 -->
             {% for num in block_range %}
             {% if num == page_obj.number %}
             <span class="page-btn active">{{ num }}</span>
             {% else %}
-            <a href="?page={{ num }}&per_page={{ per_page }}" class="page-btn">{{ num }}</a>
+            <a href="?page={{ num }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}"
+                class="page-btn">{{ num }}</a>
             {% endif %}
             {% endfor %}
 
-            {% if block_end < paginator.num_pages %} <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}"
+
+            <!-- 다음 버튼 -->
+            {% if block_end < paginator.num_pages %} <a
+                href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}"
                 class="page-btn arrow">다음 ▶</a>
                 {% else %}
                 <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
         </div>
+
 
     </div>
 </div>
@@ -112,84 +128,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 
-        var container = document.getElementById("map");
-        var map = new kakao.maps.Map(container, {
-            center: new kakao.maps.LatLng(37.5665, 126.9780),
-            level: 7,
-            draggable: false,                    // 드래그 금지
-            scrollwheel: false,                  // 휠 확대/축소 금지
-            disableDoubleClickZoom: true,        // 더블클릭 확대 금지
-            keyboardShortcuts: false             // 키보드 이동 금지
-        });
 
-
-        var bounds = new kakao.maps.LatLngBounds();
-        var markerMap = {};
-
-        facilities.forEach(function (item) {
-            var lat = parseFloat(item.lat);
-            var lng = parseFloat(item.lng);
-
-            if (isNaN(lat) || isNaN(lng)) return;
-
-            var pos = new kakao.maps.LatLng(lat, lng);
-
-            var marker = new kakao.maps.Marker({
-                map: map,
-                position: pos
-            });
-
-            var infowindow = new kakao.maps.InfoWindow({
-                content: `<div style="padding:5px;font-size:14px;"><a href='/facility/detail/${item.id}?fName=${item.name}'>${item.name}</a></div>`
-            });
-
-            kakao.maps.event.addListener(marker, "mouseover", function () {
-                infowindow.open(map, marker);
-            });
-            kakao.maps.event.addListener(marker, "mouseout", function () {
-                infowindow.close();
-            });
-
-            // kakao.maps.event.addListener(marker, "click", function () {
-            //     window.location.href = "/facility/detail/" + item.id;
-            // });
-
-            markerMap[item.id] = {
-                marker: marker,
-                infowindow: infowindow,
-                position: pos
-            };
-
-            bounds.extend(pos);
-        });
-
-        if (!bounds.isEmpty()) {
-            map.setBounds(bounds);
-        }
-
-        // ⭐ 리스트 클릭 → 지도 포커스 이동
-        document.querySelectorAll(".facility-link").forEach(function (link) {
-            link.addEventListener("click", function () {
-                var id = this.dataset.id;
-                var obj = markerMap[id];
-
-                if (!obj) {
-                    alert("해당 시설의 위치 정보가 없습니다.");
-                    return;
-                }
-
-                map.setCenter(obj.position);
-                map.setLevel(5);
-                obj.infowindow.open(map, obj.marker);
-
-                // ⭐ 여기만 변경됨 — 지도 화면 정중앙으로 스크롤
-                const mapRect = document.getElementById("map").getBoundingClientRect();
-                window.scrollTo({
-                    top: window.pageYOffset + mapRect.top - 100, // 지도 위로 100px 정도 여유
-                    behavior: "smooth"
-                });
-            });
-        });
 
     });
 </script>

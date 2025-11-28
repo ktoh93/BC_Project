@@ -1,4 +1,4 @@
-// static/js/list.js
+// static/js/facility_list.js
 
 document.addEventListener("DOMContentLoaded", function () {
     /* 대한민국 시/도 + 시/군/구 전체 데이터 */
@@ -119,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sigunguEl = document.getElementById("sigungu");
     const perPageEl = document.getElementById("perPageSelect");
     const sortEl = document.getElementById("sortSelect");
+    const searchKeywordEl = document.getElementById("searchKeyword");
 
     /* ===========================
        1) 시/도 / 구·군 셀렉터 처리
@@ -150,15 +151,15 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
-        // 1-3. URL에 시/도, 구/군이 있을 경우 기존 값 복원 (선택 유지)
-        const nowSido = params.get("sido") || "";
-        const nowSigungu = params.get("sigungu") || "";
+        // 1-3. URL에 시/도(cpNm), 구/군(cpbNm)이 있을 경우 기존 값 복원
+        const nowSido = params.get("cpNm") || "";
+        const nowSigungu = params.get("cpbNm") || "";
 
         if (nowSido && regionData[nowSido]) {
             // 시/도 선택 복원
             sidoEl.value = nowSido;
 
-            // 먼저 구/군 목록 채우고
+            // 구/군 목록 채우기
             sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
             regionData[nowSido].forEach((gu) => {
                 const option = document.createElement("option");
@@ -175,10 +176,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* ===========================
+       1-4) 검색어 value 복원
+       =========================== */
+    if (searchKeywordEl) {
+        const nowKeyword = params.get("keyword") || "";
+        searchKeywordEl.value = nowKeyword;
+    }
+
+    /* ===========================
        2) 페이지당 개수(per_page) 처리
        =========================== */
     if (perPageEl) {
-        const nowPer = params.get("per_page") || "15";
+        const nowPer = params.get("per_page") || "10";
         perPageEl.value = nowPer;
 
         perPageEl.addEventListener("change", function () {
@@ -203,4 +212,135 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.search = newParams.toString();
         });
     }
+
+    /* ===========================
+       4) 검색 submit 처리
+       =========================== */
+    $("#facilitySearchForm").on("submit", function (e) {
+        e.preventDefault();
+
+        const sido = $('#sido').val();
+        const sigungu = $('#sigungu').val();
+
+        if (sido === '') {
+            alert('시/도 선택해주세요');
+            $('#sido').focus();
+            return;
+        }
+
+        if (sigungu === '') {
+            alert('구/군 선택 해주세요');
+            $('#sigungu').focus();
+            return;
+        }
+
+        // 검증 통과하면 실제 submit
+        this.submit();
+    });
+
+    /* ===========================
+       5) 카카오 지도 + 마커 + 인포윈도우
+       =========================== */
+    var container = document.getElementById("map");
+    if (!container || typeof kakao === "undefined") {
+        return;
+    }
+
+    var map = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(37.5665, 126.9780),
+        level: 7,
+        draggable: false,                    // 드래그 금지
+        scrollwheel: false,                  // 휠 확대/축소 금지
+        disableDoubleClickZoom: true,        // 더블클릭 확대 금지
+        keyboardShortcuts: false             // 키보드 이동 금지
+    });
+
+    var bounds = new kakao.maps.LatLngBounds();
+    var markerMap = {};
+    var fixedInfoWindow = null;  // ⭐ 고정된 인포윈도우 저장
+
+    facilities.forEach(function (item) {
+        var lat = parseFloat(item.lat);
+        var lng = parseFloat(item.lng);
+
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        var pos = new kakao.maps.LatLng(lat, lng);
+
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: pos
+        });
+
+        var iwContent =
+            `<div style="padding:5px 8px;font-size:13px;white-space:nowrap;">
+                <a href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}"
+                   style="text-decoration:none;color:#1A2A43;font-weight:600;">
+                    ${item.name}
+                </a>
+             </div>`;
+
+        var infowindow = new kakao.maps.InfoWindow({
+            content: iwContent
+        });
+
+        // hover 시에는 임시로 띄우되, 고정창이 아닌 경우만 닫힘
+        kakao.maps.event.addListener(marker, "mouseover", function () {
+            infowindow.open(map, marker);
+        });
+
+        kakao.maps.event.addListener(marker, "mouseout", function () {
+            // ⭐ 고정된 창(fixedInfoWindow)이 아니면 닫기
+            if (fixedInfoWindow !== infowindow) {
+                infowindow.close();
+            }
+        });
+
+        markerMap[item.id] = {
+            marker: marker,
+            infowindow: infowindow,
+            position: pos
+        };
+
+        bounds.extend(pos);
+    });
+
+    if (!bounds.isEmpty()) {
+        map.setBounds(bounds);
+    }
+
+    // ⭐ 리스트 클릭 → 지도 포커스 + 인포윈도우 "고정"
+    document.querySelectorAll(".facility-link").forEach(function (link) {
+        link.addEventListener("click", function (e) {
+            e.preventDefault();  // a 태그 기본 이동 막고, 상세는 말풍선 링크로만
+
+            var id = this.dataset.id;
+            var obj = markerMap[id];
+
+            if (!obj) {
+                alert("해당 시설의 위치 정보가 없습니다.");
+                return;
+            }
+
+            // 지도 이동
+            map.setCenter(obj.position);
+            map.setLevel(5);
+
+            // 이전 고정 인포윈도우 닫기
+            if (fixedInfoWindow) {
+                fixedInfoWindow.close();
+            }
+
+            // 새 인포윈도우 열고 고정
+            obj.infowindow.open(map, obj.marker);
+            fixedInfoWindow = obj.infowindow;
+
+            // 스크롤을 지도 가까이로
+            const mapRect = container.getBoundingClientRect();
+            window.scrollTo({
+                top: window.pageYOffset + mapRect.top - 100,
+                behavior: "smooth"
+            });
+        });
+    });
 });
