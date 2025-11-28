@@ -67,66 +67,6 @@
       <a class="btn" href="/reservation">예약하기</a>
     </section>
 
-    <!-- 템플릿 섹션 03: 공지/뉴스 리스트 -->
-    <section class="template-section-03">
-      <div class="index01">
-        <a class="tit" href="/board/notice">
-          공지사항
-          <span>+</span>
-        </a>
-        <ul>
-          {% for notice in notice_list %}
-          <li>
-            <a href="/board/notice#notice-{{ notice.id }}" class="notice-link">
-              <div class="date-box">
-                <span class="day">{{ notice.date_formatted.day }}</span>
-                <span class="day-02">{{ notice.date_formatted.month_year }}</span>
-              </div>
-              <div class="txt-wrap">
-                <span class="notice-title">{{ notice.title }}</span><br>
-                <span class="notice-contents">{{ notice.content }}</span>
-              </div>
-            </a>
-          </li>
-          {% empty %}
-          <li>
-            <div class="txt-wrap">
-              <span class="notice-contents">등록된 공지사항이 없습니다.</span>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div class="index02">
-        <a class="tit" href="/recruitment">
-          같이 할래
-          <span>+</span>
-        </a>
-        <ul>
-          {% for recruit in recruitment_list %}
-          <li>
-            <a href="/recruitment#recruit-{{ recruit.id }}" class="notice-link">
-              <div class="date-box">
-                <span class="day">{{ recruit.date_formatted.day }}</span>
-                <span class="day-02">{{ recruit.date_formatted.month_year }}</span>
-              </div>
-              <div class="txt-wrap">
-                <span class="notice-title">{{ recruit.title }}</span><br>
-                <span class="notice-contents">{{ recruit.content }}</span>
-              </div>
-            </a>
-          </li>
-          {% empty %}
-          <li>
-            <div class="txt-wrap">
-              <span class="notice-contents">등록된 모집글이 없습니다.</span>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </section>
-    
     <!-- 템플릿 섹션: 랜덤 시설 위젯 -->
     <section class="template-section-facilities">
       <div class="facilities-container">

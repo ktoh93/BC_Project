@@ -188,7 +188,6 @@ def dashboard(request):
     daily_reservations = {}
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -237,7 +236,6 @@ def dashboard(request):
     completion_trend = {}
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -278,7 +276,6 @@ def dashboard(request):
     comment_count = 0
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -309,7 +306,6 @@ def dashboard(request):
     daily_members = {}
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -336,7 +332,6 @@ def dashboard(request):
     gender_data = {}
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -357,7 +352,6 @@ def dashboard(request):
     rating_stats = {'avg': 0, 'max': 0, 'min': 0, 'count': 0}
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -407,7 +401,6 @@ def dashboard(request):
     cancellation_rate = 0
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -430,7 +423,6 @@ def dashboard(request):
     participation_rate = 0
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
@@ -460,7 +452,6 @@ def dashboard(request):
     sports = []
     
     try:
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
