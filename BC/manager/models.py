@@ -1,3 +1,20 @@
 from django.db import models
 
-# Create your models here.
+# -----------------------------------------------------
+# HeroImg
+# -----------------------------------------------------
+
+class HeroImg(models.Model):
+    img_id = models.AutoField(primary_key=True)
+    url = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)
+    context = models.CharField(max_length=200)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    reg_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "hero_img"
+
+    def __str__(self):
+        return self.title
