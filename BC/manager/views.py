@@ -534,59 +534,88 @@ def facility_list(request):
 
 
 def recruitment_manager(request):
-    queryset = []  
+    queryset = []  # 나중에 DB 들어오면 교체
+    
     per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
+
+    try:
+        page = int(request.GET.get("page", 1))
+        if page < 1:
+            page = 1
+    except:
+        page = 1
+
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
-    start_index = (page_obj.number - 1) * per_page
-    facility_page = []
+    # 페이지 블록
+    block_size = 5
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
 
-    for idx, item in enumerate(page_obj.object_list):
-        facility_page.append({
-            "id": item.id,
-            "name": item.facility_name,
-            "address": item.addr_full,
-            "row_no": start_index + idx + 1,
-        })
-    return render(request, 'recruitment_manager.html')
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "block_range": range(block_start, block_end + 1),
+    }
+    return render(request, 'recruitment_manager.html', context)
 
 def event_manager(request):
-    queryset = []  
+    queryset = []  # 나중에 DB 들어오면 교체
+    
     per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
+
+    try:
+        page = int(request.GET.get("page", 1))
+        if page < 1:
+            page = 1
+    except:
+        page = 1
+
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
-    start_index = (page_obj.number - 1) * per_page
-    facility_page = []
+    # 페이지 블록
+    block_size = 5
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
 
-    for idx, item in enumerate(page_obj.object_list):
-        facility_page.append({
-            "id": item.id,
-            "name": item.facility_name,
-            "address": item.addr_full,
-            "row_no": start_index + idx + 1,
-        })
-    return render(request, 'event_manager.html')
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "block_range": range(block_start, block_end + 1),
+    }
+
+    return render(request, 'event_manager.html', context)
 
 
 def board_manager(request):
-    queryset = []  
+    queryset = []  # 나중에 DB 들어오면 교체
+    
     per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
+
+    try:
+        page = int(request.GET.get("page", 1))
+        if page < 1:
+            page = 1
+    except:
+        page = 1
+
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
-    start_index = (page_obj.number - 1) * per_page
-    facility_page = []
+    # 페이지 블록
+    block_size = 5
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
 
-    for idx, item in enumerate(page_obj.object_list):
-        facility_page.append({
-            "id": item.id,
-            "name": item.facility_name,
-            "address": item.addr_full,
-            "row_no": start_index + idx + 1,
-        })
-    return render(request, 'board_manager.html')
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "block_range": range(block_start, block_end + 1),
+    }
+
+    return render(request, "board_manager.html", context)

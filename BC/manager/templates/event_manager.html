@@ -80,13 +80,13 @@
                         <span class="page-btn active">{{ num }}</span>
                     {% else %}
                         <a class="page-btn"
-                           href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">{{ num }}</a>
+                           href="?page={{num}}&per_page={{ per_page }}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
                     <a class="page-btn arrow"
-                       href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">다음 ▶</a>
+                        href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">다음 ▶</a>
                 {% else %}
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
@@ -95,7 +95,4 @@
         </div>
     </main>
 
-
-
-</body>
-</html>
+<script src="{% static 'js/paging.js' %}"></script>
