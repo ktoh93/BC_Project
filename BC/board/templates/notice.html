@@ -2,7 +2,6 @@
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/board_list.css' %}" />
-<link rel="stylesheet" href="{% static 'css/post.css' %}" />
 {% endblock %}
 
 {% block script1 %}
@@ -15,11 +14,10 @@
 
 {% block contents %}
 
-<div class="post-container">
-  <!-- Hero 섹션 -->
-  <div class="board-hero notice-hero">
-    <h2>공지할래</h2>
-  </div>
+<!-- Hero 섹션 -->
+<div class="board-hero notice-hero">
+  <h2>공지할래</h2>
+</div>
 
 <!-- 서브 컨테이너 -->
 <div class="sub-container">
@@ -148,7 +146,5 @@
         </div>
     </div>
 </div>
-
-
 
 {% endblock %}

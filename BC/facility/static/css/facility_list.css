@@ -1,24 +1,68 @@
 /* -----------------------------
-   페이지 타이틀
+   Hero 섹션 (전체 너비 - board와 동일한 포맷)
 ------------------------------ */
-.page-title-section {
+.board-hero {
+    position: relative;
     width: 100%;
-    max-width: 1200px;
-    margin: var(--spacing-xl) auto;
-    padding: 0 var(--spacing-lg);
-    text-align: center;
+    max-width: 100%;
+    margin: var(--spacing-xl) auto var(--spacing-2xl);
+    padding: var(--spacing-2xl) 0;
+    min-height: 300px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 0;
 }
 
-.page-title {
-    font-size: 43px;
+.board-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.board-hero h2 {
+    font-size: 80px;
     font-weight: 900;
-    color: var(--color-text-primary);
+    color: #ffffff;
     margin: 0;
-    padding: var(--spacing-xl) 0;
-    background: linear-gradient(135deg, var(--color-deep-blue) 0%, var(--color-deep-green) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    letter-spacing: -2px;
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+    text-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(0, 0, 0, 0.3),
+        2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 시설안내 페이지 전용 hero */
+.facility-hero {
+    background-image: url('/static/img/facility_hero.png');
+}
+
+@media (max-width: 768px) {
+    .board-hero {
+        padding: var(--spacing-xl) var(--spacing-md);
+        min-height: 200px;
+        flex-direction: column;
+        text-align: center;
+        margin: var(--spacing-lg) auto var(--spacing-xl);
+    }
+
+    .board-hero h2 {
+        font-size: 28px;
+        text-align: center;
+    }
 }
 
 

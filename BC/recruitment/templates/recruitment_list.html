@@ -15,9 +15,9 @@
 
 {% block contents %}
 
-<!-- 페이지 제목 -->
-<div class="page-title-section">
-  <h2 class="page-title">모집글 목록</h2>
+<!-- Hero 섹션 -->
+<div class="board-hero recruitment-hero">
+  <h2>모집할래</h2>
 </div>
 
 
@@ -78,18 +78,24 @@
             </div>
             <hr class="dividing-line">
            <div class="facility-list" id="facilityList">
+                <!-- 헤더 -->
+                <div class="facility-header">
+                    <span class="facility-title">번호</span>
+                    <span class="facility-title">제목</span>
+                    <span class="facility-title">작성날짜</span>
+                    <span class="facility-title">조회수</span>
+                </div>
+                
                 <ul>
                     {% for item in page_obj %}
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
                             <span class="facility-title">{{ item.title }}</span>
-                            <span class="facility-meta">
-                                <span class="facility-date">{{ item.date }}</span>
-                                <span class="facility-views">조회수 {{ item.views }}</span>
-                            </span>
+                            <span class="facility-date">{{ item.date }}</span>
+                            <span class="facility-views">{{ item.views }}</span>
                         </li>
                     {% empty %}
-                        <li>등록된 모집글이 없습니다.</li>
+                        <li class="facility-empty">등록된 모집글이 없습니다.</li>
                     {% endfor %}
                 </ul>
             </div>

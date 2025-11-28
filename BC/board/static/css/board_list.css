@@ -22,14 +22,14 @@
 }
 
 /* -----------------------------
-   Hero 섹션 (post 페이지 기준)
+   Hero 섹션 (전체 너비 - page-title-section과 동일한 레이아웃)
 ------------------------------ */
 .board-hero {
     position: relative;
     width: 100%;
-    margin-bottom: var(--spacing-2xl);
-    overflow: hidden;
-    padding: var(--spacing-2xl);
+    max-width: 100%;
+    margin: var(--spacing-xl) auto var(--spacing-2xl);
+    padding: var(--spacing-2xl) 0;
     min-height: 300px;
     display: flex;
     flex-direction: row;
@@ -38,7 +38,7 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-radius: 20px;
+    border-radius: 0;
 }
 
 .board-hero::before {
@@ -78,16 +78,18 @@
     background-image: url('/static/img/notice_hero.png');
 }
 
-@media (max-width: 768px) {
-    .post-container {
-        padding: var(--spacing-md) var(--spacing-sm);
-    }
+/* post 페이지 전용 hero */
+.post-hero {
+    background-image: url('/static/img/post_hero.png');
+}
 
+@media (max-width: 768px) {
     .board-hero {
-        padding: var(--spacing-xl);
+        padding: var(--spacing-xl) var(--spacing-md);
         min-height: 200px;
         flex-direction: column;
         text-align: center;
+        margin: var(--spacing-lg) auto var(--spacing-xl);
     }
 
     .board-hero h2 {
