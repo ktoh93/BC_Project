@@ -1,7 +1,12 @@
 from django.shortcuts import render
 import random
 import string
-
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from member.models import Member
+from django.contrib.auth.hashers import make_password, check_password
+from django.http import JsonResponse
+import re
 
 def index(request):
     return render(request, 'index.html')
@@ -9,8 +14,95 @@ def index(request):
 def login(request):
     return render(request, 'login.html')
 
+
+
+# 회원 가입 부분 ----------------------------------------
+USERNAME_PATTERN = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
+PASSWORD_PATTERN = re.compile(
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=])[A-Za-z\d!@#$%^&*()_+\-=]{8,}$'
+)
+PHONE_PATTERN = re.compile(r'^\d{3}-\d{4}-\d{4}$')
+
 def signup(request):
-    return render(request, 'signup.html')
+    if request.method == "POST":
+        data = request.POST
+        ctx = {"input": data}
+
+        name = data.get('name')
+        user_id = data.get('username')
+        password = data.get('password')
+        password2 = data.get('password2')
+        nickname = data.get('nickname')
+        birthday = data.get('birthday')
+        gender = data.get('gender')
+        address = data.get('address')
+        address_detail = data.get('address_detail')
+        phone = data.get('phone')
+
+        if not PASSWORD_PATTERN.match(password or ""):
+            messages.error(request, "비밀번호 형식이 올바르지 않습니다.")
+            return render(request, "signup.html", ctx)
+
+        if password != password2:
+            messages.error(request, "비밀번호가 일치하지 않습니다.")
+            return render(request, "signup.html", ctx)
+
+        if not USERNAME_PATTERN.match(user_id or ""):
+            messages.error(request, "아이디는 6자 이상, 영문+숫자 조합이어야 합니다.")
+            return render(request, "signup.html", ctx)
+
+        if Member.objects.filter(user_id=user_id).exists():
+            messages.error(request, "이미 존재하는 아이디입니다.")
+            return render(request, "signup.html", ctx)
+
+        if Member.objects.filter(nickname=nickname).exists():
+            messages.error(request, "이미 존재하는 닉네임입니다.")
+            return render(request, "signup.html", ctx)
+
+        if not PHONE_PATTERN.match(phone or ""):
+            messages.error(request, "전화번호는 010-0000-0000 형식으로 입력해주세요.")
+            return render(request, "signup.html", ctx)
+
+        if Member.objects.filter(phone_num=phone).exists():
+            messages.error(request, "이미 등록된 전화번호입니다.")
+            return render(request, "signup.html", ctx)
+
+        gender_value = 0 if gender == "male" else 1
+
+        Member.objects.create(
+            name=name,
+            user_id=user_id,
+            password=make_password(password),
+            nickname=nickname,
+            birthday=birthday,
+            gender=gender_value,
+            addr1=address,
+            addr2=address_detail,
+            phone_num=phone,
+        )
+
+        return redirect("/login")
+
+    return render(request, "signup.html")
+
+def check_userid(request):
+    user_id = request.GET.get('username')
+    exists = Member.objects.filter(user_id=user_id).exists()
+    return JsonResponse({'exists': exists})
+
+def check_nickname(request):
+    nickname = request.GET.get('nickname')
+    exists = Member.objects.filter(nickname=nickname).exists()
+    return JsonResponse({'exists': exists})
+
+def check_phone(request):
+    phone = request.GET.get('phone')
+    exists = Member.objects.filter(phone_num=phone).exists()
+    return JsonResponse({'exists': exists})
+#--------------------------------------------------------------
+
+
+
 
 def find_id(request):
     if request.method == "POST":

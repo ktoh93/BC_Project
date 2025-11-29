@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/signup.css' %}" />
 {% endblock %}
+
 {% block script1 %}
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="{% static 'js/signup.js' %}"></script>
 {% endblock %}
+
 {% block title %}
 회원가입 - 할래말래
 {% endblock %}
+
 {% block contents %}
 <!-- 회원가입 컨테이너 -->
 <div class="register-container">
@@ -33,118 +38,197 @@
         <h1>회원가입</h1>
         <p>할래말래에 오신 것을 환영합니다</p>
       </div>
-
-      <form class="register-form" method="post" action="/signup">
-
-        <!-- 이름  -->
-        <div class="form-group">
-          <label class="form-label" for="name">이름</label>
-          <input type="text" id="name" name="name" class="form-input" placeholder="이름 입력" required />
+          
+      {% if messages %}
+        <div class="message-area">
+          {% for message in messages %}
+            <p class="msg-{{ message.tags }}">{{ message }}</p>
+          {% endfor %}
         </div>
+      {% endif %}
 
-        <!-- 아이디 -->
-        <div class="form-group">
-          {% csrf_token %}
-          <label class="form-label" for="username">아이디</label>
-          <div class="form-row">
-            <input type="text" id="username" name="username" class="form-input" placeholder="아이디 입력" required />
-            <button type="button" class="check-btn small-btn">중복 확인</button>
-          </div>
+    <form class="register-form" method="post" action="/signup/">
+      {% csrf_token %}
+
+      <!-- 이름 -->
+      <div class="form-group">
+        <label class="form-label" for="name">이름</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          class="form-input"
+          placeholder="이름 입력"
+          value="{{ input.name }}"
+          required
+        />
+      </div>
+
+      <!-- 아이디 -->
+      <div class="form-group">
+        <label class="form-label" for="username">아이디</label>
+        <div class="form-row">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-input"
+            placeholder="아이디 입력"
+            value="{{ input.username }}"
+            required
+          />
+          <button type="button" id="usernameCheckBtn" class="check-btn small-btn">
+            중복 확인
+          </button>
         </div>
+        <small id="username_msg" class="msg-area"></small>
+      </div>
 
-        <!-- 비밀번호 -->
-        <div class="form-group">
-          <label class="form-label" for="password">비밀번호</label>
-          <input type="password" id="password" name="password" class="form-input" placeholder="비밀번호 입력" required />
+      <!-- 비밀번호 -->
+      <div class="form-group">
+        <label class="form-label" for="password">비밀번호</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          placeholder="비밀번호 입력"
+          required
+        />
+      </div>
+
+      <!-- 비밀번호 확인 -->
+      <div class="form-group">
+        <label class="form-label" for="password2">비밀번호 확인</label>
+        <input
+          type="password"
+          id="password2"
+          name="password2"
+          class="form-input"
+          placeholder="비밀번호 재입력"
+          required
+        />
+        <small id="pw_msg" class="msg-area"></small>
+      </div>
+
+      <!-- 닉네임 -->
+      <div class="form-group">
+        <label class="form-label" for="nickname">닉네임</label>
+        <div class="form-row">
+          <input
+            type="text"
+            id="nickname"
+            name="nickname"
+            class="form-input"
+            placeholder="닉네임 입력"
+            value="{{ input.nickname }}"
+            required
+          />
+          <button type="button" id="nicknameCheckBtn" class="check-btn small-btn">
+            중복 확인
+          </button>
         </div>
+        <small id="nickname_msg" class="msg-area"></small>
+      </div>
 
-        <!-- 비밀번호 확인 -->
-        <div class="form-group">
-          <label class="form-label" for="password2">비밀번호 확인</label>
-          <input type="password" id="password2" name="password2" class="form-input" placeholder="비밀번호 재입력" required />
+      <!-- 생년월일 -->
+      <div class="form-group">
+        <label class="form-label">생년월일</label>
+        <input
+          type="date"
+          name="birthday"
+          class="form-input"
+          value="{{ input.birthday }}"
+          required
+        />
+      </div>
+
+      <!-- 성별 -->
+      <div class="form-group">
+        <label class="form-label">성별</label>
+        <div class="gender-toggle">
+          <input
+            type="radio"
+            id="gender_male"
+            name="gender"
+            value="male"
+            {% if input.gender == "female" %}{% else %}checked{% endif %}
+          />
+          <label for="gender_male" class="gender-option">남자</label>
+
+          <input
+            type="radio"
+            id="gender_female"
+            name="gender"
+            value="female"
+            {% if input.gender == "female" %}checked{% endif %}
+          />
+          <label for="gender_female" class="gender-option">여자</label>
         </div>
+      </div>
 
-        <!-- 닉네임 -->
-        <div class="form-group">
-          <label class="form-label" for="nickname">닉네임</label>
-          <div class="form-row">
-            <input type="text" id="nickname" name="nickname" class="form-input" placeholder="닉네임 입력" />
-            <button type="button" class="check-btn small-btn">중복 확인</button>
-          </div>
+      <!-- 주소 -->
+      <div class="form-group">
+        <label class="form-label">주소</label>
+        <div class="form-row">
+          <input
+            type="text"
+            id="address"
+            name="address"
+            class="form-input"
+            placeholder="주소 검색 버튼을 눌러주세요"
+            value="{{ input.address }}"
+            readonly
+            required
+          />
+          <button
+            type="button"
+            id="addressSearchBtn"
+            class="check-btn small-btn"
+          >
+            주소 검색
+          </button>
         </div>
-        <!-- 생년월일 -->
-        <div class="form-group">
-          <label class="form-label">생년월일</label>
-          <input type="date" name="birthday" class="form-input" />
+      </div>
+
+      <!-- 상세주소 -->
+      <div class="form-group">
+        <label class="form-label">상세 주소</label>
+        <input
+          type="text"
+          id="address_detail"
+          name="address_detail"
+          class="form-input"
+          placeholder="상세 주소 입력"
+          value="{{ input.address_detail }}"
+          required
+        />
+      </div>
+
+      <!-- 전화번호 -->
+      <div class="form-group">
+        <label class="form-label">핸드폰 번호</label>
+        <div class="form-row">
+          <input
+            type="text"
+            name="phone"
+            class="form-input"
+            placeholder="010-0000-0000"
+            value="{{ input.phone }}"
+            required
+          />
+          <button type="button" id="phoneCheckBtn" class="check-btn small-btn">
+            중복 확인
+          </button>
         </div>
+        <small id="phone_msg" class="msg-area"></small>
+      </div>
 
-        <!-- 성별 -->
-        <div class="form-group">
-          <label class="form-label">성별</label>
-          <div class="gender-toggle">
-            <input type="radio" id="gender_male" name="gender" value="male" checked>
-            <label for="gender_male" class="gender-option">남자</label>
-
-            <input type="radio" id="gender_female" name="gender" value="female">
-            <label for="gender_female" class="gender-option">여자</label>
-          </div>
-        </div>
-
-        <!-- 주소 -->
-        <div class="form-group">
-          <label class="form-label">주소</label>
-          <div class="form-row">
-            <input type="text" id="address" name="address" class="form-input" placeholder="주소 검색 버튼을 눌러주세요" readonly />
-            <button type="button" id="addressSearchBtn" class="check-btn small-btn">주소 검색</button>
-          </div>
-        </div>
-
-        <!-- 상세주소 -->
-        <div class="form-group">
-          <label class="form-label">상세 주소</label>
-          <input type="text" id="address_detail" name="address_detail" class="form-input" placeholder="상세 주소 입력" />
-        </div>
-
-        <!-- 전화번호 -->
-        <div class="form-group">
-          <label class="form-label">핸드폰 번호</label>
-          <div class="form-row">
-            <input type="text" name="phone" class="form-input" placeholder="010-0000-0000" />
-            <button type="button" class="check-btn small-btn">중복 확인</button>
-          </div>
-        </div>
-
-        <!-- 제출 버튼 -->
-        <button type="submit" class="register-btn">회원가입</button>
-
-      </form>
+      <!-- 제출 버튼 -->
+      <button type="submit" class="register-btn">회원가입</button>
+    </form>
     </div>
 
-  </div> <!-- register-wrapper -->
-</div> <!-- register-container -->
-
-<script>
-// 주소 검색 버튼 클릭 이벤트
-document.getElementById('addressSearchBtn').addEventListener('click', function() {
-  new daum.Postcode({
-    oncomplete: function(data) {
-      // 우편번호는 사용하지 않으므로 주소만 사용
-      let addr = '';
-      
-      // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
-      if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
-        addr = data.roadAddress;
-      } else { // 사용자가 지번 주소를 선택했을 경우(J)
-        addr = data.jibunAddress;
-      }
-      
-      // 주소 필드에 값 설정
-      document.getElementById('address').value = addr;
-      
-      // 상세주소 필드에 포커스
-      document.getElementById('address_detail').focus();
-    }
-  }).open();
-});
-</script>
+  </div>
+</div>
 {% endblock %}

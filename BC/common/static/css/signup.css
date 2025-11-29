@@ -316,3 +316,29 @@ input[type="radio"]:checked + .gender-option {
 .gender-option:hover {
   background: var(--color-background);
 }
+
+.msg-area {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+.msg-success {
+  color: #2ecc71; /* 초록 */
+}
+
+.msg-error {
+  color: #e74c3c; /* 빨강 */
+}
+
+.message-area {
+  margin-bottom: 10px;
+}
+.msg-error {
+  color: #e74c3c;
+  font-size: 14px;
+}
+.msg-success {
+  color: #2ecc71;
+  font-size: 14px;
+}
