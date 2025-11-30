@@ -53,15 +53,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /* URL 기반 기본값 세팅 */
-    const nowSido = params.get("cpNm") || "서울특별시";
-    const nowSigungu = params.get("cpbNm") || "";
+    const nowSido = params.get("sido") || "";
+    const nowSigungu = params.get("sigungu") || "";
 
-    sidoEl.value = nowSido;
+    if (nowSido) {
+        sidoEl.value = nowSido;
+    }
 
     /* 시군구 렌더링 함수 */
     function renderSigungu(sido) {
         sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
-
         if (!regionData[sido]) return;
 
         regionData[sido].forEach((sgg) => {
@@ -75,32 +76,29 @@ document.addEventListener("DOMContentLoaded", function () {
     /* 최초 렌더 */
     renderSigungu(nowSido);
 
-    /* URL 기반 기본 시군구 선택 */
-    if (nowSigungu) {
-        sigunguEl.value = nowSigungu;
-    }
+    if (nowSigungu) sigunguEl.value = nowSigungu;
 
-    /* 시도 변경 시 시군구 업데이트 */
+    /* 시도 변경 시 */
     sidoEl.addEventListener("change", function () {
         const selected = this.value;
 
         renderSigungu(selected);
 
-        params.set("cpNm", selected);
-        params.delete("cpbNm");      
+        params.set("sido", selected);
+        params.delete("sigungu");   // 시/도 바꾸면 구/군 초기화
         params.set("page", 1);
 
         window.location.search = params.toString();
     });
 
-    /* 시군구 변경 시 파라미터 저장 */
+    /* 시군구 변경 */
     sigunguEl.addEventListener("change", function () {
-        params.set("cpbNm", this.value);
+        params.set("sigungu", this.value);
         params.set("page", 1);
         window.location.search = params.toString();
     });
 
-    /* per_page 변경 */
+    /* perPage 변경 */
     if (perPageEl) {
         const nowPer = params.get("per_page") || "15";
         perPageEl.value = nowPer;
@@ -144,4 +142,5 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (e) {
         console.error("JSON 파싱 오류:", e);
     }
+
 });

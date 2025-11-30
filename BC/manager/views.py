@@ -18,6 +18,15 @@ from common.models import Comment
 from facility.models import FacilityInfo
 
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+# 시설
+from facility.models import Facility, FacilityInfo
+from reservation.models import Sports
+
+
+
 def manager(request):
     """
     관리자 로그인 페이지
@@ -35,58 +44,48 @@ def facility(request):
     cp_nm = request.GET.get("cpNm", "") or "서울특별시"
     cpb_nm = request.GET.get("cpbNm", "")
     keyword = request.GET.get("keyword", "")
-
+    
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
+    apply_sports = request.GET.get("apply_sports", "")
+    # 시설 api 정보
+    queryset = Facility.objects.all()
+    
+    sports_list = Sports.objects.all()
 
-    API_URL = "https://apis.data.go.kr/B551014/SRVC_API_FACI_SCHK_RESULT/TODZ_API_FACI_SAFETY"
+    if apply_sports:
+        if sports_list.exists():
+            q = Q()
+            for s in sports_list:
+                word = s.s_name.strip()
+                if not word:
+                    continue
 
-    params = {
-        "serviceKey": DATA_API_KEY,
-        "numOfRows": 500,
-        "pageNo": 1,
-        "faci_gb_nm": "공공",
-        "cp_nm": cp_nm,
-        "cpb_nm": cpb_nm,
-        "resultType": "json"
-    }
+                q |= (
+                    Q(faci_nm__icontains=word) |
+                    Q(ftype_nm__icontains=word) |
+                    Q(cp_nm__icontains=word) |
+                    Q(cpb_nm__icontains=word)
+                )
+
+            queryset = queryset.filter(q)
+    
+    if cp_nm:
+        queryset = queryset.filter(faci_addr__icontains=cp_nm)
+
+    if cpb_nm:
+        queryset = queryset.filter(faci_addr__icontains=cpb_nm)
 
     if keyword:
-        params["facility_nm"] = keyword
+        queryset = queryset.filter(faci_nm__icontains=keyword)
 
-    merged = []
+    # 등록된 시설들 제외
+    registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
+    queryset = queryset.exclude(id__in=registered_ids)
 
-    try:
-        res = requests.get(API_URL, params=params, timeout=3)
-        text = res.text.strip()
-
-        try:
-            data = json.loads(text)
-            items = data["response"]["body"]["items"].get("item", [])
-        except:
-            xml = xmltodict.parse(text)
-            items = xml["response"]["body"]["items"].get("item", [])
-
-        if isinstance(items, dict):
-            items = [items]
-
-        for item in items:
-            merged.append({
-                "id": item.get("faci_cd"),
-                "name": item.get("faci_nm"),
-                "address": item.get("faci_road_addr"),
-                "sido": item.get("cp_nm"),
-                "sigungu": item.get("cpb_nm"),
-                "lat": item.get("faci_lat"),
-                "lng": item.get("faci_lot"),
-                "phone": item.get("faci_tel_no", ""),
-            })
-
-    except:
-        pass
-
-    paginator = Paginator(merged, per_page)
+    paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
+
 
     block_size = 5
     current_block = (page - 1) // block_size
@@ -97,9 +96,12 @@ def facility(request):
     facility_page = []
 
     for idx, item in enumerate(page_obj.object_list):
-        obj = dict(item)
-        obj["row_no"] = start_index + idx + 1
-        facility_page.append(obj)
+        facility_page.append({
+            "id": item.id,
+            "name": item.faci_nm,
+            "address": item.faci_addr,
+            "row_no": start_index + idx + 1,
+        })
 
     context = {
         "page_obj": page_obj,
@@ -111,6 +113,7 @@ def facility(request):
         "block_end": block_end,
         "cpNm": cp_nm,
         "cpbNm": cpb_nm,
+        "sports_list": sports_list,
         "keyword": keyword,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
     }
@@ -486,6 +489,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
+# 시설관리
 def facility_list(request):
 
     # 필터 파라미터
@@ -495,17 +499,44 @@ def facility_list(request):
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
 
-    # ============================
-    # DB가 아직 없으므로 빈 리스트로 대체
-    # 나중에 DB 만들어지면 FacilityInfo.objects.all()로 변경
+    # 시설 api 정보
+    queryset = Facility.objects.all()
     
-    # ============================
-    queryset = []  
+    sports_list = Sports.objects.all()
 
-    # ============================
-    # 페이징
-    # ============================
+    if sports_list.exists():
+        q = Q()
+
+        for s in sports_list:
+            word = s.s_name.strip()
+            if not word:
+                continue
+            
+            
+            q |= (
+                Q(faci_nm__icontains=word) |
+                Q(ftype_nm__icontains=word) |
+                Q(cp_nm__icontains=word) |
+                Q(cpb_nm__icontains=word)
+            )
+
+        
+        queryset = queryset.filter(q)
+
     
+    if sido:
+        queryset = queryset.filter(faci_addr__icontains=sido)
+
+    if sigungu:
+        queryset = queryset.filter(faci_addr__icontains=sigungu)
+
+    if keyword:
+        queryset = queryset.filter(faci_nm__icontains=keyword)
+
+    # 등록된 시설들 제외
+    registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
+    queryset = queryset.exclude(id__in=registered_ids)
+
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
@@ -515,8 +546,8 @@ def facility_list(request):
     for idx, item in enumerate(page_obj.object_list):
         facility_page.append({
             "id": item.id,
-            "name": item.facility_name,
-            "address": item.addr_full,
+            "name": item.faci_nm,
+            "address": item.faci_addr,
             "row_no": start_index + idx + 1,
         })
 
@@ -526,13 +557,62 @@ def facility_list(request):
         "sido": sido,
         "sigungu": sigungu,
         "keyword": keyword,
+        "sports_list": sports_list,  # 관리자가 다루는 모든 종목
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": range(1, paginator.num_pages + 1),
     }
 
     return render(request, "facility_list_manager.html", context)
 
+# 종목관리
+@csrf_exempt
+def sport_add(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
 
+    try:
+        data = json.loads(request.body)
+        name = data.get("name", "").strip()
+
+        if not name:
+            return JsonResponse({"status": "error", "msg": "종목명이 비어있음"})
+
+        # 중복 체크
+        if Sports.objects.filter(s_name=name).exists():
+            return JsonResponse({"status": "error", "msg": "이미 존재하는 종목"})
+
+        sp = Sports(s_name=name)
+        sp.save()
+
+        return JsonResponse({"status": "ok", "id": sp.sports_id, "name": sp.s_name})
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "msg": str(e)})
+    
+
+
+@csrf_exempt
+def sport_delete(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        ids = data.get("ids", [])
+
+        if not ids:
+            return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
+
+        Sports.objects.filter(sports_id__in=ids).delete()
+
+        return JsonResponse({"status": "ok", "deleted": ids})
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "msg": str(e)})
+    
+    
+
+# 예약관리
 def recruitment_manager(request):
     queryset = []  # 나중에 DB 들어오면 교체
     

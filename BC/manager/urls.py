@@ -5,7 +5,13 @@ urlpatterns = [
     path('', views.manager, name='manager_login'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('facility_add/', views.facility, name='facility_add'),
+    
     path('sport_type/', views.sport_type, name='sport_type'),
+    
+    # 종목 관리
+    path('sports/add/', views.sport_add, name='sport_add'),
+    path('sports/delete/', views.sport_delete, name='sport_delete'),
+
     path('facility_list/', views.facility_list, name='facility_list'),
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),
     path('event_manager/', views.event_manager, name='event_manager'),

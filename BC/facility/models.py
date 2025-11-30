@@ -11,8 +11,12 @@ class FacilityInfo(models.Model):
         on_delete=models.SET_NULL
     )
 
-    # Sports와 다대다 관계
-    sports = models.ManyToManyField("reservation.Sports")
+    sports = models.ForeignKey(
+        "reservation.Sports",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
 
     # 사진 업로드
     photo = models.ImageField(upload_to="facility_photos/", null=True, blank=True)
