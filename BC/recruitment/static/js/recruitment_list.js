@@ -168,4 +168,5 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.search = newParams.toString();
         });
     }
+
 });
