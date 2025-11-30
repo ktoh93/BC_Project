@@ -3,14 +3,116 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/mypage_base.css' %}" />
 <link rel="stylesheet" href="{% static 'css/mypage_info.css' %}" />
-{% endblock %}
-{% block mypagecss %}
+<style>
+/* 토스트 메시지 스타일 */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 500px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    overflow: hidden;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1A2A43;
+}
+
+/* 성공 토스트 */
+.toast-success {
+    border-left: 4px solid #2ecc71;
+}
+
+.toast-success .toast-icon {
+    background-color: #2ecc71;
+    color: white;
+}
+
+/* 에러 토스트 */
+.toast-error {
+    border-left: 4px solid #e74c3c;
+}
+
+.toast-error .toast-icon {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+        transform: translateY(-100px);
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+    }
+}
+
+/* 버튼 로딩 상태 */
+.btn-edit-complete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
 {% endblock %}
 
 {% block script1 %}
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="{% static 'js/info_edit.js' %}"></script>
+<script>
+    // 로드 확인
+    console.log("info_edit.html 템플릿 로드됨");
+    window.addEventListener('load', function() {
+        const form = document.querySelector(".mypage-form");
+        console.log("페이지 로드 완료, 폼:", form);
+        if (form) {
+            console.log("폼 action:", form.action);
+            console.log("폼 method:", form.method);
+        }
+    });
+</script>
 {% endblock %}
+
 {% block title %}
 mypage base
 {% endblock %}
@@ -40,8 +142,8 @@ mypage base
 
     <section class="mypage-profile">
 
-        <form class="mypage-form">
-
+        <form class="mypage-form" method="post" action="/member/edit/">
+            {% csrf_token %}
 
             <!-- 기본 정보 -->
             <div class="info-group">
@@ -55,7 +157,7 @@ mypage base
 
             <div class="info-group">
                 <label>닉네임</label>
-                <input type="text" name="nickname" value="{{ nickname }}" readonly>
+                <input type="text" name="nickname" value="{{ nickname }}">
             </div>
 
             <div class="info-group">
@@ -84,7 +186,7 @@ mypage base
 
             <!-- 버튼 -->
             <div class="mypage-btn-box">
-                <button type="button" class="btn-edit-complete">수정 완료</button>
+                <button type="submit" class="btn-edit-complete">수정 완료</button>
             </div>
 
         </form>

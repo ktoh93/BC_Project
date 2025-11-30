@@ -69,15 +69,13 @@ mypage base
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
-    {% for post in page_obj %}
+    {% for article in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
-      <a href="#" class="mypage-board-row">
+      <a href="/board/post/{{ article.article_id }}/" class="mypage-board-row">
         <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-        <span class="col-title">{{ post.title }}</span>
-        <!-- 날짜 다시 살리기 -->
-        <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-        <!-- 조회수 필드명 수정 -->
-        <span class="col-views">조회수 {{ post.views }}</span>
+        <span class="col-title">{{ article.title }}</span>
+        <span class="col-date">{{ article.reg_date|date:"Y-m-d" }}</span>
+        <span class="col-views">조회수 {{ article.view_cnt }}</span>
       </a>
     {% empty %}
       <div class="mypage-board-empty">

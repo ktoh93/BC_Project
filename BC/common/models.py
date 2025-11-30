@@ -28,7 +28,7 @@ class Comment(models.Model):
 # -----------------------------------------------------
 class AddInfo(models.Model):
     add_info_id = models.AutoField(primary_key=True)
-    path = models.CharField(max_length=20)
+    path = models.CharField(max_length=255)  # 경로가 길 수 있으므로 255로 증가
     file_name = models.CharField(max_length=100)
     encoded_name = models.CharField(max_length=200)
     reg_date = models.DateTimeField(auto_now_add=True)

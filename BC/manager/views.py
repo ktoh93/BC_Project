@@ -10,12 +10,16 @@ import json
 import xmltodict
 import pandas as pd
 from django_pandas.io import read_frame
+from django.contrib import messages
 from member.models import Member
 from recruitment.models import Community, EndStatus, Rating, JoinStat
 from reservation.models import Reservation
-from board.models import Article, Board
-from common.models import Comment
+from board.models import Article, Board, Category
+from board.utils import get_category_by_type, get_board_by_name
+from common.models import Comment, AddInfo
 from facility.models import FacilityInfo
+from django.conf import settings
+import uuid
 
 
 from django.http import JsonResponse
@@ -642,7 +646,16 @@ def recruitment_manager(request):
     return render(request, 'recruitment_manager.html', context)
 
 def event_manager(request):
-    queryset = []  # 나중에 DB 들어오면 교체
+    # DB에서 이벤트 조회 (category_type='event')
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('event')
+        queryset = Article.objects.select_related('member_id', 'category_id').filter(
+            category_id=category,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+    except Exception:
+        queryset = []
     
     per_page = int(request.GET.get("per_page", 15))
 
@@ -662,9 +675,22 @@ def event_manager(request):
     block_start = current_block * block_size + 1
     block_end = min(block_start + block_size - 1, paginator.num_pages)
 
+    # facility_json 형식으로 데이터 변환
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+    
+    for idx, article in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": article.article_id,
+            "title": article.title,
+            "author": article.member_id.user_id if article.member_id else "",
+            "row_no": start_index + idx + 1,
+        })
+
     context = {
         "page_obj": page_obj,
         "per_page": per_page,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": range(block_start, block_end + 1),
     }
 
@@ -672,7 +698,16 @@ def event_manager(request):
 
 
 def board_manager(request):
-    queryset = []  # 나중에 DB 들어오면 교체
+    # DB에서 공지사항 조회 (category_type='notice')
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('notice')
+        queryset = Article.objects.select_related('member_id', 'category_id').filter(
+            category_id=category,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+    except Exception:
+        queryset = []
     
     per_page = int(request.GET.get("per_page", 15))
 
@@ -692,9 +727,22 @@ def board_manager(request):
     block_start = current_block * block_size + 1
     block_end = min(block_start + block_size - 1, paginator.num_pages)
 
+    # facility_json 형식으로 데이터 변환
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+    
+    for idx, article in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": article.article_id,
+            "title": article.title,
+            "author": article.member_id.user_id if article.member_id else "",
+            "row_no": start_index + idx + 1,
+        })
+
     context = {
         "page_obj": page_obj,
         "per_page": per_page,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": range(block_start, block_end + 1),
     }
 
@@ -703,8 +751,484 @@ def board_manager(request):
 def banner_manager(request):
     return render(request, 'banner_manager.html')
 
+def handle_file_uploads_manager(request, article):
+    """게시글에 첨부된 파일들을 처리하고 AddInfo에 저장 (manager용)"""
+    uploaded_files = []
+    
+    if 'file' in request.FILES:
+        files = request.FILES.getlist('file')
+        
+        # media 디렉토리 생성
+        media_dir = settings.MEDIA_ROOT
+        upload_dir = os.path.join(media_dir, 'uploads', 'articles')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        for file in files:
+            try:
+                # 파일명 생성 (UUID로 고유성 보장)
+                file_ext = os.path.splitext(file.name)[1]
+                encoded_name = f"{uuid.uuid4()}{file_ext}"
+                file_path = os.path.join(upload_dir, encoded_name)
+                
+                # 파일 저장
+                with open(file_path, 'wb+') as destination:
+                    for chunk in file.chunks():
+                        destination.write(chunk)
+                
+                # 상대 경로 저장 (media/uploads/articles/...)
+                relative_path = f"uploads/articles/{encoded_name}"
+                
+                # AddInfo에 저장
+                add_info = AddInfo.objects.create(
+                    path=relative_path,
+                    file_name=file.name,
+                    encoded_name=encoded_name,
+                    article_id=article,
+                )
+                
+                uploaded_files.append({
+                    'id': add_info.add_info_id,
+                    'name': file.name,
+                    'path': relative_path,
+                    'url': f"{settings.MEDIA_URL}{relative_path}",
+                    'is_image': file_ext.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+                })
+                
+                print(f"[DEBUG] 파일 업로드 성공: {file.name} -> {relative_path}")
+                
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] 파일 업로드 실패 ({file.name}): {str(e)}")
+                print(traceback.format_exc())
+                continue
+    
+    return uploaded_files
+
 def event_form(request):
+    if request.method == "POST":
+        title = request.POST.get('title')
+        context = request.POST.get('context')
+        notice_type = request.POST.get('notice_type')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        pin_top = request.POST.get('pin_top', '0')  # 상단 고정 체크박스
+        
+        try:
+            # category_type='event'로 조회
+            category = get_category_by_type('event')
+            
+            # board_name='event'로 조회
+            board = get_board_by_name('event')
+            
+            # 관리자 계정
+            member_id = request.session.get('manager_id', 1)
+            try:
+                member = Member.objects.get(member_id=member_id)
+            except Member.DoesNotExist:
+                member = Member.objects.first()
+                if not member:
+                    messages.error(request, "회원 정보를 찾을 수 없습니다.")
+                    return render(request, 'event_form.html')
+            
+            # always_on 설정
+            always_on = 0 if notice_type == 'always' else 1
+            if pin_top == '1':
+                always_on = 0
+            
+            from django.utils.dateparse import parse_datetime
+            start_datetime = parse_datetime(start_date) if start_date else None
+            end_datetime = parse_datetime(end_date) if end_date else None
+            
+            # DB에 저장
+            article = Article.objects.create(
+                title=title,
+                contents=context,
+                member_id=member,
+                board_id=board,
+                category_id=category,
+                always_on=always_on,
+                start_date=start_datetime,
+                end_date=end_datetime,
+            )
+            
+            # 파일 업로드 처리
+            handle_file_uploads_manager(request, article)
+            
+            print(f"[DEBUG] 이벤트 저장 완료:")
+            print(f"  - article_id: {article.article_id}")
+            print(f"  - category_id: {category.category_id} (type: {category.category_type})")
+            print(f"  - board_id: {board.board_id} (name: {board.board_name})")
+            
+            messages.success(request, "이벤트가 등록되었습니다.")
+            return redirect('/manager/event_manager/')
+        except Category.DoesNotExist:
+            messages.error(request, "이벤트 카테고리(category_type='event')를 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
+        except Board.DoesNotExist:
+            messages.error(request, "이벤트 게시판(board_name='event')을 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] 이벤트 등록 오류: {str(e)}")
+            print(traceback.format_exc())
+            messages.error(request, f"이벤트 등록 중 오류가 발생했습니다: {str(e)}")
+    
     return render(request, 'event_form.html')
 
+def post_manager(request):
+    # DB에서 자유게시판(post) 조회
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('post')
+        queryset = Article.objects.select_related('member_id', 'category_id').filter(
+            category_id=category,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+    except Exception:
+        queryset = []
+    
+    per_page = int(request.GET.get("per_page", 15))
+
+    try:
+        page = int(request.GET.get("page", 1))
+        if page < 1:
+            page = 1
+    except:
+        page = 1
+
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+
+    # 페이지 블록
+    block_size = 5
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
+
+    # facility_json 형식으로 데이터 변환
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+    
+    for idx, article in enumerate(page_obj.object_list):
+        facility_page.append({
+            "id": article.article_id,
+            "title": article.title,
+            "author": article.member_id.user_id if article.member_id else "",
+            "row_no": start_index + idx + 1,
+        })
+
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
+        "block_range": range(block_start, block_end + 1),
+    }
+
+    return render(request, 'post_manager.html', context)
+
+def manager_post_detail(request, article_id):
+    """관리자 전용 자유게시판 상세 페이지"""
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('/manager/')
+    
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('post')
+        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_id=article_id,
+            category_id=category,
+            delete_date__isnull=True
+        )
+        
+        # 댓글 조회
+        comment_objs = Comment.objects.select_related('member_id').filter(
+            article_id=article_id,
+            delete_date__isnull=True
+        ).order_by('reg_date')
+        
+        comments = []
+        for comment_obj in comment_objs:
+            comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comments.append({
+                'comment_id': comment_obj.comment_id,
+                'comment': comment_obj.comment,
+                'author': comment_author,
+                'reg_date': comment_obj.reg_date,
+            })
+        
+        # 작성자 정보
+        author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        
+        # 첨부파일 조회
+        add_info_objs = AddInfo.objects.filter(article_id=article_id)
+        files = []
+        images = []
+        for add_info in add_info_objs:
+            file_ext = os.path.splitext(add_info.file_name)[1].lower()
+            is_image = file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+            file_data = {
+                'id': add_info.add_info_id,
+                'name': add_info.file_name,
+                'url': f"{settings.MEDIA_URL}{add_info.path}",
+                'is_image': is_image,
+            }
+            if is_image:
+                images.append(file_data)
+            else:
+                files.append(file_data)
+        
+        article = {
+            'article_id': article_obj.article_id,
+            'title': article_obj.title,
+            'contents': article_obj.contents if article_obj.contents else '',
+            'author': author_name,
+            'date': article_obj.reg_date.strftime('%Y-%m-%d'),
+            'views': article_obj.view_cnt,
+            'reg_date': article_obj.reg_date,
+            'images': images,
+            'files': files,
+        }
+        
+        context = {
+            'article': article,
+            'comments': comments,
+            'board_type': 'post',
+            'is_manager': True,  # 관리자 페이지임을 표시
+        }
+        
+        return render(request, 'board_detail.html', context)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] manager_post_detail 오류: {str(e)}")
+        print(traceback.format_exc())
+        messages.error(request, f"게시글을 불러오는 중 오류가 발생했습니다: {str(e)}")
+        return redirect('/manager/post_manager/')
+
+def manager_notice_detail(request, article_id):
+    """관리자 전용 공지사항 상세 페이지"""
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('/manager/')
+    
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('notice')
+        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_id=article_id,
+            category_id=category,
+            delete_date__isnull=True
+        )
+        
+        # 댓글 조회
+        comment_objs = Comment.objects.select_related('member_id').filter(
+            article_id=article_id,
+            delete_date__isnull=True
+        ).order_by('reg_date')
+        
+        comments = []
+        for comment_obj in comment_objs:
+            comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comments.append({
+                'comment_id': comment_obj.comment_id,
+                'comment': comment_obj.comment,
+                'author': comment_author,
+                'reg_date': comment_obj.reg_date,
+            })
+        
+        # 작성자 정보
+        author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        
+        # 첨부파일 조회
+        add_info_objs = AddInfo.objects.filter(article_id=article_id)
+        files = []
+        images = []
+        for add_info in add_info_objs:
+            file_ext = os.path.splitext(add_info.file_name)[1].lower()
+            is_image = file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+            file_data = {
+                'id': add_info.add_info_id,
+                'name': add_info.file_name,
+                'url': f"{settings.MEDIA_URL}{add_info.path}",
+                'is_image': is_image,
+            }
+            if is_image:
+                images.append(file_data)
+            else:
+                files.append(file_data)
+        
+        article = {
+            'article_id': article_obj.article_id,
+            'title': article_obj.title,
+            'contents': article_obj.contents if article_obj.contents else '',
+            'author': author_name,
+            'date': article_obj.reg_date.strftime('%Y-%m-%d'),
+            'views': article_obj.view_cnt,
+            'reg_date': article_obj.reg_date,
+            'images': images,
+            'files': files,
+        }
+        
+        context = {
+            'article': article,
+            'comments': comments,
+            'board_type': 'notice',
+            'is_manager': True,  # 관리자 페이지임을 표시
+        }
+        
+        return render(request, 'board_detail.html', context)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] manager_notice_detail 오류: {str(e)}")
+        print(traceback.format_exc())
+        messages.error(request, f"게시글을 불러오는 중 오류가 발생했습니다: {str(e)}")
+        return redirect('/manager/board_manager/')
+
+def manager_event_detail(request, article_id):
+    """관리자 전용 이벤트 상세 페이지"""
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('/manager/')
+    
+    try:
+        from board.utils import get_category_by_type
+        category = get_category_by_type('event')
+        article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
+            article_id=article_id,
+            category_id=category,
+            delete_date__isnull=True
+        )
+        
+        # 댓글 조회
+        comment_objs = Comment.objects.select_related('member_id').filter(
+            article_id=article_id,
+            delete_date__isnull=True
+        ).order_by('reg_date')
+        
+        comments = []
+        for comment_obj in comment_objs:
+            comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comments.append({
+                'comment_id': comment_obj.comment_id,
+                'comment': comment_obj.comment,
+                'author': comment_author,
+                'reg_date': comment_obj.reg_date,
+            })
+        
+        # 작성자 정보
+        author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        
+        # 첨부파일 조회
+        add_info_objs = AddInfo.objects.filter(article_id=article_id)
+        files = []
+        images = []
+        for add_info in add_info_objs:
+            file_ext = os.path.splitext(add_info.file_name)[1].lower()
+            is_image = file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+            file_data = {
+                'id': add_info.add_info_id,
+                'name': add_info.file_name,
+                'url': f"{settings.MEDIA_URL}{add_info.path}",
+                'is_image': is_image,
+            }
+            if is_image:
+                images.append(file_data)
+            else:
+                files.append(file_data)
+        
+        article = {
+            'article_id': article_obj.article_id,
+            'title': article_obj.title,
+            'contents': article_obj.contents if article_obj.contents else '',
+            'author': author_name,
+            'date': article_obj.reg_date.strftime('%Y-%m-%d'),
+            'views': article_obj.view_cnt,
+            'reg_date': article_obj.reg_date,
+            'images': images,
+            'files': files,
+        }
+        
+        context = {
+            'article': article,
+            'comments': comments,
+            'board_type': 'event',
+            'is_manager': True,  # 관리자 페이지임을 표시
+        }
+        
+        return render(request, 'board_detail.html', context)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] manager_event_detail 오류: {str(e)}")
+        print(traceback.format_exc())
+        messages.error(request, f"게시글을 불러오는 중 오류가 발생했습니다: {str(e)}")
+        return redirect('/manager/event_manager/')
+
 def board_form(request):
+    if request.method == "POST":
+        title = request.POST.get('title')
+        context = request.POST.get('context')
+        notice_type = request.POST.get('notice_type')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        pin_top = request.POST.get('pin_top', '0')  # 상단 고정 체크박스
+        
+        try:
+            # category_type='notice'로 조회
+            category = get_category_by_type('notice')
+            
+            # board_name='notice'로 조회
+            board = get_board_by_name('notice')
+            
+            # 관리자 계정
+            member_id = request.session.get('manager_id', 1)
+            try:
+                member = Member.objects.get(member_id=member_id)
+            except Member.DoesNotExist:
+                member = Member.objects.first()
+                if not member:
+                    messages.error(request, "회원 정보를 찾을 수 없습니다.")
+                    return render(request, 'board_form.html')
+            
+            # always_on 설정
+            always_on = 0 if notice_type == 'always' else 1
+            if pin_top == '1':
+                always_on = 0
+            
+            from django.utils.dateparse import parse_datetime
+            start_datetime = parse_datetime(start_date) if start_date else None
+            end_datetime = parse_datetime(end_date) if end_date else None
+            
+            # DB에 저장
+            article = Article.objects.create(
+                title=title,
+                contents=context,
+                member_id=member,
+                board_id=board,
+                category_id=category,
+                always_on=always_on,
+                start_date=start_datetime,
+                end_date=end_datetime,
+            )
+            
+            # 파일 업로드 처리
+            handle_file_uploads_manager(request, article)
+            
+            print(f"[DEBUG] 공지사항 저장 완료:")
+            print(f"  - article_id: {article.article_id}")
+            print(f"  - category_id: {category.category_id} (type: {category.category_type})")
+            print(f"  - board_id: {board.board_id} (name: {board.board_name})")
+            
+            messages.success(request, "공지사항이 등록되었습니다.")
+            return redirect('/manager/board_manager/')
+        except Category.DoesNotExist:
+            messages.error(request, "공지사항 카테고리(category_type='notice')를 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
+        except Board.DoesNotExist:
+            messages.error(request, "공지사항 게시판(board_name='notice')을 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] 공지사항 등록 오류: {str(e)}")
+            print(traceback.format_exc())
+            messages.error(request, f"공지사항 등록 중 오류가 발생했습니다: {str(e)}")
+    
     return render(request, 'board_form.html')

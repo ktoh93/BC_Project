@@ -195,38 +195,93 @@ def kakao_for_map(page_obj):
 def facility_detail(request, fk):
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
-    faci_cd = fk
-    faci_nm = request.GET.get('fName')
+    try:
+        # FacilityInfo에서 시설 정보 가져오기
+        from facility.models import FacilityInfo
+        facility_info = FacilityInfo.objects.get(id=fk)
+        
+        # FacilityInfo 데이터를 딕셔너리로 변환
+        r_data = {
+            'id': facility_info.id,
+            'name': facility_info.faci_nm,
+            'address': facility_info.address,
+            'phone': facility_info.tel if facility_info.tel else '',
+            'homepage': facility_info.homepage if facility_info.homepage else '',
+            'lat': None,
+            'lng': None,
+        }
+        
+        # Facility 모델이 있으면 추가 정보 가져오기
+        if facility_info.facility:
+            fac = facility_info.facility
+            r_data.update({
+                'sido': fac.cp_nm if fac.cp_nm else '',
+                'sigungu': fac.cpb_nm if fac.cpb_nm else '',
+                'fcob_nm': fac.fcob_nm if fac.fcob_nm else '',
+                'faci_stat_nm': fac.faci_stat_nm if fac.faci_stat_nm else '',
+                'schk_tot_grd_nm': fac.schk_tot_grd_nm if fac.schk_tot_grd_nm else '',
+                'lat': fac.faci_lat,
+                'lng': fac.faci_lot,
+            })
+        
+        # 지도 좌표가 없으면 카카오 지오코딩으로 가져오기
+        if not r_data.get('lat') or not r_data.get('lng'):
+            r_data_with_map = kakao_for_map([r_data])[0]
+        else:
+            r_data_with_map = r_data
 
-    # 목록 검색
-    data = {'keyword': faci_nm}
-    facility_data = facility(data)
+        # 네이버 이미지 검색
+        query = f"{r_data_with_map.get('name', '')}"
+        img_url = get_naver_image(query)
+        
+        r_data_with_map["image_url"] = img_url 
+        
+        # FacilityInfo의 photo가 있으면 사용
+        if facility_info.photo:
+            r_data_with_map["image_url"] = facility_info.photo.url
 
-    # 해당 시설 찾기
-    r_data = None
-    for f_data in facility_data:
-        if f_data.get('id') == faci_cd:
-            r_data = f_data
-            break
+        return render(request, "facility_view.html", {
+            "facility": r_data_with_map,
+            "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
+        })
+        
+    except FacilityInfo.DoesNotExist:
+        # FacilityInfo에 없으면 기존 방식(공공데이터 API)으로 시도
+        faci_cd = fk
+        faci_nm = request.GET.get('fName')
 
-    if r_data is None:
-        return render(request, 'facility_view.html', {"error": "시설 정보를 찾을 수 없습니다."})
+        # 목록 검색
+        data = {'keyword': faci_nm}
+        facility_data = facility(data)
 
-     # 지도 좌표 1개만 처리
-    r_data_with_map = kakao_for_map([r_data])[0]
+        # 해당 시설 찾기
+        r_data = None
+        for f_data in facility_data:
+            if f_data.get('id') == faci_cd:
+                r_data = f_data
+                break
 
-    # 네이버 이미지 검색
-    query = f"{r_data_with_map.get('name', '')}"
-    img_url = get_naver_image(query)
-    
-    r_data_with_map["image_url"] = img_url 
+        if r_data is None:
+            return render(request, 'facility_view.html', {"error": "시설 정보를 찾을 수 없습니다."})
 
-    print("나오냐 ",r_data_with_map)
+         # 지도 좌표 1개만 처리
+        r_data_with_map = kakao_for_map([r_data])[0]
 
-    return render(request, "facility_view.html", {
-        "facility": r_data_with_map,
-        "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
-    })
+        # 네이버 이미지 검색
+        query = f"{r_data_with_map.get('name', '')}"
+        img_url = get_naver_image(query)
+        
+        r_data_with_map["image_url"] = img_url 
+
+        return render(request, "facility_view.html", {
+            "facility": r_data_with_map,
+            "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
+        })
+    except Exception as e:
+        print(f"[ERROR] facility_detail 오류: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return render(request, 'facility_view.html', {"error": f"시설 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"})
 
 
 

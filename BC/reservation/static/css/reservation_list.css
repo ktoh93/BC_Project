@@ -283,7 +283,7 @@
 .page-reservation .facility-header,
 .page-reservation .facility-item {
     display: grid;
-    grid-template-columns: 1.2fr 2.5fr 1.6fr 1.4fr 1fr; /* 시설번호 / 시설명 / 시도 / 구군 / 조회수 */
+    grid-template-columns: 1.5fr 1.5fr 2.5fr 1.2fr 1fr; /* 시설번호 / 시설명 / 시도 / 구군 / 조회수 */
     align-items: center;
     padding: 0.9rem 1.1rem;
     column-gap: 0.75rem;

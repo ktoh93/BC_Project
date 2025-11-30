@@ -119,10 +119,10 @@
                 
                 <!-- 헤더 -->
                 <div class="facility-header">
+                  <span class="facility-title">시/도</span>
+                  <span class="facility-title">구/군</span>
+                  <span class="facility-title">시설명</span>
                     <span class="facility-title">시설번호</span>
-                    <span class="facility-title">시설명</span>
-                    <span class="facility-title">시/도</span>
-                    <span class="facility-title">구/군</span>
                     <span class="facility-title">조회수</span>
                 </div>
 
@@ -133,10 +133,10 @@
                     {% for item in page_obj %}
                         <li class="facility-item">
                             <!-- <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span> -->
-                            <span class="facility-title">{{ item.facility_num }}</span>
-                            <span class="facility-title">{{ item.facility_name }}</span>
                             <span class="facility-title">{{ item.facility_addr1 }}</span>
                             <span class="facility-title">{{ item.facility_addr2 }}</span>
+                            <span class="facility-title">{{ item.facility_name }}</span>
+                            <span class="facility-title">{{ item.facility_num }}</span>
                             <span class="facility-meta">
                             <span class="facility-views">{{ item.views }}</span>
                             </span>

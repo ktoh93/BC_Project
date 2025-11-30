@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>모집글 관리</title>
+    <title>자유게시판 관리</title>
 
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/recruitment_manager.css' %}">
+    <link rel="stylesheet" href="{% static 'css/board_manager.css' %}">
 </head>
 
 <body>
@@ -46,7 +46,7 @@
         </script>
 
         <div class="facility-box">
-            <h1 class="box-header">모집글 관리</h1>
+            <h1 class="box-header">자유게시판 관리</h1>
             
             <select id="perPageSelect" class="filter-select">
                 <option value="15">15개</option>
@@ -97,6 +97,39 @@
     </main>
 
 <script src="{% static 'js/paging.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    /* 자유게시판 목록 렌더링 */
+    function renderPostList(data) {
+        const box = document.getElementById("facilityList");
+        box.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            box.innerHTML = `<tr><td colspan="4">등록된 게시글이 없습니다.</td></tr>`;
+            return;
+        }
+
+        box.innerHTML = data.map(item => `
+            <tr>
+                <td>${item.row_no}</td>
+                <td><input type="checkbox" value="${item.id}"></td>
+                <td><a href="/manager/post/${item.id}/">${item.title}</a></td>
+                <td>${item.author}</td>
+            </tr>
+        `).join("");
+    }
+
+    /* JSON 파싱 */
+    try {
+        const list = JSON.parse(document.getElementById("facilityData").textContent.trim());
+        renderPostList(list);
+    } catch (e) {
+        console.error("JSON 오류:", e);
+        document.getElementById("facilityList").innerHTML = `<tr><td colspan="4">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+    }
+});
+</script>
 
 </body>
 </html>
+

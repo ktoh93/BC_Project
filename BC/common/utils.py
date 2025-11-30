@@ -282,3 +282,17 @@ def reset_all_caches():
     reset_event_pinned_posts_cache()
     reset_post_dummy_list_cache()
 
+
+# 로그인 체크 함수
+# -----------------------------------------------------
+from django.shortcuts import redirect
+
+def check_login(request):
+    """로그인 체크 및 리다이렉트"""
+    if 'user_id' not in request.session:
+        next_url = request.path
+        if request.GET:
+            next_url += '?' + request.GET.urlencode()
+        return redirect(f'/login?next={next_url}')
+    return None
+

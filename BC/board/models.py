@@ -4,10 +4,12 @@ from django.db import models
 # -----------------------------------------------------
 class Board(models.Model):
     board_id = models.AutoField(primary_key=True)
-    board_name = models.CharField(max_length=200)
+    board_name = models.CharField(max_length=200, unique=True)
 
     class Meta:
         db_table = "board"
+        verbose_name = "게시판"
+        verbose_name_plural = "게시판"
 
     def __str__(self):
         return self.board_name
@@ -54,10 +56,12 @@ class Article(models.Model):
 # -----------------------------------------------------
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
-    category_type = models.CharField(max_length=10)
+    category_type = models.CharField(max_length=20, unique=True)
 
     class Meta:
         db_table = "catergory"
+        verbose_name = "카테고리"
+        verbose_name_plural = "카테고리"
 
     def __str__(self):
-        return f"카테고리 {self.category_id}"
+        return f"{self.category_type} (ID: {self.category_id})"

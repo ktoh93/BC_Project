@@ -63,6 +63,7 @@ def update(request,pk):
 def detail(request, pk):
     recruit={
         'pk':pk,
+        'writer':'작성자',
         'title':'제목~ 운동같이할랭?',
         'sido':'서울특별시',
         'sigungu':'양천구',

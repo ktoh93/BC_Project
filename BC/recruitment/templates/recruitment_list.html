@@ -90,7 +90,7 @@
                     {% for item in page_obj %}
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                            <span class="facility-title">{{ item.title }}</span>
+                            <span class="facility-title"><a href="/recruitment/detail/1/">{{ item.title }}</a></span>
                             <span class="facility-date">{{ item.date }}</span>
                             <span class="facility-views">{{ item.views }}</span>
                         </li>
@@ -128,7 +128,7 @@ DB 작성후 예시
             {% else %}
                 <span class="page-btn arrow disabled">◀ 이전</span>
             {% endif %}
-
+            
             <!-- 🔹 페이지 번호 5개씩 블록 -->
             {% for num in block_range %}
                 {% if num == page_obj.number %}

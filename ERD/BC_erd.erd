@@ -4,8 +4,13 @@
   "settings": {
     "width": 2000,
     "height": 2000,
+<<<<<<< HEAD
     "scrollTop": -100,
     "scrollLeft": -200,
+=======
+    "scrollTop": 0,
+    "scrollLeft": -340,
+>>>>>>> ed03b96c62270bee2887bb735e4516ca60d66edc
     "zoomLevel": 0.91,
     "show": 511,
     "database": 4,

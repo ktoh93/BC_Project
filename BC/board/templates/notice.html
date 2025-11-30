@@ -52,7 +52,7 @@
                             <li class="facility-item pinned-item">
                                 <span class="pinned-badge">고정</span>
                                 <span class="facility-order">{{ forloop.counter }}</span>
-                                <span class="facility-title">{{ item.title }}</span>
+                                <a href="/board/notice/{{ item.id }}/" class="facility-title">{{ item.title }}</a>
                                 <span class="facility-author">{{ item.author }}</span>
                                 <span class="facility-date">{{ item.date }}</span>
                                 <span class="facility-views">{{ item.views }}</span>
@@ -99,13 +99,13 @@
                 </div>
                 
                 <ul>
-                    {% for item in page_obj %}
+                    {% for article in page_obj %}
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                            <a href="/board/notice/{{ item.id }}/" class="facility-title">{{ item.title }}</a>
-                            <span class="facility-author">{{ item.author }}</span>
-                            <span class="facility-date">{{ item.date }}</span>
-                            <span class="facility-views">{{ item.views }}</span>
+                            <a href="/board/notice/{{ article.article_id }}/" class="facility-title">{{ article.title }}</a>
+                            <span class="facility-author">{{ article.member_id.nickname|default:"알 수 없음" }}</span>
+                            <span class="facility-date">{{ article.reg_date|date:"Y-m-d" }}</span>
+                            <span class="facility-views">{{ article.view_cnt }}</span>
                         </li>
                     {% empty %}
                         <li class="facility-empty">등록된 공지사항이 없습니다.</li>

@@ -19,7 +19,8 @@
     <div class="sub-content">
 
         <div class="form-wrapper">
-            {# <form method="post" enctype="multipart/form-data">{% csrf_token %} #}
+            <form method="post" action="/manager/board_form/" enctype="multipart/form-data">
+                {% csrf_token %}
 
             <!-- 파일 첨부 -->
             <div class="form-group full-row">
@@ -46,6 +47,14 @@
             <div class="form-group full-row">
                 <label class="form-label">내용 / 설명</label>
                 <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요"></textarea>
+            </div>
+
+            <!-- 상단 고정 설정 -->
+            <div class="form-group full-row">
+                <label class="form-label">상단 고정</label>
+                <div class="notice-type">
+                    <label><input type="checkbox" name="pin_top" value="1"> 상단에 고정</label>
+                </div>
             </div>
 
             <!-- 공지 방식 선택 -->
@@ -79,7 +88,7 @@
                 <button type="button" class="btn btn-list" onclick="history.back()">목록</button>
             </div>
 
-            {# </form> #}
+            </form>
         </div>
 
     </div>

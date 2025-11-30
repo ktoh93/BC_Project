@@ -72,9 +72,19 @@
       <div class="facilities-container">
         <h2 class="facilities-title">추천 시설</h2>
         <ul class="facilities-list" id="randomFacilitiesList">
-          <li class="facility-item loading">시설 정보를 불러오는 중...</li>
-          <li class="facility-item loading">시설 정보를 불러오는 중...</li>
-          <li class="facility-item loading">시설 정보를 불러오는 중...</li>
+          {% if random_facilities %}
+            {% for facility in random_facilities %}
+            <li class="facility-item">
+              <a href="/facility/detail/{{ facility.id }}" class="facility-link">
+                <span class="facility-name">{{ facility.name }}</span>
+                <span class="facility-address">{{ facility.address }}</span>
+                <span class="facility-description">{{ facility.description }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          {% else %}
+            <li class="facility-item">등록된 시설이 없습니다.</li>
+          {% endif %}
         </ul>
       </div>
     </section>

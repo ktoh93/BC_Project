@@ -58,14 +58,16 @@
 
   <!-- 상단: 제목 + 메타 뱃지 -->
   <div class="detail-header">
-    <!-- <h3 class="detail-title">{{ recruit.title }}</h3> -->
-
+    <h2 class="detail-title">#{{ recruit.pk }}  {{ recruit.title }}</h2>
+    <br>
+    <h3>작성자 : {{ recruit.writer }}</h3>
+    <br>
     <div class="detail-meta">
-      <span class="detail-badge">모집지역 : {{ recruit.sido }} {{ recruit.sigungu }}</span>
-      <span class="detail-badge">운동 : {{ recruit.sport }}</span>
-      <span class="detail-badge">모집 : {{ recruit.personnel }}명</span>
+      <span class="detail-badge"># {{ recruit.sido }} {{ recruit.sigungu }}</span>
+      <span class="detail-badge"># {{ recruit.sport }}</span>
+      <span class="detail-badge"># {{ recruit.personnel }}명</span>
       {% if recruit.facility_name %}
-        <span class="detail-badge">시설 {{ recruit.facility_name }}</span>
+        <span class="detail-badge"># {{ recruit.facility_name }}</span>
       {% endif %}
     </div>
   </div>
@@ -82,19 +84,20 @@
       <div class="detail-value detail-content">{{ recruit.content|linebreaksbr }}
       </div>
     </div>
-
+    
     <div class="detail-row">
       <div class="detail-label">오픈카톡</div>
       <div class="detail-value">
         {% if recruit.openchat_url %}
-          <a href="{{ recruit.openchat_url }}" target="_blank" class="detail-link">
-            {{ recruit.openchat_url }}
-          </a>
+        <a href="{{ recruit.openchat_url }}" target="_blank" class="detail-link">
+          {{ recruit.openchat_url }}
+        </a>
         {% else %}
-          등록된 오픈카톡 링크가 없습니다.
+        등록된 오픈카톡 링크가 없습니다.
         {% endif %}
       </div>
     </div>
+
   </div>
 
 </section>

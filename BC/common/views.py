@@ -9,7 +9,38 @@ from django.http import JsonResponse
 import re
 
 def index(request):
-    return render(request, 'index.html')
+    # DB에서 랜덤 시설 3개 가져오기
+    try:
+        from facility.models import FacilityInfo
+        import random
+        
+        # 모든 시설 가져오기
+        all_facilities = FacilityInfo.objects.all()
+        
+        # 랜덤으로 3개 선택 (최대 3개)
+        if all_facilities.exists():
+            facilities_list = list(all_facilities)
+            random_facilities = random.sample(facilities_list, min(3, len(facilities_list)))
+            
+            facilities = []
+            for fac in random_facilities:
+                facilities.append({
+                    'id': fac.id,
+                    'name': fac.faci_nm,
+                    'address': fac.address,
+                    'description': fac.tel if fac.tel else '시설 정보',
+                })
+        else:
+            facilities = []
+    except Exception as e:
+        print(f"[ERROR] index 함수 시설 데이터 로드 오류: {str(e)}")
+        facilities = []
+    
+    context = {
+        'random_facilities': facilities,
+    }
+    
+    return render(request, 'index.html', context)
 
 def login(request):
     if request.method == "POST":

@@ -27,6 +27,7 @@
                 <li><a href="{%url 'recruitment_manager'%}">모집글관리</a></li>
                 <li><a href="{%url 'board_manager'%}">공지사항 관리</a></li>
                 <li><a href="{%url 'event_manager'%}">이벤트 관리</a></li>
+                <li><a href="{%url 'post_manager'%}">자유게시판 관리</a></li>
                 <li><a href="{%url 'banner_manager'%}">배너관리</a></li>
             </ul>
 
@@ -99,6 +100,38 @@
     </main>
 
 <script src="{% static 'js/paging.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    /* 공지사항 목록 렌더링 */
+    function renderBoardList(data) {
+        const box = document.getElementById("facilityList");
+        box.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            box.innerHTML = `<tr><td colspan="4">등록된 공지사항이 없습니다.</td></tr>`;
+            return;
+        }
+
+        box.innerHTML = data.map(item => `
+            <tr>
+                <td>${item.row_no}</td>
+                <td><input type="checkbox" value="${item.id}"></td>
+                <td><a href="/manager/notice/${item.id}/">${item.title}</a></td>
+                <td>${item.author}</td>
+            </tr>
+        `).join("");
+    }
+
+    /* JSON 파싱 */
+    try {
+        const list = JSON.parse(document.getElementById("facilityData").textContent.trim());
+        renderBoardList(list);
+    } catch (e) {
+        console.error("JSON 오류:", e);
+        document.getElementById("facilityList").innerHTML = `<tr><td colspan="4">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+    }
+});
+</script>
 
 </body>
 </html>
