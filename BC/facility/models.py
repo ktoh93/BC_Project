@@ -66,6 +66,8 @@ class Facility(models.Model):
 
     row_num = models.IntegerField(null=True, blank=True)
 
+    reg_date = models.DateTimeField(auto_now_add=True)
+    
     class Meta:
         db_table = "facility"
         
