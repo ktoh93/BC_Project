@@ -4,24 +4,35 @@ from django.db import models
 # FacilityInfo (시설)
 # -----------------------------------------------------
 class FacilityInfo(models.Model):
-    facility_id = models.AutoField(primary_key=True)
-    photo = models.CharField(max_length=500) # 사진 필요할까요?
-    facility_name = models.CharField(max_length=100)
-    sport_type = models.CharField(max_length=100) # 종목인데, 그냥 sport 테이블에서 fk로 가져오는게 나을지/삭제하는게 나을지
-    addr1 = models.CharField(max_length=200)  # 시
-    addr2 = models.CharField(max_length=200)  # 구
-    addr3 = models.CharField(max_length=200)  # 나머지 주소
+    facility = models.ForeignKey(
+        "facility.Facility",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
+    # Sports와 다대다 관계
+    sports = models.ManyToManyField("reservation.Sports")
+
+    # 사진 업로드
+    photo = models.ImageField(upload_to="facility_photos/", null=True, blank=True)
+
+    # 예약 시간대 JSON
+    reservation_time = models.JSONField(null=True, blank=True)
+
+    # Facility 테이블 원본 복사본
+    faci_nm = models.CharField(max_length=200)
+    address = models.CharField(max_length=300)
+    tel = models.CharField(max_length=50, null=True, blank=True)
     homepage = models.CharField(max_length=200, null=True, blank=True)
-    tel = models.CharField(max_length=200, null=True, blank=True)
-    time_date = models.JSONField(null=True, blank=True)
-    etc = models.CharField(max_length=200, null=True, blank=True)
-    sports_id = models.ForeignKey("reservation.Sports", null=True, blank=True, on_delete=models.SET_NULL)
+
+    reg_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "facility_info"
 
     def __str__(self):
-        return self.facility_name
+        return self.faci_nm
 
 
 class Facility(models.Model):
