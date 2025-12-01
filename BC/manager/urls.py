@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     path('', views.manager, name='manager_login'),
     path('dashboard/', views.dashboard, name='dashboard'),
+
+    # 시설추가페이지
     path('facility_add/', views.facility, name='facility_add'),
     
     path('sport_type/', views.sport_type, name='sport_type'),
@@ -13,6 +15,9 @@ urlpatterns = [
     path("save_selected_sports/", views.save_selected_sports, name="save_selected_sports"),
     path('sport_delete/', views.sport_delete, name='sport_delete'),
 
+    # 시설등록
+    path("facility_register/", views.facility_register, name="facility_register"),
+    
     path('facility_list/', views.facility_list, name='facility_list'),
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),
     path('event_manager/', views.event_manager, name='event_manager'),
@@ -21,7 +26,7 @@ urlpatterns = [
     path('banner/', views.banner_manager, name='banner_manager'),
     path('event_form/', views.event_form, name='event_form'),
     path('board_form/', views.board_form, name='board_form'),
-    
+
     # 관리자 전용 상세 페이지
     path('post/<int:article_id>/', views.manager_post_detail, name='manager_post_detail'),
     path('notice/<int:article_id>/', views.manager_notice_detail, name='manager_notice_detail'),

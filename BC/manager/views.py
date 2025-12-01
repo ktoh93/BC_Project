@@ -23,6 +23,8 @@ import uuid
 
 
 from django.http import JsonResponse
+
+# 제거예정
 from django.views.decorators.csrf import csrf_exempt
 
 # 시설
@@ -245,9 +247,46 @@ def sport_delete(request):
         return JsonResponse({"status": "error", "msg": str(e)})
 
 
+# 시설등록(insert)
+@csrf_exempt
+def facility_register(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST만 가능"}, status=405)
+
+    try:
+        ids = request.POST.getlist("ids[]", [])
+
+        if not ids:
+            return JsonResponse({"status": "error", "message": "선택된 시설이 없습니다."})
+
+        facilities = Facility.objects.filter(id__in=ids)
+
+        count = 0
+        for fac in facilities:
+            FacilityInfo.objects.create(
+                facility=fac,
+                faci_nm=fac.faci_nm or "",
+                address=fac.faci_road_addr or "",
+                tel=fac.faci_tel_no or "",
+                homepage=fac.faci_homepage or "",
+                sports=None,
+                photo=None,
+                reservation_time=None,
+            )
+            count += 1
+
+        return JsonResponse({"status": "success", "count": count})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
 
 def sport_type(request):
     return render(request, 'sport_type_manager.html')
+
 
 
 def dashboard(request):
