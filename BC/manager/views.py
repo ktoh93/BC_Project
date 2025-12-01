@@ -1012,11 +1012,13 @@ def event_form(request):
 
 def event_edit(request, article_id):
     """이벤트 게시글 수정"""
+
     # 관리자 체크
     if not request.session.get('manager_id'):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('/manager/')
-    
+
+    # 기존 이벤트 게시글 로드
     try:
         category = get_category_by_type('event')
         article_obj = Article.objects.get(
@@ -1026,7 +1028,8 @@ def event_edit(request, article_id):
     except Article.DoesNotExist:
         messages.error(request, "게시글을 찾을 수 없습니다.")
         return redirect('/manager/event_manager/')
-    
+
+    # POST: 수정 처리
     if request.method == "POST":
         title = request.POST.get('title')
         context = request.POST.get('context')
@@ -1034,39 +1037,41 @@ def event_edit(request, article_id):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         pin_top = request.POST.get('pin_top', '0')
-        
+
         try:
-            # always_on 설정
+            # always_on 처리 (공지/이벤트 동일 규칙)
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
                 always_on = 0
-            
+
             from django.utils.dateparse import parse_datetime
             start_datetime = parse_datetime(start_date) if start_date else None
             end_datetime = parse_datetime(end_date) if end_date else None
-            
-            # 게시글 수정
+
+            # 필드 업데이트
             article_obj.title = title
             article_obj.contents = context
             article_obj.always_on = always_on
             article_obj.start_date = start_datetime
             article_obj.end_date = end_datetime
             article_obj.save()
-            
-            # 파일 업로드 처리 (새 파일 추가)
+
+            # 새 파일 업로드
             handle_file_uploads(request, article_obj)
-            
+
             messages.success(request, "이벤트가 수정되었습니다.")
-            return redirect('/manager/event_manager/')
+            return redirect(f'/manager/event/{article_id}/')  # 상세 페이지로 이동 (notice와 동일 UX)
+
         except Exception as e:
             import traceback
             print(f"[ERROR] 이벤트 수정 오류: {str(e)}")
             print(traceback.format_exc())
             messages.error(request, f"이벤트 수정 중 오류가 발생했습니다: {str(e)}")
-    
-    # 기존 첨부파일 조회
+
+    # GET: 기존 파일 조회
     add_info_objs = AddInfo.objects.filter(article_id=article_id)
     existing_files = []
+
     for add_info in add_info_objs:
         file_ext = os.path.splitext(add_info.file_name)[1].lower()
         existing_files.append({
@@ -1075,11 +1080,18 @@ def event_edit(request, article_id):
             'url': f"{settings.MEDIA_URL}{add_info.path}",
             'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
         })
-    
-    # 날짜 포맷팅
-    start_date_str = article_obj.start_date.strftime('%Y-%m-%dT%H:%M') if article_obj.start_date else ''
-    end_date_str = article_obj.end_date.strftime('%Y-%m-%dT%H:%M') if article_obj.end_date else ''
-    
+
+    # 날짜 표시용 포맷 변환
+    start_date_str = (
+        article_obj.start_date.strftime('%Y-%m-%dT%H:%M')
+        if article_obj.start_date else ''
+    )
+    end_date_str = (
+        article_obj.end_date.strftime('%Y-%m-%dT%H:%M')
+        if article_obj.end_date else ''
+    )
+
+    # form 렌더링
     context = {
         'article': article_obj,
         'existing_files': existing_files,
@@ -1087,9 +1099,8 @@ def event_edit(request, article_id):
         'end_date': end_date_str,
         'is_edit': True,
     }
-    
-    return render(request, 'event_form.html', context)
 
+    return render(request, 'event_form.html', context)
 def post_manager(request):
     # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
     try:
@@ -1495,35 +1506,23 @@ def board_form(request):
         notice_type = request.POST.get('notice_type')
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
-        pin_top = request.POST.get('pin_top', '0')  # 상단 고정 체크박스
-        
+        pin_top = request.POST.get('pin_top', '0')
+
         try:
-            # category_type='notice'로 조회
             category = get_category_by_type('notice')
-            
-            # board_name='notice'로 조회
             board = get_board_by_name('notice')
-            
-            # 관리자 계정
+
             member_id = request.session.get('manager_id', 1)
-            try:
-                member = Member.objects.get(member_id=member_id)
-            except Member.DoesNotExist:
-                member = Member.objects.first()
-                if not member:
-                    messages.error(request, "회원 정보를 찾을 수 없습니다.")
-                    return render(request, 'board_form.html')
-            
-            # always_on 설정
+            member = Member.objects.get(member_id=member_id)
+
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
                 always_on = 0
-            
+
             from django.utils.dateparse import parse_datetime
             start_datetime = parse_datetime(start_date) if start_date else None
             end_datetime = parse_datetime(end_date) if end_date else None
-            
-            # DB에 저장
+
             article = Article.objects.create(
                 title=title,
                 contents=context,
@@ -1534,31 +1533,22 @@ def board_form(request):
                 start_date=start_datetime,
                 end_date=end_datetime,
             )
-            
-            # 파일 업로드 처리
+
             handle_file_uploads(request, article)
-            
-            print(f"[DEBUG] 공지사항 저장 완료:")
-            print(f"  - article_id: {article.article_id}")
-            print(f"  - category_id: {category.category_id} (type: {category.category_type})")
-            print(f"  - board_id: {board.board_id} (name: {board.board_name})")
-            
             messages.success(request, "공지사항이 등록되었습니다.")
             return redirect('/manager/board_manager/')
-        except Category.DoesNotExist:
-            messages.error(request, "공지사항 카테고리(category_type='notice')를 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
-        except Board.DoesNotExist:
-            messages.error(request, "공지사항 게시판(board_name='notice')을 찾을 수 없습니다. 초기 데이터를 생성해주세요.")
+
         except Exception as e:
-            import traceback
-            print(f"[ERROR] 공지사항 등록 오류: {str(e)}")
-            print(traceback.format_exc())
-            messages.error(request, f"공지사항 등록 중 오류가 발생했습니다: {str(e)}")
-    
-    return render(request, 'board_form.html')
+            messages.error(request, f"공지사항 등록 중 오류 발생: {e}")
+
+    return render(request, 'board_form.html', {
+        'is_edit': False
+    })
+
 
 def board_edit(request, article_id):
     """공지사항 게시글 수정"""
+    
     # 관리자 체크
     if not request.session.get('manager_id'):
         messages.error(request, "관리자 권한이 필요합니다.")
@@ -1574,6 +1564,7 @@ def board_edit(request, article_id):
         messages.error(request, "게시글을 찾을 수 없습니다.")
         return redirect('/manager/board_manager/')
     
+    # POST: 수정 처리
     if request.method == "POST":
         title = request.POST.get('title')
         context = request.POST.get('context')
@@ -1581,17 +1572,17 @@ def board_edit(request, article_id):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         pin_top = request.POST.get('pin_top', '0')
-        
+
         try:
-            # always_on 설정
+            # always_on 계산
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
                 always_on = 0
-            
+
             from django.utils.dateparse import parse_datetime
             start_datetime = parse_datetime(start_date) if start_date else None
             end_datetime = parse_datetime(end_date) if end_date else None
-            
+
             # 게시글 수정
             article_obj.title = title
             article_obj.contents = context
@@ -1599,20 +1590,22 @@ def board_edit(request, article_id):
             article_obj.start_date = start_datetime
             article_obj.end_date = end_datetime
             article_obj.save()
-            
-            # 파일 업로드 처리 (새 파일 추가)
+
+            # 신규 파일 업로드 처리
             handle_file_uploads(request, article_obj)
-            
+
             messages.success(request, "공지사항이 수정되었습니다.")
-            return redirect('/manager/board_manager/')
+            return redirect(f'/manager/notice/{article_id}/')
+
         except Exception as e:
             import traceback
             print(f"[ERROR] 공지사항 수정 오류: {str(e)}")
             print(traceback.format_exc())
             messages.error(request, f"공지사항 수정 중 오류가 발생했습니다: {str(e)}")
-    
-    # 기존 첨부파일 조회
+
+    # GET: 기존 정보 불러오기
     add_info_objs = AddInfo.objects.filter(article_id=article_id)
+    
     existing_files = []
     for add_info in add_info_objs:
         file_ext = os.path.splitext(add_info.file_name)[1].lower()
@@ -1623,10 +1616,11 @@ def board_edit(request, article_id):
             'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
         })
     
-    # 날짜 포맷팅
+    # 날짜값 포맷
     start_date_str = article_obj.start_date.strftime('%Y-%m-%dT%H:%M') if article_obj.start_date else ''
     end_date_str = article_obj.end_date.strftime('%Y-%m-%dT%H:%M') if article_obj.end_date else ''
-    
+
+    # form으로 전달
     context = {
         'article': article_obj,
         'existing_files': existing_files,
@@ -1634,7 +1628,7 @@ def board_edit(request, article_id):
         'end_date': end_date_str,
         'is_edit': True,
     }
-    
+
     return render(request, 'board_form.html', context)
 
 

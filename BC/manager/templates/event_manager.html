@@ -9,9 +9,9 @@
 
 {% block content %}
 
-        <script id="facilityData" type="application/json">
-            {{ facility_json|safe }}
-        </script>
+<script id="facilityData" type="application/json">
+    {{ facility_json|safe }}
+</script>
 
         <div class="facility-box">
             <h1 class="box-header">이벤트 관리</h1>
@@ -36,23 +36,23 @@
                 <tbody id="facilityList"></tbody>
             </table>
 
-            <!-- 페이징 -->
-            <div class="pagination">
-                {% if page_obj.has_previous %}
-                    <a class="page-btn arrow"
-                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
-                {% else %}
-                    <span class="page-btn arrow disabled">◀ 이전</span>
-                {% endif %}
+    <!-- 페이징 -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="page-btn arrow"
+               href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
+        {% else %}
+            <span class="page-btn arrow disabled">◀ 이전</span>
+        {% endif %}
 
-                {% for num in block_range %}
-                    {% if num == page_obj.number %}
-                        <span class="page-btn active">{{ num }}</span>
-                    {% else %}
-                        <a class="page-btn"
-                           href="?page={{num}}&per_page={{ per_page }}">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
+        {% for num in block_range %}
+            {% if num == page_obj.number %}
+                <span class="page-btn active">{{ num }}</span>
+            {% else %}
+                <a class="page-btn"
+                   href="?page={{num}}&per_page={{ per_page }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
 
                 {% if page_obj.has_next %}
                     <a class="page-btn arrow"
@@ -73,7 +73,7 @@
 <script src="{% static 'js/paging.js' %}"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    /* 이벤트 목록 렌더링 */
+
     function renderEventList(data) {
         const box = document.getElementById("facilityList");
         box.innerHTML = "";
@@ -87,52 +87,38 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr ${item.delete_date ? 'style="opacity: 0.6; background-color: #f5f5f5;"' : ''}>
                 <td>${item.row_no}</td>
                 <td>${item.delete_date ? '' : `<input type="checkbox" value="${item.id}">`}</td>
-                <td><a href="/manager/event/${item.id}/">${item.title}</a> <a href="/manager/event_edit/${item.id}/" style="margin-left: 10px; color: #2f5c9c; text-decoration: none; font-size: 12px;">[수정]</a></td>
+                <td>
+                    <a href="/manager/event/${item.id}/">${item.title}</a>
+                </td>
                 <td>${item.author}</td>
                 <td>${item.delete_date || '-'}</td>
             </tr>
         `).join("");
     }
 
-    /* JSON 파싱 */
     try {
         const list = JSON.parse(document.getElementById("facilityData").textContent.trim());
         renderEventList(list);
     } catch (e) {
         console.error("JSON 오류:", e);
-        document.getElementById("facilityList").innerHTML = `<tr><td colspan="5">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+        document.getElementById("facilityList").innerHTML =
+            `<tr><td colspan="5">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
     }
 
-    /* CSRF 토큰 가져오기 */
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
+    /* 삭제 */
+    const csrftoken = document.cookie.split('csrftoken=')[1];
 
-    /* 삭제 버튼 클릭 이벤트 */
     document.querySelector('.delete-btn').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('#facilityList input[type="checkbox"]:checked');
-        const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        const ids = Array.from(
+            document.querySelectorAll('#facilityList input[type="checkbox"]:checked')
+        ).map(cb => parseInt(cb.value));
 
         if (ids.length === 0) {
             alert('삭제할 항목을 선택해주세요.');
             return;
         }
 
-        if (!confirm(`선택한 ${ids.length}개의 이벤트를 삭제하시겠습니까?`)) {
-            return;
-        }
+        if (!confirm(`선택한 ${ids.length}개의 이벤트를 삭제하시겠습니까?`)) return;
 
         fetch('/manager/api/articles/delete/', {
             method: 'POST',
@@ -142,20 +128,17 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify({ ids: ids, board_type: 'event' })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.status === 'ok') {
                 alert(`${data.deleted}개의 이벤트가 삭제되었습니다.`);
                 location.reload();
             } else {
-                alert('삭제 중 오류가 발생했습니다: ' + data.msg);
+                alert('삭제 중 오류: ' + data.msg);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('삭제 중 오류가 발생했습니다.');
         });
     });
+
 });
 </script>
 {% endblock %}
