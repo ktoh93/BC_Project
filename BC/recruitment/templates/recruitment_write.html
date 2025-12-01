@@ -27,103 +27,90 @@
 
 <!-- 서브 컨테이너 -->
 <div class="sub-container">
+  <div class="sub-content">
 
-    <div class="sub-content">
-            
-            <!-- 작성 폼 -->
-            <div class="recruitmnent-write-form">
-                <div class="form-wrapper">
-                
-                    <!-- 1. 제목 -->
-                    <div class="form-group full-row">
-                        <label class="form-label">제목</label>
-                        <input type="text" class="form-input">
-                    </div>
-                
-                    <!-- 2. 구 / 종목 / 모집인원 / 비용 -->
-                    <div class="form-row">
-                        <div class="form-group small">
-                            <label class="form-label">시 / 도</label>
-                            <select id="sido" class="form-input">
-                                <option value="">시/도 선택</option>
-                            </select>
-                        </div>
-                
-                        <div class="form-group small">
-                            <label class="form-label">구 / 군</label>
-                            <select id="sigungu" class="form-input">
-                                <option value="">구/군 선택</option>
-                            </select>
-                        </div>
-                
-                        <div class="form-group small">
-                            <label class="form-label">종목</label>
-                            <input type="text" class="form-input">
-                        </div>
-                        <div class="form-group small">
-                            <label class="form-label">모집 인원</label>
-                            <input type="number" class="form-input">
-                        </div>
-                
-                    </div>
-                
-                    <!-- 3. 시설 -->
-                    <div class="form-group full-row">
-                        <label class="form-label">시설</label>
-                        <input type="text" class="form-input">
-                    </div>
-                
-                    <!-- 4. 기본적인 내용 입력 -->
-                    <div class="form-group full-row">
-                        <label class="form-label">내용</label>
-                        <textarea class="form-textarea"></textarea>
-                    </div>
-                
-                    <!-- 5. 기타 URL -->
-                    <div class="form-group full-row">
-                        <label class="form-label">오픈카톡 URL</label>
-                        <input type="text" class="form-input">
-                    </div>
-                
-                
+    <!-- 작성 폼 -->
+    <form id="recruit-form"
+          class="recruitmnent-write-form"
+          method="POST"
+          action="{% url 'recruitment_write' %}" 
+          enctype="multipart/form-data">
+      {% csrf_token %}
 
+      <div class="form-wrapper">
+        <!-- 1. 제목 -->
+        <div class="form-group full-row">
+          <label class="form-label">제목</label>
+          <input type="text" class="form-input" name="title" required>
+        </div>
 
+        <!-- 2. 구 / 종목 / 모집인원 / 비용 -->
+        <div class="form-row">
+          <div class="form-group small">
+            <label class="form-label">시 / 도</label>
+            <select id="sido" class="form-input" name="sido" required>
+              <option value="">시/도 선택</option>
+            </select>
+          </div>
 
-                    <!-- 첨부파일 -->
-                    <div class="form-group full-row">
-                        <label class="form-label">첨부파일</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" name="file" id="fileInput" class="file-input" multiple>
-                            <label for="fileInput" class="file-upload-btn">
-                                <span>📎 파일 선택</span>
-                            </label>
-                            <div class="file-list" id="fileList"></div>
-                        </div>
-                    </div>
-                
+          <div class="form-group small">
+            <label class="form-label">구 / 군</label>
+            <select id="sigungu" class="form-input" name="sigungu" required>
+              <option value="">구/군 선택</option>
+            </select>
+          </div>
 
+          <div class="form-group small">
+            <label class="form-label">종목</label>
+            <input type="text" class="form-input" name="sport" required>
+          </div>
 
-                    
-                    <!-- 7. 버튼 -->
-                    <div class="btn-row">
-                        <button class="btn btn-submit">작성</button>
-                        <button class="btn btn-list">목록</button>
-                    </div>
-                    
-                    
-                    
-                    
+          <div class="form-group small">
+            <label class="form-label">모집 인원</label>
+            <input type="number" class="form-input" name="personnel" min="1" required>
+          </div>
+        </div>
 
+        <!-- 3. 시설 -->
+        <div class="form-group full-row">
+          <label class="form-label">시설</label>
+          <input type="text" class="form-input" name="facility_name">
+        </div>
 
+        <!-- 4. 기본적인 내용 입력 -->
+        <div class="form-group full-row">
+          <label class="form-label">내용</label>
+          <textarea class="form-textarea" name="content" required></textarea>
+        </div>
 
-                </div>            
-                
-            </div>
+        <!-- 5. 기타 URL -->
+        <div class="form-group full-row">
+          <label class="form-label">오픈카톡 URL</label>
+          <input type="text" class="form-input" name="openchat_url">
+        </div>
 
+        <!-- 첨부파일 -->
+        <div class="form-group full-row">
+          <label class="form-label">첨부파일</label>
+          <div class="file-upload-wrapper">
+            <input type="file" name="files" id="fileInput" class="file-input" multiple>
+            <label for="fileInput" class="file-upload-btn">
+              <span>📎 파일 선택</span>
+            </label>
+            <div class="file-list" id="fileList"></div>
+          </div>
+        </div>
 
-    </div>
+        <!-- 버튼 -->
+        <div class="btn-row">
+          <button type="submit" class="btn btn-submit">작성</button>
+          <button type="button" class="btn btn-list">목록</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
 </div>
-
 
 
 {% endblock %}

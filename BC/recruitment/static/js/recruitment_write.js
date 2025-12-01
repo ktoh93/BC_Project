@@ -113,10 +113,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // 1) 등록 클릭
-    btn_submit.addEventListener("click", function() {
-        // console.log("sumbit 클릭됨");
-        handle_submit();
-    });
+    if (btn_submit && recruit_form) {
+        btn_submit.addEventListener("click", function (e) {
+            // 기본 submit 쓰고 싶으면 이 preventDefault 는 지워도 됨
+            // e.preventDefault();
+            recruit_form.submit();  // -> Django view 로 POST 날아감
+        });
+    }
     
     // 2) 목록 클릭
     btn_list.addEventListener("click", function() {
