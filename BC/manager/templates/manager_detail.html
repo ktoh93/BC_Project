@@ -1,0 +1,70 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}관리자 - 게시글 상세보기{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/manager_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="facility-box">
+    <h1 class="box-header">게시글 상세보기</h1>
+
+    <div class="detail-wrapper">
+        <h2 class="detail-title">{{ article.title }}</h2>
+
+        <div class="detail-meta">
+            <span>작성자: {{ article.author }}</span>
+            <span>작성일: {{ article.date }}</span>
+            <span>조회수: {{ article.views }}</span>
+        </div>
+
+        <div class="detail-content">
+            {{ article.contents|linebreaksbr }}
+        </div>
+
+        {% if files %}
+        <div class="detail-files">
+            <h3>첨부파일</h3>
+            <ul>
+                {% for file in files %}
+                <li><a href="{{ file.url }}" download>{{ file.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if images %}
+        <div class="detail-images-section">
+            <h3 class="detail-section-title">이미지 첨부</h3>
+            <div class="detail-image-grid">
+                {% for image in images %}
+                <div class="detail-image-box">
+                    <img src="{{ image.url }}" class="detail-image">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+
+
+        <div class="detail-actions">
+            {% if board_type == 'notice' %}
+            <a href="/manager/board_edit/{{ article.article_id }}/" class="btn btn-edit">수정</a>
+            {% elif board_type == 'event' %}
+            <a href="/manager/event_edit/{{ article.article_id }}/" class="btn btn-edit">수정</a>
+            {% endif %}
+
+            {% if board_type == 'notice' %}
+            <a href="/manager/board_manager/" class="btn btn-list">목록</a>
+            {% elif board_type == 'event' %}
+            <a href="/manager/{{ board_type }}_manager/" class="btn btn-list">목록</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
