@@ -163,9 +163,9 @@ def signup(request):
         from common.utils import parse_address
         import json
         
-        addr1 = address
-        addr2 = address_detail
-        addr3 = ""
+        addr1 = address.split()[0]
+        addr2 = address.split()[1]
+        addr3 = ' '.join(address.split()[2:]) + address_detail
         
         if address_data_str:
             try:

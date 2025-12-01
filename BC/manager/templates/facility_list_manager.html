@@ -4,7 +4,7 @@
 {% block title %}시설 목록 관리{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/facility_list_manager.css' %}">
+    <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -41,8 +41,8 @@
             <table class="facility-table">
                 <thead class="facility-table-header">
                     <tr>
-                        <th>번호</th>
-                        <th>✔</th>
+                        <th style="width: 50px;">번호</th>
+                        <th style="width: 50px;">✔</th>
                         <th>시설명</th>
                         <th>주소</th>
                     </tr>
@@ -75,6 +75,7 @@
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
             </div>
+
             <button class="delete-btn">삭제</button>
         </div>
 {% endblock %}

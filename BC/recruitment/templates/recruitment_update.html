@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block script1 %}
-<script src="{% static 'js/recruitment_write.js' %}"></script>
+<script src="{% static 'js/recruitment_update.js' %}"></script>
 {% endblock %}
 
 
@@ -38,32 +38,28 @@
                     <!-- 1. 제목 -->
                     <div class="form-group full-row">
                         <label class="form-label">제목</label>
-                        <input type="text" class="form-input" value="{{ }}">
+                        <input type="text" class="form-input" value="{{ recruit.title }}" readonly>
                     </div>
-                
+                    
                     <!-- 2. 구 / 종목 / 모집인원 / 비용 -->
                     <div class="form-row">
                         <div class="form-group small">
                             <label class="form-label">시 / 도</label>
-                            <select id="sido" class="form-input">
-                                <option value="">시/도 선택</option>
-                            </select>
+                            <input type="text" class="form-input" value="{{ recruit.region }}" readonly>
                         </div>
-                
+                        
                         <div class="form-group small">
                             <label class="form-label">구 / 군</label>
-                            <select id="sigungu" class="form-input">
-                                <option value="">구/군 선택</option>
-                            </select>
+                            <input type="text" class="form-input" value="{{ recruit.region2 }}" readonly>
                         </div>
                 
                         <div class="form-group small">
                             <label class="form-label">종목</label>
-                            <input type="text" class="form-input">
+                            <input type="text" class="form-input" value="{{ recruit.sport_type }}" readonly>
                         </div>
                         <div class="form-group small">
                             <label class="form-label">모집 인원</label>
-                            <input type="number" class="form-input">
+                            <input type="number" class="form-input" value="{{ recruit.num_member }}" readonly>
                         </div>
                 
                     </div>
@@ -71,19 +67,24 @@
                     <!-- 3. 시설 -->
                     <div class="form-group full-row">
                         <label class="form-label">시설</label>
-                        <input type="text" class="form-input">
+                        <input type="text"
+                        class="form-input"
+                        value="{% if recruit.facility != '미정' %}{{ recruit.facility }}{% endif %}"
+                        readonly>
                     </div>
                 
                     <!-- 4. 기본적인 내용 입력 -->
                     <div class="form-group full-row">
                         <label class="form-label">내용</label>
-                        <textarea class="form-textarea"></textarea>
+                        <textarea class="form-textarea">{{ recruit.contents }}</textarea>
                     </div>
                 
                     <!-- 5. 기타 URL -->
                     <div class="form-group full-row">
                         <label class="form-label">오픈카톡 URL</label>
-                        <input type="text" class="form-input">
+                        <input type="text" class="form-input" 
+                        value="{% if recruit.chat_url %}{{ recruit.chat_url }}{% endif %}"
+                        readonly>
                     </div>
                 
                 

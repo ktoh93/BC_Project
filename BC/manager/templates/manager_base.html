@@ -10,10 +10,10 @@
     {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body{% block body_class %}{% endblock %}>
     {% include 'manager_sidebar.html' %}
 
-    <main class="dashboard-main">
+    <main class="dashboard-main{% block main_class %}{% endblock %}">
         {% block content %}{% endblock %}
     </main>
     {% block extra_content %}{% endblock %}

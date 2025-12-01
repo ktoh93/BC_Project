@@ -2,7 +2,7 @@
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/mypage_base.css' %}" />
-<link rel="stylesheet" href="{% static 'css/mypage_info.css' %}" />
+<link rel="stylesheet" href="{% static 'css/mypage_info_edit.css' %}" />
 <style>
 /* 토스트 메시지 스타일 */
 .toast {
@@ -174,36 +174,51 @@ mypage base
                 <input type="text" name="phone" value="{{ phone_num }}">
             </div>
 
-            <div class="info-group info-group-address">
-                <label>주소</label>
-                <div class="form-row" style="margin-bottom: 10px;">
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        class="form-input"
-                        placeholder="주소 검색 버튼을 눌러주세요"
-                        value="{% if addr1 %}{{ addr1 }}{% if addr2 %} {{ addr2 }}{% endif %}{% endif %}"
-                        readonly
-                    />
-                    <button
-                        type="button"
-                        id="addressSearchBtn"
-                        class="check-btn small-btn"
-                    >
-                        주소 검색
-                    </button>
-                </div>
-                <input type="text" id="address_detail" name="address_detail" class="form-input" placeholder="상세주소" value="{{ addr3 }}" style="margin-bottom: 10px;">
-                <!-- 파싱된 주소 저장용 hidden input -->
-                <input type="hidden" id="address_data" name="address_data" value="">
-                <!-- 기존 파싱된 주소 표시 (읽기 전용) -->
-                <div class="address-display" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                    <div><strong>시/도:</strong> <span id="display_addr1">{{ addr1 }}</span></div>
-                    <div><strong>구:</strong> <span id="display_addr2">{{ addr2 }}</span></div>
-                    <div><strong>상세주소:</strong> <span id="display_addr3">{{ addr3 }}</span></div>
-                </div>
-            </div>
+<div class="info-group info-group-address">
+    <label>주소</label>
+
+    <!-- ✅ 주소 전체를 하나의 컨테이너로 묶기 -->
+    <div class="address-row">
+        <div class="form-row" style="margin-bottom: 10px;">
+            <input
+                type="text"
+                id="address"
+                name="address"
+                class="form-input"
+                placeholder="주소 검색 버튼을 눌러주세요"
+                value="{% if addr1 %}{{ addr1 }}{% if addr2 %} {{ addr2 }}{% endif %}{% endif %}"
+                readonly
+            />
+            <button
+                type="button"
+                id="addressSearchBtn"
+                class="check-btn small-btn"
+            >
+                주소 검색
+            </button>
+        </div>
+
+        <input
+            type="text"
+            id="address_detail"
+            name="address_detail"
+            class="form-input"
+            placeholder="상세주소"
+            value="{{ addr3 }}"
+            style="margin-bottom: 10px;"
+        >
+
+        <!-- 파싱된 주소 저장용 hidden input -->
+        <input type="hidden" id="address_data" name="address_data" value="">
+
+        <!-- 기존 파싱된 주소 표시 (읽기 전용) -->
+        <div class="address-display" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+            <div><strong>시/도:</strong> <span id="display_addr1">{{ addr1 }}</span></div>
+            <div><strong>구:</strong> <span id="display_addr2">{{ addr2 }}</span></div>
+            <div><strong>상세주소:</strong> <span id="display_addr3">{{ addr3 }}</span></div>
+        </div>
+    </div>
+</div>
 
 
             <!-- 버튼 -->

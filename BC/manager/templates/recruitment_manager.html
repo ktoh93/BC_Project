@@ -4,7 +4,7 @@
 {% block title %}모집글 관리{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/recruitment_manager.css' %}">
+    <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -26,8 +26,8 @@
                 
                 <thead class="facility-table-header">
                     <tr>
-                        <th>번호</th>
-                        <th>✔</th>
+                        <th style="width: 50px;">번호</th>
+                        <th style="width: 50px;">✔</th>
                         <th>제목</th>
                         <th>작성자 ID</th>
                         <th>삭제 일자</th>
@@ -61,6 +61,7 @@
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
             </div>
+
             <button class="delete-btn">삭제</button>
         </div>
 {% endblock %}

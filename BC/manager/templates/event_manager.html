@@ -4,7 +4,7 @@
 {% block title %}이벤트 관리{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/event_manager.css' %}">
+    <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -13,28 +13,28 @@
     {{ facility_json|safe }}
 </script>
 
-<div class="facility-box">
-    <h1 class="box-header">이벤트 관리</h1>
-
-    <select id="perPageSelect" class="filter-select">
-        <option value="15">15개</option>
-        <option value="30">30개</option>
-        <option value="50">50개</option>
-        <option value="100">100개</option>
-    </select>
-
-    <table class="facility-table">
-        <thead class="facility-table-header">
-            <tr>
-                <th>번호</th>
-                <th>✔</th>
-                <th>제목</th>
-                <th>작성자 ID</th>
-                <th>삭제 일자</th>
-            </tr>
-        </thead>
-        <tbody id="facilityList"></tbody>
-    </table>
+        <div class="facility-box">
+            <h1 class="box-header">이벤트 관리</h1>
+            
+            <select id="perPageSelect" class="filter-select">
+                <option value="15">15개</option>
+                <option value="30">30개</option>
+                <option value="50">50개</option>
+                <option value="100">100개</option>
+            </select>
+            <table class="facility-table">
+                
+                <thead class="facility-table-header">
+                    <tr>
+                        <th style="width: 50px;">번호</th>
+                        <th style="width: 50px;">✔</th>
+                        <th>제목</th>
+                        <th>작성자 ID</th>
+                        <th>삭제 일자</th>
+                    </tr>
+                </thead>
+                <tbody id="facilityList"></tbody>
+            </table>
 
     <!-- 페이징 -->
     <div class="pagination">
@@ -54,20 +54,19 @@
             {% endif %}
         {% endfor %}
 
-        {% if page_obj.has_next %}
-            <a class="page-btn arrow"
-               href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">다음 ▶</a>
-        {% else %}
-            <span class="page-btn arrow disabled">다음 ▶</span>
-        {% endif %}
-    </div>
+                {% if page_obj.has_next %}
+                    <a class="page-btn arrow"
+                        href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">다음 ▶</a>
+                {% else %}
+                    <span class="page-btn arrow disabled">다음 ▶</span>
+                {% endif %}
+            </div>
 
-    <a href="{% url 'event_form' %}">
-        <button class="register-btn">작성하기</button>
-    </a>
-    <button class="delete-btn">삭제</button>
-</div>
-
+            <a href="{% url 'event_form' %}">
+                <button class="register-btn">작성하기</button>
+            </a>
+            <button class="delete-btn">삭제</button>
+        </div>
 {% endblock %}
 
 {% block extra_js %}

@@ -4,7 +4,7 @@
 {% block title %}배너 관리{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/banner_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,10 +15,10 @@
     <table class="facility-table">
         <thead class="facility-table-header">
             <tr>
-                <th style="width: 80px;">번호</th>
-                <th style="width: 80px;">✔</th>
+                <th style="width: 50px;">번호</th>
+                <th style="width: 50px;">✔</th>
                 <th>이미지 정보</th>
-                <th style="width: 200px;">등록일</th>
+                <th>등록일</th>
             </tr>
         </thead>
 
@@ -42,12 +42,6 @@
             {% endfor %}
         </tbody>
     </table>
-
-    <div class="btn-area">
-        <a href="{% url 'banner_form' %}"><button class="register-btn" type="button">이미지 등록</button></a>
-        <button class="delete-btn" type="button" onclick="deleteBanners()">선택 삭제</button>
-    </div>
-
 
     <!-- 페이징 -->
     <div class="pagination">
@@ -75,6 +69,10 @@
         {% endif %}
     </div>
 
+    <a href="{% url 'banner_form' %}">
+        <button class="register-btn" type="button">이미지 등록</button>
+    </a>
+    <button class="delete-btn" type="button" onclick="deleteBanners()">선택 삭제</button>
 </div>
 
 {% endblock %}
