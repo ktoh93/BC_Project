@@ -9,7 +9,6 @@
 /* ------------------------------------
    라벨 / 인풋 / 텍스트 영역
 ------------------------------------ */
-
 .form-label {
     font-size: 16px;
     font-weight: 600;
@@ -44,22 +43,14 @@
     color: var(--color-text-primary);
 }
 
-.form-textarea:focus {
-    outline: none;
-    border-color: var(--color-deep-blue);
-}
-
 /* ------------------------------------
-   그룹 / 행 구조
+   구조 정렬
 ------------------------------------ */
-
 .form-group {
     margin-bottom: var(--spacing-lg);
 }
 
-.full-row {
-    width: 100%;
-}
+.full-row { width: 100%; }
 
 .form-row {
     display: flex;
@@ -71,9 +62,8 @@
 }
 
 /* ------------------------------------
-   버튼 그룹
+   버튼 영역
 ------------------------------------ */
-
 .btn-row {
     margin-top: var(--spacing-xl);
     display: flex;
@@ -108,9 +98,8 @@
 }
 
 /* ------------------------------------
-   상단 제목
+   페이지 제목
 ------------------------------------ */
-
 .page-title {
     font-size: 28px;
     font-weight: 700;
@@ -123,9 +112,8 @@
 }
 
 /* ------------------------------------
-   컨테이너 정렬
+   컨테이너
 ------------------------------------ */
-
 .sub-container,
 .page-title-section {
     max-width: 1400px;
@@ -133,25 +121,7 @@
 }
 
 /* ------------------------------------
-   공지 방식 선택
------------------------------------- */
-
-.hidden {
-    display: none;
-}
-
-.notice-type {
-    display: flex;
-    gap: var(--spacing-md);
-    font-size: 16px;
-}
-
-.notice-type input {
-    margin-right: 6px;
-}
-
-/* ------------------------------------
-   파일 업로드 (최종 버전)
+   파일 업로드 (수정 완료)
 ------------------------------------ */
 
 .file-upload-wrapper {
@@ -160,8 +130,13 @@
     gap: var(--spacing-md);
 }
 
+/* 문제 해결 핵심 부분 */
 .file-input {
-    display: none;
+    position: absolute;
+    opacity: 0;        /* 투명 */
+    width: 0;
+    height: 0;         /* 크기 0 (UI 영향 X) */
+    overflow: hidden;
 }
 
 .file-upload-btn {
@@ -184,42 +159,27 @@
     color: var(--color-deep-blue);
 }
 
-.file-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
-}
-
-.file-item {
+/* 현재 파일 박스 */
+.current-file-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
     background: var(--color-background);
     border-radius: 6px;
+    padding: 8px 12px;
     font-size: 14px;
     color: var(--color-text-secondary);
 }
 
-.file-item-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.file-item-remove {
-    margin-left: var(--spacing-sm);
+.file-remove-btn {
     padding: 4px 8px;
     background: transparent;
     border: none;
-    color: var(--color-text-secondary);
+    font-size: 16px;
     cursor: pointer;
-    font-size: 14px;
-    transition: color var(--transition-base);
+    color: var(--color-text-secondary);
 }
 
-.file-item-remove:hover {
+.file-remove-btn:hover {
     color: var(--color-deep-blue);
 }

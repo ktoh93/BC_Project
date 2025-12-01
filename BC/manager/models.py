@@ -12,7 +12,7 @@ class HeroImg(models.Model):
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     reg_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField(null=True, blank=True)
+    delete_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "hero_img"

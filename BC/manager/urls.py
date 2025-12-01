@@ -5,7 +5,7 @@ urlpatterns = [
     path('', views.manager, name='manager_login'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
-    # 시설추가페이지
+    # 공공시설추가페이지
     path('facility_add/', views.facility, name='facility_add'),
     
     path('sport_type/', views.sport_type, name='sport_type'),
@@ -18,7 +18,12 @@ urlpatterns = [
     # 시설등록
     path("facility_register/", views.facility_register, name="facility_register"),
     
+    # 시설관리
     path('facility_list/', views.facility_list, name='facility_list'),
+    path('facility/<int:id>/', views.facility_detail, name='facility_detail'),
+    path('facility/<int:id>/modify/', views.facility_modify, name='facility_modify'),
+
+
     path('post_manager/', views.post_manager, name='post_manager'),
 
     # 게시판 관리
@@ -36,6 +41,7 @@ urlpatterns = [
     path('banner_form/', views.banner_form, name='banner_form'),
     path("banner_edit/<int:img_id>/", views.banner_edit, name="banner_edit"),
     path("banner_delete/", views.banner_delete, name="banner_delete"),
+    path("banner_detail/<int:img_id>/", views.banner_detail, name="banner_detail"),
 
 
     # 관리자 전용 상세 페이지

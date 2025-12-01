@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
                 <td>${item.row_no}</td>
                 <td><input type="checkbox" value="${item.id}"></td>
-                <td>${item.name}</td>
+                <td><a href="/manager/facility/${item.id}/">${item.name}</a></td>
                 <td>${item.address}</td>
             </tr>
         `).join("");

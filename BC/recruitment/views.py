@@ -12,7 +12,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib import messages
 
 from django.views.decorators.http import require_POST
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 # from common.utils import get_recruitment_dummy_list

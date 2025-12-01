@@ -4,56 +4,78 @@
 {% block title %}배너 관리{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/banner_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/banner_manager.css' %}">
 {% endblock %}
 
 {% block content %}
 
-        <div class="facility-box">
-            <h1 class="box-header">배너 관리</h1>
+<div class="facility-box">
+    <h1 class="box-header">배너 관리</h1>
 
-            
+    <table class="facility-table">
+        <thead class="facility-table-header">
+            <tr>
+                <th style="width: 80px;">번호</th>
+                <th style="width: 80px;">✔</th>
+                <th>이미지 정보</th>
+                <th style="width: 200px;">등록일</th>
+            </tr>
+        </thead>
 
-            <table class="facility-table">
-                <thead class="facility-table-header">
-                    <tr>
-                        <th style="width: 80px;">번호</th>
-                        <th style="width: 80px;">✔</th>
-                        <th>이미지 정보</th>
-                        <th style="width: 200px;">등록일</th>
-                    </tr>
-                </thead>
+        <tbody>
+            {% for b in banner_list %}
+            <tr>
+                <td>{{ b.row_no }}</td>
 
-                <tbody>
-                {% for b in banners %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            <input type="checkbox" name="delete_ids" value="{{ b.img_id }}">
-                        </td>
-                        <td>
-                            {% if b.url %}
-                                <a href="/media/{{ b.url }}" download>{{ b.title }}</a>
-                            {% else %}
-                                {{ b.title }}
-                            {% endif %}
-                        </td>
-                        <td>{{ b.reg_date|date:"Y-m-d H:i" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4">등록된 이미지가 없습니다.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <td>
+                    <input type="checkbox" name="delete_ids" value="{{ b.id }}">
+                </td>
 
-            <div class="btn-area">
-                <a href="{% url 'banner_edit' b.img_id %}"><button type="button" class="edit-btn">수정</button></a>
-                <a href="{% url 'banner_form' %}"><button class="register-btn" type="button">이미지 등록</button></a>
-                <button class="delete-btn" type="button" onclick="deleteBanners()">삭제</button>
-            </div>
+                <td>
+                    <a href="{% url 'banner_detail' b.id %}" class="detail-link">
+                        {{ b.title }}
+                    </a>
+                </td>
 
-        </div>
+                <td>{{ b.reg_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="btn-area">
+        <a href="{% url 'banner_form' %}"><button class="register-btn" type="button">이미지 등록</button></a>
+        <button class="delete-btn" type="button" onclick="deleteBanners()">선택 삭제</button>
+    </div>
+
+
+    <!-- 페이징 -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="page-btn arrow"
+               href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">◀ 이전</a>
+        {% else %}
+            <span class="page-btn arrow disabled">◀ 이전</span>
+        {% endif %}
+
+        {% for num in block_range %}
+            {% if num == page_obj.number %}
+                <span class="page-btn active">{{ num }}</span>
+            {% else %}
+                <a class="page-btn"
+                   href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a class="page-btn arrow"
+               href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">다음 ▶</a>
+        {% else %}
+            <span class="page-btn arrow disabled">다음 ▶</span>
+        {% endif %}
+    </div>
+
+</div>
 
 {% endblock %}
 

@@ -1,119 +1,122 @@
-/* ------------------------------------
-   기본
------------------------------------- */
-.box-header {
+/* =====================================================
+   배너 페이지(등록/수정/관리) 전체 레이아웃을
+   admin-main 구조와 동일하게 맞춘 최종 통합 CSS
+===================================================== */
+
+/* 페이지 전체 폭을 admin-main 과 동일하게 확장 */
+.sub-container {
     width: 100%;
-    text-align: center;
-
-    font-size: 32px;
-    font-weight: 700;
-
-    color: var(--color-text-primary);
-    padding-bottom: var(--spacing-md);
-
-    border-bottom: 2px solid var(--color-soft-gray-line);
-
-    margin-bottom: var(--spacing-lg);
-}
-* {
-    margin: 0;
+    max-width: none !important;    /* 기존 제한 제거 */
+    margin: 0;                     /* 가운데 정렬 제거 */
     padding: 0;
-    box-sizing: border-box;
 }
 
-body {
-    font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-    background: #F4F8FB;
-    color: #1A2A43;
-    min-height: 100vh;
+.sub-content {
+    width: 100%;
+    padding: 0;
 }
 
-/* ------------------------------------
-   메인 콘텐츠 영역 (대시보드 공통)
------------------------------------- */
-.dashboard-main {
-    flex: 1;
-    padding: 40px;
+/* -----------------------------------------------------
+   폼 / 수정 페이지 박스 = admin-main 카드 스타일 동일하게
+------------------------------------------------------ */
+.form-wrapper {
+    background: #fff;
+    border: 1px solid #cdd3da;
+    padding: 30px 40px;
+    border-radius: 10px;
+
+    width: 100%;
+    max-width: 100%;               /* 가로 제한 완전 제거 */
+    box-shadow: 0 4px 10px rgba(42, 67, 110, 0.06);
 }
 
-/* ------------------------------------
-   큰 박스(공통 카드)
------------------------------------- */
+/* input / textarea 모두 넓이 100% 확정 */
+.form-input,
+.form-textarea {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* -----------------------------------------------------
+   배너 목록 박스 (facility-box) → admin-main 스타일 통합
+------------------------------------------------------ */
 .facility-box {
     background: #fff;
-    padding: 40px;
-    border-radius: 16px;
-    width: 85%;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border: 1px solid #cdd3da;
+    padding: 30px 40px;
+    border-radius: 10px;
+
+    width: 100%;
+    max-width: 100% !important;
+    box-shadow: 0 4px 10px rgba(42, 67, 110, 0.06);
+
+    position: relative;
 }
 
-.box-header {
-    font-size: 26px;
+/* 제목도 관리자 스타일로 */
+.box-header,
+.page-title {
+    width: 100%;
+    text-align: center;
+    font-size: 28px;
     font-weight: 700;
+    color: #2c3e50;
     margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e1e6ef;
 }
 
-/* ------------------------------------
-   테이블 스타일
------------------------------------- */
+/* -----------------------------------------------------
+   테이블 스타일 (관리자 테이블과 동일하게)
+------------------------------------------------------ */
 .facility-table {
     width: 100%;
     border-collapse: collapse;
+    border: 1px solid #e1e6ef;
+    background: #ffffff;
+    margin-top: 20px;
 }
 
-.facility-table-header th {
-    background: #f0f3f7;
-    padding: 15px 10px;
-    text-align: left;
-    font-size: 15px;
-    border-bottom: 2px solid #d6dbe4;
+.facility-table thead tr {
+    background: #f0f4fa;
 }
 
+.facility-table th,
 .facility-table td {
     padding: 14px 10px;
-    font-size: 16px;
-    border-bottom: 1px solid #e5e9f0;
+    border-bottom: 1px solid #e1e6ef;
+    font-size: 15px;
 }
 
-/* 번호, 체크박스 컬럼 크기 */
+.facility-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+/* 번호/체크박스 정렬 */
 .facility-table th:nth-child(1),
-.facility-table td:nth-child(1) {
-    width: 80px;
-    text-align: center;
-}
-
+.facility-table td:nth-child(1),
 .facility-table th:nth-child(2),
 .facility-table td:nth-child(2) {
-    width: 80px;
     text-align: center;
+    width: 80px;
 }
 
-/* 종목명 */
+/* 이미지 정보 칸 넓게 */
+.facility-table th:nth-child(3),
 .facility-table td:nth-child(3) {
-    font-weight: 500;
+    width: 300px;
 }
 
-/* 등록일 */
+/* 등록일 칸 */
 .facility-table th:nth-child(4),
 .facility-table td:nth-child(4) {
     width: 200px;
     text-align: center;
-    color: #555;
 }
 
-/* ------------------------------------
-   데이터 없는 경우
------------------------------------- */
-.no-data {
-    padding: 30px;
-    text-align: center;
-    color: #666;
-    font-size: 17px;
-}
-
-/* ------------------------------------
-   버튼 영역 (다른 관리자 페이지와 통일)
------------------------------------- */
+/* -----------------------------------------------------
+   버튼 (등록/삭제)
+------------------------------------------------------ */
 .btn-area {
     display: flex;
     justify-content: flex-end;
@@ -121,116 +124,104 @@ body {
     margin-top: 25px;
 }
 
-/* 버튼 공통 스타일 */
-.btn-area button {
-    height: 42px;
-    padding: 0 26px;
-    font-size: 15px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-/* 등록 버튼 */
 .register-btn,
-.edit-btn {
-    background: #2e5aa3;
-    color: #fff;
-}
-.register-btn:hover,
-.edit-btn:hover {
-    background: #1e3f7f;
+.delete-btn,
+.btn-submit,
+.btn-list {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
 }
 
-/* 삭제 버튼 */
+.register-btn,
+.btn-submit {
+    background: #2F5C9C;
+    color: white;
+}
+
 .delete-btn {
     background: #d9534f;
     color: #fff;
 }
-.delete-btn:hover {
-    background: #b52b27;
+
+.btn-list {
+    background: #aaa;
+    color: #fff;
 }
 
-/* ------------------------------------
-   모달 (종목 등록 팝업)
------------------------------------- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(26, 42, 67, 0.55);
-    backdrop-filter: blur(3px);
-    display: none;
+/* 페이징 */
+.page-selector{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-xs);
+}
+
+.pagination {
+    margin-top: var(--spacing-xl);
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    gap: 6px;
+    font-size: 14px;
 }
 
-.modal-overlay.show {
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--color-soft-gray-line);
+    border-radius: 6px;
+    background: var(--color-card-box);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.page-btn:hover {
+    background: var(--color-muted-blue);
+    color: white;
+}
+
+.page-btn.active {
+    background: var(--color-deep-blue);
+    color: white;
+    border-color: var(--color-deep-blue);
+    font-weight: 700;
+}
+
+.page-btn.arrow {
+    font-weight: 600;
+}
+
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.page-dots {
+    padding: 6px 10px;
+    color: var(--color-text-secondary);
+}
+
+.sort-page-container {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
 }
 
-.modal {
-    width: 600px;
-    background: #fff;
-    padding: 45px;
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-    animation: fadeIn 0.25s ease-out;
-    text-align: center;
+.sort-page-container .search-dropdown {
+    min-width: 140px;
 }
 
-@keyframes fadeIn {
-    0% { opacity: 0; transform: scale(0.92); }
-    100% { opacity: 1; transform: scale(1); }
+.page-selector {
+    display: flex;
+    justify-content: flex-end;
+    width: 150px; /* 원하면 조절 가능 */
 }
 
-.modal h3 {
-    font-size: 26px;
-    margin-bottom: 28px;
-}
-
-.modal input {
-    width: 100%;
-    padding: 16px;
-    border: 1px solid #ccc;
-    margin-bottom: 25px;
-    font-size: 17px;
-    border-radius: 6px;
-}
-
-.btn-submit {
-    width: 100%;
-    padding: 15px;
-    background: #2e5aa3;
-    color: #fff;
-    font-size: 17px;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
-}
-.btn-submit:hover {
-    background: #1e3f7f;
-}
-
-.btn-close {
-    margin-top: 20px;
-    padding: 12px 30px;
-    background: #777;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
-}
-.btn-close:hover {
-    background: #555;
-}
-/* 종목명 가운데 정렬 */
-.facility-table th:nth-child(3),
-.facility-table td:nth-child(3) {
-    text-align: center;
+#perPageSelect {
+    margin-bottom: var(--spacing-md);
+    
 }

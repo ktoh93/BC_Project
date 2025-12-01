@@ -123,8 +123,8 @@
 
             <button class="register-btn" id="registerBtn">등록</button>
         </div>
-    </main>
-
+{% endblock %}
+{% block extra_content %}
     <!-- 종목 관리 팝업 -->
     <div id="sportsPopup" class="sports-popup">
         <div class="popup-content">
@@ -144,8 +144,8 @@
             </div>
         </div>
     </div>
-
+{% endblock %}
+{% block extra_js %}
     <script src="{% static 'js/facility_add_manager.js' %}"></script>
-</body>
+{% endblock %}
 
-</html>

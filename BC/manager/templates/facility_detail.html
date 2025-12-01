@@ -1,0 +1,42 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}시설 상세보기{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="facility-detail-container">
+
+    <h1 class="facility-title">{{ facilityInfo.faci_nm }}</h1>
+
+    <div class="facility-info-box">
+        <p><strong>주소:</strong> {{ facilityInfo.address }}</p>
+
+        <p>
+            <strong>전화번호:</strong>
+            {% if facilityInfo.tel %}
+            {{ facilityInfo.tel }}
+            {% else %}
+            없음
+            {% endif %}
+        </p>
+        <p><strong>홈페이지:</strong>
+            {% if facilityInfo.homepage %}
+            <a href="{{ facilityInfo.homepage }}" target="_blank">{{ facilityInfo.homepage }}</a>
+            {% else %}
+            없음
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="btn-area">
+        <a href="{% url 'facility_list' %}" class="btn-back">목록으로</a>
+    </div>
+    <div class="btn-area">
+        <a href="{% url 'facility_modify' facility.id %}" class="btn-back">수정하기</a>
+    </div>
+
+</div>
+{% endblock %}
