@@ -20,17 +20,17 @@
         <h1 class="detail-title-text">{{ recruit.title }}</h1>
 
         <div class="detail-info-line">
-            <span>작성자: {{ recruit.writer }}</span>
+            <span>작성자: {{ recruit.member_id }}</span>
             <span>{{ recruit.reg_date|date:"Y.m.d" }}</span>
-            <span>조회수: {{ recruit.views }}</span>
+            <span>조회수: {{ recruit.view_cnt }}</span>
         </div>
         <br>  
         <div class="detail-meta">
-            <span class="detail-badge"># {{ recruit.sido }} {{ recruit.sigungu }}</span>
-            <span class="detail-badge"># {{ recruit.sport }}</span>
-        <span class="detail-badge"># {{ recruit.personnel }}명</span>
-        {% if recruit.facility_name %}
-            <span class="detail-badge"># {{ recruit.facility_name }}</span>
+            <span class="detail-badge"># {{ recruit.region }} {{ recruit.region2 }}</span>
+            <span class="detail-badge"># {{ recruit.sport_type }}</span>
+        <span class="detail-badge"># {{ recruit.num_member }}명</span>
+        {% if recruit.facility != "미정" %}
+            <span class="detail-badge"># {{ recruit.facility }}</span>
         {% endif %}
         </div>
     </div>
@@ -39,12 +39,90 @@
 
     <!-- 본문 -->
     <div class="detail-content-box">
-        {{ recruit.content|linebreaksbr }}
+        {{ recruit.contents|linebreaksbr }}
     </div>
 
-    <div class="detail-back-btn-box">
-        <a href="{% url 'recruitment_list' %}" class="detail-back-btn">목록으로</a>
+
+    <!-- 버튼(들) -->
+    <div class="detail-btn-box">
+        {% if is_owner %}
+            <!-- 글 작성자일 때 -->
+            <a href="{% url 'recruitment_update' recruit.community_id %}" class="detail-btn btn-edit">수정하기</a>
+        
+            <a href="{% url 'recruitment_delete' recruit.community_id %}"
+                class="detail-btn btn-delete"
+                onclick="return confirm('정말 삭제하시겠습니까?');">
+                삭제
+            </a>
+        {% else %}
+            <!-- 그 외 유저일 때 -->
+            <a href="{% url 'recruitment_join' recruit.community_id %}" class="detail-btn btn-join">참여하기</a>
+        {% endif %}
+
+        <!-- 항상 보이는 목록 버튼 -->
+        <a href="{% url 'recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
     </div>
+
+
+    <!-- 참여 여부 -->
+    <!-- 버튼들 밑에, 댓글 섹션 위에 추가 -->
+    {% if is_owner %}
+    <section class="join-section">
+        <h3 class="section-title">참여 신청 ({{ join_list|length }})</h3>
+
+        <ul class="join-list">
+            {% for join in join_list %}
+            <li class="join-item">
+                <span class="join-member">{{ join.member_id }}</span>
+                <span class="join-status">
+                    {% if join.join_status == 0 %}
+                        대기
+                    {% elif join.join_status == 1 %}
+                        승인
+                    {% elif join.join_status == 2 %}
+                        거절
+                    {% else %}
+                        기타
+                    {% endif %}
+                </span>
+
+                <!-- 상태 변경 버튼들 -->
+                <form method="post"
+                    action="{% url 'recruitment_update_join_status' recruit.community_id join.id %}"
+                    class="join-status-form">
+                    {% csrf_token %}
+                    <button type="submit" name="status" value="1">승인</button>
+                    <button type="submit" name="status" value="2">거절</button>
+                    <button type="submit" name="status" value="0">대기</button>
+                </form>
+            </li>
+            {% empty %}
+            <li class="join-empty">아직 참여 신청한 사람이 없습니다.</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     <hr class="detail-hr">
 

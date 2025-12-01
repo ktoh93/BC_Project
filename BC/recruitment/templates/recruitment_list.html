@@ -91,7 +91,7 @@
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
                             <span class="facility-title"><a href="{% url 'recruitment_detail' item.pk %}">{{ item.title }}</a></span>
-                            <span class="facility-date">{{ item.reg_date }}</span>
+                            <span class="facility-date">{{ item.reg_date|date:"Y-m-d H:i" }}</span>
                             <span class="facility-views">{{ item.view_cnt }}</span>
                         </li>
                     {% empty %}
