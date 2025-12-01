@@ -28,15 +28,14 @@ urlpatterns = [
     path('event_form/', views.event_form, name='event_form'),
     path('board_form/', views.board_form, name='board_form'),
 
-<<<<<<< HEAD
+
     # 배너 페이지
     path('banner/', views.banner_manager, name='banner_manager'),
     path('banner_form/', views.banner_form, name='banner_form'),
     path("banner_edit/<int:img_id>/", views.banner_edit, name="banner_edit"),
     path("banner_delete/", views.banner_delete, name="banner_delete"),
 
-=======
->>>>>>> b9c593c5240bd65b5c10ca993bb12d622d157be3
+
     # 관리자 전용 상세 페이지
     path('post/<int:article_id>/', views.manager_post_detail, name='manager_post_detail'),
     path('notice/<int:article_id>/', views.manager_notice_detail, name='manager_notice_detail'),
