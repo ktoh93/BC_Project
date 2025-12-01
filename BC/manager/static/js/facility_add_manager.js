@@ -335,4 +335,68 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+    /*****************************************
+    * 종목 적용 체크박스 → 즉시 검색 반영
+    *****************************************/
+    const applySportsCheckbox = document.getElementById("applySportsFilter");
+
+    if (applySportsCheckbox) {
+        applySportsCheckbox.addEventListener("change", () => {
+            const params = new URLSearchParams(window.location.search);
+
+            if (applySportsCheckbox.checked) {
+                params.set("apply_sports", "1");
+            } else {
+                params.delete("apply_sports");
+            }
+
+            params.set("page", 1);
+
+            window.location.search = params.toString();
+        });
+    }
+
+    /*****************************************
+        * 시설 등록 기능
+    *****************************************/
+    const registerBtn = document.getElementById("registerBtn");
+
+    if (registerBtn) {
+        registerBtn.addEventListener("click", () => {
+
+            const checked = document.querySelectorAll(".facility-check:checked");
+            if (checked.length === 0) {
+                alert("등록할 시설을 선택하세요.");
+                return;
+            }
+
+            const ids = [...checked].map(c => c.value);
+
+            if (!confirm(`선택된 ${ids.length}개의 시설을 등록하시겠습니까?`)) {
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            ids.forEach(id => formData.append("ids[]", id));
+
+            fetch("/manager/facility_register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert(`${data.count}개의 시설이 등록되었습니다.`);
+                        window.location.reload();
+                    } else {
+                        alert(data.message || "등록 중 오류 발생");
+                    }
+                });
+        });
+    }
+
 });

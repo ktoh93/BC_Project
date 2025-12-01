@@ -1,21 +1,58 @@
-{% extends 'manager_base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
 
-{% block title %}시설 목록 추가{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <title>시설 목록 추가</title>
 
-{% block extra_css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
-{% endblock %}
+</head>
 
-{% block content %}
+<body>
 
-        <!-- 시도/구군/검색 -->
+    <!-- 사이드 -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-title">관리자님<br>어서오십시오</div>
+        <ul class="sidebar-menu">
+            <li class="menu-title">시설</li>
+            <ul class="submenu">
+                <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
+                <li><a href="{% url 'facility_list' %}">시설 목록</a></li>
+                <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
+            </ul>
+
+            <li class="menu-title">웹관리</li>
+            <ul class="submenu">
+                <li><a href="{%url 'recruitment_manager'%}">모집글관리</a></li>
+                <li><a href="{%url 'board_manager'%}">공지사항 관리</a></li>
+                <li><a href="{%url 'event_manager'%}">이벤트 관리</a></li>
+                <li><a href="{%url 'post_manager'%}">자유게시판 관리</a></li>
+                <li><a href="{%url 'banner_manager'%}">배너관리</a></li>
+            </ul>
+
+            <li class="menu-title">통계</li>
+            <ul class="submenu">
+                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
+            </ul>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main">
+
+        <!-- 검색 필터 -->
         <form method="GET" class="filter-container">
-            <!-- 종목 필터 + 종목 관리 -->
-            <div class="sports-filter-box"> <label class="apply-sports-label"> <input type="checkbox"
-                        id="applySportsFilter" name="apply_sports" {% if request.GET.apply_sports %}checked{% endif %}>
-                    종목 적용 </label> <button type="button" id="openSportsPopup" class="btn-sports-manage"> 종목 관리 </button>
+            <div class="sports-filter-box">
+                <label class="apply-sports-label">
+                    <input type="checkbox" id="applySportsFilter" name="apply_sports"
+                           {% if request.GET.apply_sports %}checked{% endif %}>
+                    종목 적용
+                </label>
+                <button type="button" id="openSportsPopup" class="btn-sports-manage">종목 관리</button>
             </div>
+
             <select id="sido" name="sido" class="filter-select">
                 <option value="">시/도 선택</option>
             </select>
@@ -25,18 +62,19 @@
             </select>
 
             <div class="search-wrap">
-                <input type="text" id="searchKeyword" name="keyword" class="search-input" placeholder="검색어"
-                    value="{{ keyword }}">
+                <input type="text" id="searchKeyword" name="keyword"
+                       class="search-input" placeholder="검색어" value="{{ keyword }}">
                 <button type="submit" class="search-btn">검색</button>
             </div>
         </form>
 
-        <script id="facilityData" type="application/json">
-            {{ facility_json|safe }}
-        </script>
+        <!-- 시설 JSON -->
+        <script id="facilityData" type="application/json">{{ facility_json|safe }}</script>
+        <script id="sportData" type="application/json">{{ sports_json|safe }}</script>
 
         <div class="facility-box">
             <h1 class="box-header">시설 추가</h1>
+
             <select id="perPageSelect" class="filter-select">
                 <option value="15">15개</option>
                 <option value="30">30개</option>
@@ -44,6 +82,7 @@
                 <option value="100">100개</option>
             </select>
 
+            <!-- 테이블 -->
             <table class="facility-table">
                 <thead class="facility-table-header">
                     <tr>
@@ -56,61 +95,49 @@
                 <tbody id="facilityList"></tbody>
             </table>
 
+            <!-- 페이징 -->
             <div class="pagination">
-
                 {% if page_obj.has_previous %}
-                <a class="page-btn arrow"
-                    href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
-                    ◀ 이전
-                </a>
+                    <a class="page-btn arrow"
+                       href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}&apply_sports={{ apply_sports }}">◀ 이전</a>
                 {% else %}
-                <span class="page-btn arrow disabled">◀ 이전</span>
+                    <span class="page-btn arrow disabled">◀ 이전</span>
                 {% endif %}
 
                 {% for num in block_range %}
-                {% if num == page_obj.number %}
-                <span class="page-btn active">{{ num }}</span>
-                {% else %}
-                <a class="page-btn"
-                    href="?page={{ num }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
-                    {{ num }}
-                </a>
-                {% endif %}
+                    {% if num == page_obj.number %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% else %}
+                        <a class="page-btn"
+                           href="?page={{ num }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}&apply_sports={{ apply_sports }}">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                <a class="page-btn arrow"
-                    href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&cpNm={{ cpNm }}&cpbNm={{ cpbNm }}&keyword={{ keyword }}">
-                    다음 ▶
-                </a>
+                    <a class="page-btn arrow"
+                       href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}&apply_sports={{ apply_sports }}">다음 ▶</a>
                 {% else %}
-                <span class="page-btn arrow disabled">다음 ▶</span>
+                    <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}
-
             </div>
 
-            <button class="register-btn">등록</button>
-
+            <button class="register-btn" id="registerBtn">등록</button>
         </div>
-{% endblock %}
+    </main>
 
-
-    {# 종목 관리 팝업 #}
     <!-- 종목 관리 팝업 -->
-    <script id="sportData" type="application/json">
-        {{ sports_json|safe }}
-    </script>
     <div id="sportsPopup" class="sports-popup">
         <div class="popup-content">
+
             <h2 class="popup-title">종목 관리</h2>
 
-            <div id="sportsCardContainer" class="sports-card-grid">
-                <!-- JS가 카드 생성해서 넣음 -->
-            </div>
+            <div id="sportsCardContainer" class="sports-card-grid"></div>
+
             <div class="sport-add-wrap">
                 <input type="text" id="newSportName" class="sport-add-input" placeholder="추가할 종목명 입력">
                 <button type="button" id="addSportBtn" class="sport-add-btn">추가</button>
             </div>
+
             <div class="popup-bottom">
                 <button id="closeSportsPopup" class="popup-close-btn">닫기</button>
                 <button id="saveSportsBtn" class="popup-save-btn">저장하기</button>

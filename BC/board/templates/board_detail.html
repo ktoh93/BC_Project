@@ -55,7 +55,7 @@
         <!-- 게시글 내용 -->
         <section class="article-content">
             <div class="article-body">
-                {{ article.contents|linebreaksbr }}
+                <pre>{{ article.contents|linebreaksbr }}</pre>
                 
                 <!-- 이미지 파일 표시 -->
                 {% if article.images %}
