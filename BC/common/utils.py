@@ -288,7 +288,14 @@ def reset_all_caches():
 from django.shortcuts import redirect
 
 def check_login(request):
-    """로그인 체크 및 리다이렉트"""
+    """로그인 체크 및 리다이렉트
+    관리자(manager_id)는 모든 로그인 검증에서 통과
+    """
+    # 관리자 체크: 관리자는 로그인 검증 통과
+    if request.session.get('manager_id'):
+        return None
+    
+    # 일반 사용자 로그인 체크
     if 'user_id' not in request.session:
         next_url = request.path
         if request.GET:

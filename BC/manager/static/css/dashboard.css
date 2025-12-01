@@ -27,6 +27,9 @@ body {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .sidebar-menu li {
@@ -53,6 +56,12 @@ body {
     font-weight: 600;
 }
 
+.menu-title.sidebar-footer-menu {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .submenu {
     list-style: none;
     padding: 0 0 0 10px;
@@ -66,6 +75,30 @@ body {
 
 .submenu li a:hover {
     background-color: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-main-link {
+    display: block;
+    padding: 12px 10px;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.sidebar-main-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .dashboard-main {

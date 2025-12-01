@@ -17,10 +17,20 @@ from common.utils import get_notice_pinned_posts, get_notice_dummy_list, get_eve
 def notice(request):
     # DB에서 공지사항 조회 (category_type='notice')
     try:
+        now = timezone.now()
         category = get_category_by_type('notice')
+        
+        # 기간 필터링: 현재 시간이 start_date 이후이고 end_date 이전인 게시글만
+        # always_on=0 (상시표시)인 경우는 기간 제한 무시
         articles = Article.objects.select_related('member_id', 'category_id').filter(
             category_id=category,
             delete_date__isnull=True
+        ).filter(
+            Q(always_on=0) |  # 상시표시는 항상 표시
+            Q(
+                Q(start_date__isnull=True) | Q(start_date__lte=now),  # 시작일이 없거나 현재 시간 이후
+                Q(end_date__isnull=True) | Q(end_date__gte=now)      # 종료일이 없거나 현재 시간 이전
+            )
         ).order_by('-reg_date')
         
         # 상단 고정 게시글 (always_on=0)
@@ -107,10 +117,20 @@ def notice(request):
 def event(request):
     # DB에서 이벤트 조회 (category_type='event')
     try:
+        now = timezone.now()
         category = get_category_by_type('event')
+        
+        # 기간 필터링: 현재 시간이 start_date 이후이고 end_date 이전인 게시글만
+        # always_on=0 (상시표시)인 경우는 기간 제한 무시
         articles = Article.objects.select_related('member_id', 'category_id').filter(
             category_id=category,
             delete_date__isnull=True
+        ).filter(
+            Q(always_on=0) |  # 상시표시는 항상 표시
+            Q(
+                Q(start_date__isnull=True) | Q(start_date__lte=now),  # 시작일이 없거나 현재 시간 이후
+                Q(end_date__isnull=True) | Q(end_date__gte=now)      # 종료일이 없거나 현재 시간 이전
+            )
         ).order_by('-reg_date')
         
         # 상단 고정 게시글 (always_on=0)
@@ -692,13 +712,18 @@ def create_comment(request, article_id, board_type):
         return redirect(f'/board/{board_type}/')
     
     try:
-        # 로그인한 사용자 정보 가져오기
-        login_id = request.session.get('user_id')
-        if not login_id:
-            messages.error(request, "로그인이 필요합니다.")
-            return redirect(f'/login?next=/board/{board_type}/{article_id}/')
-        
-        member = Member.objects.get(user_id=login_id)
+        # 로그인한 사용자 정보 가져오기 (관리자 우선)
+        manager_id = request.session.get('manager_id')
+        if manager_id:
+            # 관리자인 경우
+            member = Member.objects.get(member_id=manager_id)
+        else:
+            # 일반 사용자인 경우
+            login_id = request.session.get('user_id')
+            if not login_id:
+                messages.error(request, "로그인이 필요합니다.")
+                return redirect(f'/login?next=/board/{board_type}/{article_id}/')
+            member = Member.objects.get(user_id=login_id)
         print(f"[DEBUG] create_comment: member={member.user_id}")
         
         # 게시글 확인

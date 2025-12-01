@@ -34,11 +34,55 @@ from reservation.models import Sports
 def manager(request):
     """
     관리자 로그인 페이지
-    TODO: DB 생성 후 실제 검증 로직으로 교체 필요
+    member_id == 1인 계정만 관리자로 인정
     """
     if request.method == "POST":
-        # 임시 로그인 로직: 버튼만 눌러도 대시보드로 이동
-        return redirect('/manager/dashboard/')
+        admin_id = request.POST.get("admin_id", "").strip()
+        admin_pw = request.POST.get("admin_pw", "").strip()
+        
+        # 입력값 검증
+        if not admin_id or not admin_pw:
+            return render(request, 'login_manager.html', {
+                'error': '아이디와 비밀번호를 입력해주세요.'
+            })
+        
+        try:
+            from django.contrib.auth.hashers import check_password
+            from member.models import Member
+            
+            # user_id로 계정 조회
+            try:
+                admin_user = Member.objects.get(user_id=admin_id)
+            except Member.DoesNotExist:
+                return render(request, 'login_manager.html', {
+                    'error': '존재하지 않는 아이디입니다.'
+                })
+            
+            # 관리자 권한 확인 (member_id == 1만 관리자)
+            if admin_user.member_id != 1:
+                return render(request, 'login_manager.html', {
+                    'error': '관리자 권한이 없습니다.'
+                })
+            
+            # 비밀번호 검증
+            if not check_password(admin_pw, admin_user.password):
+                return render(request, 'login_manager.html', {
+                    'error': '비밀번호가 올바르지 않습니다.'
+                })
+            
+            # 로그인 성공 → 세션에 저장
+            request.session['manager_id'] = admin_user.member_id
+            request.session['manager_name'] = admin_user.name
+            
+            return redirect('/manager/dashboard/')
+            
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] 관리자 로그인 오류: {str(e)}")
+            print(traceback.format_exc())
+            return render(request, 'login_manager.html', {
+                'error': '로그인 중 오류가 발생했습니다.'
+            })
     
     return render(request, 'login_manager.html')
 

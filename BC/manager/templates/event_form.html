@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 - 이벤트 글 작성</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}관리자 - 이벤트 글 작성{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/board_form.css' %}">
-</head>
+{% endblock %}
 
-<body>
-
+{% block content %}
 <div class="page-title-section">
     <h2 class="page-title">이벤트 글 작성</h2>
 </div>
@@ -93,7 +90,9 @@
 
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     /* ------------------------------
@@ -158,6 +157,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-
-</body>
-</html>
+{% endblock %}
