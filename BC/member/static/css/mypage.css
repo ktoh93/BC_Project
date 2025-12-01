@@ -55,17 +55,28 @@
     border-bottom: 1px solid var(--color-soft-gray-line);
 }
 
+/* 행 래퍼 (게시글 링크 + 삭제 버튼) */
+.mypage-board-row-wrapper {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-soft-gray-line);
+}
+
+.mypage-board-row-wrapper:hover {
+    background: #f9fbff;
+}
+
 /* 한 줄 전체(행) – a 태그 하나 */
 .mypage-board-row {
     display: grid;
-    grid-template-columns: 60px 1fr 120px 100px;  /* 번호 / 제목 / 날짜 / 조회수 */
+    grid-template-columns: 60px 300px 120px 100px;  /* 번호 / 제목(고정) / 날짜 / 조회수 */
     align-items: center;
     gap: 8px;
     padding: 10px 4px;
     font-size: 14px;
     color: var(--color-text-primary);
     text-decoration: none;
-    border-bottom: 1px solid var(--color-soft-gray-line);
+    flex: 1;
 }
 
 /* 마지막 줄 border 제거(선택사항) */
@@ -90,25 +101,40 @@
 
 /* 날짜 */
 .col-date {
-    text-align: right;
+    text-align: left;
     color: var(--color-text-secondary);
     font-size: 13px;
 }
 
 /* 조회수 */
 .col-views {
-    text-align: right;
+    text-align: left;
     color: var(--color-text-secondary);
     font-size: 13px;
 }
 
 /* hover 효과 – 배경 살짝 + 제목 밑줄 */
-.mypage-board-row:hover {
-    background: #f9fbff;
-}
-
 .mypage-board-row:hover .col-title {
     text-decoration: underline;
+}
+
+/* 삭제 버튼 */
+.mypage-delete-btn {
+    padding: 6px 16px;
+    margin-right: 8px;
+    border-radius: 4px;
+    border: none;
+    background: #d9534f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    white-space: nowrap;
+}
+
+.mypage-delete-btn:hover {
+    background: #b52b27;
 }
 
 /* 리스트 비었을 때 */
@@ -163,6 +189,10 @@
     .col-views {
         text-align: left;
         font-size: 12px;
+    }
+    
+    .mypage-board-row {
+        grid-template-columns: 40px 200px 100px 80px;  /* 모바일에서도 제목 넓이 조정 */
     }
 
     .col-date {

@@ -15,7 +15,13 @@
       {% if request.session.user_id %}
         <!-- 로그인 상태 -->
         <div class="mobile-user-menu">
-          <a href="/member/info" class="mobile-user-link">{{ request.session.nickname }}님</a>
+          {% if request.session.manager_id %}
+            <!-- 관리자 -->
+            <a href="/manager/dashboard/" class="mobile-user-link">{{ request.session.nickname }}님 (관리자)</a>
+          {% else %}
+            <!-- 일반 사용자 -->
+            <a href="/member/info" class="mobile-user-link">{{ request.session.nickname }}님</a>
+          {% endif %}
           <a href="/logout" class="mobile-user-link">로그아웃</a>
         </div>
       {% else %}
@@ -53,10 +59,17 @@
 
   <!-- PC: 로그인 / 로그아웃 전환 영역 -->
   {% if request.session.user_id %}
-    
-    <button class="header__login-btn">
-      <a href="/member/info/">{{ request.session.nickname }}님</a>
-    </button>
+    {% if request.session.manager_id %}
+      <!-- 관리자 -->
+      <button class="header__login-btn">
+        <a href="/manager/dashboard/">{{ request.session.nickname }}님 (관리자)</a>
+      </button>
+    {% else %}
+      <!-- 일반 사용자 -->
+      <button class="header__login-btn">
+        <a href="/member/info/">{{ request.session.nickname }}님</a>
+      </button>
+    {% endif %}
 
     <button class="header__login-btn">
       <a href="/logout/">로그아웃</a>

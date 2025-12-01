@@ -79,7 +79,9 @@
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
                             <a href="/board/post/{{ article.article_id }}/" class="facility-title">{{ article.title }}</a>
-                            <span class="facility-author">{{ article.member_id.nickname|default:"알 수 없음" }}</span>
+                            <span class="facility-author {% if article.member_id.member_id == 1 %}admin-badge{% endif %}">
+                                {{ article.member_id.nickname|default:"알 수 없음" }}{% if article.member_id.member_id == 1 %} 👑{% endif %}
+                            </span>
                             <span class="facility-date">{{ article.reg_date|date:"Y-m-d" }}</span>
                             <span class="facility-views">{{ article.view_cnt }}</span>
                         </li>

@@ -1,151 +1,94 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-할래말래 - 모집글 작성
-{% endblock %}
+{% block title %}할래말래 - 모집글 상세{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/recruitment_list.css' %}" />
-<link rel="stylesheet" href="{% static 'css/recruitment_detail.css' %}" />
+<link rel="stylesheet" href="{% static 'css/recruitment_detail.css' %}">
 {% endblock %}
 
 {% block script1 %}
 <script src="{% static 'js/recruitment_detail.js' %}"></script>
 {% endblock %}
 
-
 {% block contents %}
 
-<!-- Hero 섹션 -->
-<div class="board-hero recruitment-hero">
-  <h2>모집할래 상세</h2>
-</div>
+<div class="detail-wrapper">
 
+    <!-- 제목 영역 -->
+    <div class="detail-title-box">
+        <h1 class="detail-title-text">{{ recruit.title }}</h1>
 
-
-
-<!-- 서브 컨테이너 -->
-<div class="sub-container">
-
-    <div class="sub-content">
-            
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <section class="recruit-detail">
-
-  <!-- 상단: 제목 + 메타 뱃지 -->
-  <div class="detail-header">
-    <h2 class="detail-title">#{{ recruit.pk }}  {{ recruit.title }}</h2>
-    <br>
-    <h3>작성자 : {{ recruit.writer }}</h3>
-    <br>
-    <div class="detail-meta">
-      <span class="detail-badge"># {{ recruit.sido }} {{ recruit.sigungu }}</span>
-      <span class="detail-badge"># {{ recruit.sport }}</span>
-      <span class="detail-badge"># {{ recruit.personnel }}명</span>
-      {% if recruit.facility_name %}
-        <span class="detail-badge"># {{ recruit.facility_name }}</span>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- 본문 정보 그리드 -->
-  <div class="detail-grid">
-    <div class="detail-row">
-      <div class="detail-label">시설</div>
-      <div class="detail-value">{{ recruit.facility_name }}</div>
-    </div>
-
-    <div class="detail-row detail-row-content">
-      <div class="detail-label">내용</div>
-      <div class="detail-value detail-content">{{ recruit.content|linebreaksbr }}
-      </div>
-    </div>
-    
-    <div class="detail-row">
-      <div class="detail-label">오픈카톡</div>
-      <div class="detail-value">
-        {% if recruit.openchat_url %}
-        <a href="{{ recruit.openchat_url }}" target="_blank" class="detail-link">
-          {{ recruit.openchat_url }}
-        </a>
-        {% else %}
-        등록된 오픈카톡 링크가 없습니다.
+        <div class="detail-info-line">
+            <span>작성자: {{ recruit.writer }}</span>
+            <span>{{ recruit.reg_date|date:"Y.m.d" }}</span>
+            <span>조회수: {{ recruit.views }}</span>
+        </div>
+        <br>  
+        <div class="detail-meta">
+            <span class="detail-badge"># {{ recruit.sido }} {{ recruit.sigungu }}</span>
+            <span class="detail-badge"># {{ recruit.sport }}</span>
+        <span class="detail-badge"># {{ recruit.personnel }}명</span>
+        {% if recruit.facility_name %}
+            <span class="detail-badge"># {{ recruit.facility_name }}</span>
         {% endif %}
-      </div>
+        </div>
     </div>
 
-  </div>
+    <hr class="detail-hr">
 
-</section>
-
-
-
-
-<!-- 댓글 영역 -->
-<section class="comment-section">
-
-  <h3 class="comment-title">댓글</h3>
-
-  <!-- 댓글 작성폼 -->
-  <form method="POST" class="comment-form">
-    {% csrf_token %}
-    <textarea name="content" class="comment-input" placeholder="댓글을 입력하세요"></textarea>
-    <button type="submit" class="btn comment-submit-btn">등록</button>
-  </form>
-
-  <!-- 댓글 리스트 -->
-  <ul class="comment-list">
-    {% for c in comments %}
-      <li class="comment-item">
-
-        <div class="comment-top">
-          <span class="comment-writer">{{ c.writer }}</span>
-          <span class="comment-date">{{ c.reg_date|date:"Y-m-d H:i" }}</span>
-        </div>
-
-        <div class="comment-content">
-          {{ c.content|linebreaksbr }}
-        </div>
-
-        <div class="comment-actions">
-          {% if request.user.username == c.writer %}
-            <a href="{% url 'recruit_comment_delete' c.id %}" class="comment-action">삭제</a>
-          {% endif %}
-        </div>
-
-      </li>
-    {% empty %}
-      <li class="comment-empty">등록된 댓글이 없습니다.</li>
-    {% endfor %}
-  </ul>
-
-</section>
-
-
+    <!-- 본문 -->
+    <div class="detail-content-box">
+        {{ recruit.content|linebreaksbr }}
     </div>
+
+    <div class="detail-back-btn-box">
+        <a href="{% url 'recruitment_list' %}" class="detail-back-btn">목록으로</a>
+    </div>
+
+    <hr class="detail-hr">
+
+
+
+    
+        <!-- 댓글 섹션 -->
+        <section class="comment-section">
+            <h3 class="section-title">댓글 ({{ comments|length }})</h3>
+
+            <!-- 댓글 리스트 -->
+            <ul class="comment-list">
+                {% for comment in comments %}
+                <li class="comment-item">
+                    <div class="comment-meta">
+                        <span class="comment-writer">{{ comment.author }}</span>
+                        <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
+                        <!-- TODO: 수정/삭제 버튼 (본인만 표시) -->
+                    </div>
+                    <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
+                </li>
+                {% empty %}
+                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+                {% endfor %}
+            </ul>
+
+            <!-- 댓글 입력 폼 -->
+            <form method="post" action="/recruitment/{{ recruitment.recruitment_id }}/comment/" class="comment-form">
+                {% csrf_token %}
+                <label for="comment" class="form-label">댓글 쓰기</label>
+                <textarea id="comment" name="content" class="form-textarea" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+                <div class="comment-btn-box">
+                    <button type="submit" class="btn btn-submit">등록</button>
+                </div>
+            </form>
+        </section>
+
+
+
+
+
+
+
+
 </div>
+
 {% endblock %}

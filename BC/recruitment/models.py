@@ -8,6 +8,7 @@ class Community(models.Model):
     title = models.CharField(max_length=200)
     contents = models.TextField()
     region = models.CharField(max_length=10)
+    region2 = models.CharField(max_length=10)
     sport_type = models.CharField(max_length=10)
     facility = models.CharField(max_length=100, default="미정")
     num_member = models.IntegerField()

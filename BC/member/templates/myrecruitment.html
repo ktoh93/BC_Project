@@ -10,6 +10,62 @@
 {% block script1 %}
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="{% static 'js/mypage_list.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    /* CSRF 토큰 가져오기 */
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    /* 삭제 버튼 클릭 이벤트 */
+    document.querySelectorAll('.mypage-delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const communityId = this.getAttribute('data-community-id');
+            
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            fetch('/member/api/community/delete/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ community_id: parseInt(communityId) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    alert('모집글이 삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert('삭제 중 오류가 발생했습니다: ' + data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
 {% block title %}
 mypage base
@@ -65,14 +121,17 @@ mypage base
   <div class="mypage-board-list">
     {% for post in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
-      <a href="#" class="mypage-board-row">
-        <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-        <span class="col-title">{{ post.title }}</span>
-        <!-- 날짜 다시 살리기 -->
-        <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-        <!-- 조회수 필드명 수정 -->
-        <span class="col-views">조회수 {{ post.views }}</span>
-      </a>
+      <div class="mypage-board-row-wrapper">
+        <a href="/recruitment/detail/{{ post.community_id }}/" class="mypage-board-row">
+          <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
+          <span class="col-title">{{ post.title }}</span>
+          <!-- 날짜 다시 살리기 -->
+          <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
+          <!-- 조회수 필드명 수정 -->
+          <span class="col-views">조회수 {{ post.view_cnt }}</span>
+        </a>
+        <button type="button" class="mypage-delete-btn" data-community-id="{{ post.community_id }}">삭제</button>
+      </div>
     {% empty %}
       <div class="mypage-board-empty">
         작성한 게시글이 없습니다.

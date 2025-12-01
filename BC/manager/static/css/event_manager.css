@@ -323,23 +323,32 @@ body {
 /* 테이블 컬럼 비율 */
 .facility-table th:nth-child(1),
 .facility-table td:nth-child(1) {
-    width: 100px;
+    width: 80px;
+    text-align: center;
 }
 
 .facility-table th:nth-child(2),
 .facility-table td:nth-child(2) {
-    width: 80px;
+    width: 60px;
     text-align: center;
 }
 
 .facility-table th:nth-child(3),
 .facility-table td:nth-child(3) {
-    width: 60%;
+    width: 300px;
+    text-align: left;
 }
 
 .facility-table th:nth-child(4),
 .facility-table td:nth-child(4) {
-    width: 25%;
+    width: 150px;
+    text-align: left;
+}
+
+.facility-table th:nth-child(5),
+.facility-table td:nth-child(5) {
+    width: 140px;
+    text-align: center;
 }
 
 .button-group {

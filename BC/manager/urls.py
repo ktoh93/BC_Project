@@ -25,4 +25,7 @@ urlpatterns = [
     path('post/<int:article_id>/', views.manager_post_detail, name='manager_post_detail'),
     path('notice/<int:article_id>/', views.manager_notice_detail, name='manager_notice_detail'),
     path('event/<int:article_id>/', views.manager_event_detail, name='manager_event_detail'),
+    # 삭제 API
+    path('api/articles/delete/', views.delete_articles, name='delete_articles'),
+    path('api/communities/delete/', views.delete_communities, name='delete_communities'),
 ]

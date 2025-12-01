@@ -249,6 +249,27 @@
     white-space: nowrap;
 }
 
+/* 관리자 배지 스타일 */
+.admin-badge {
+    color: #d9534f !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #ffc107;
+    display: inline-block;
+}
+
+.article-author.admin-badge {
+    padding: 4px 10px;
+    font-size: 14px;
+}
+
+.comment-writer.admin-badge {
+    padding: 2px 8px;
+    font-size: 13px;
+}
+
 .comment-date {
     color: var(--color-text-secondary);
     font-size: 13px;

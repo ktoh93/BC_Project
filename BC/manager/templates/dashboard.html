@@ -1,48 +1,15 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 대시보드</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}관리자 대시보드{% endblock %}
+
+{% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-    <aside class="admin-sidebar">
-        <div class="sidebar-title">관리자님<br>어서오십시오</div>
+{% endblock %}
 
-        <ul class="sidebar-menu">
-
-            <!-- 1Depth: 시설 -->
-            <li class="menu-title">시설</li>
-            <ul class="submenu">
-                <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
-                <li><a href="{% url 'facility_list' %}">시설 목록</a></li>
-                <li><a href="{% url 'sport_type' %}">종목 관리</a></li>
-            </ul>
-
-            <!-- 1Depth: 웹관리 -->
-            <li class="menu-title">웹관리</li>
-            <ul class="submenu">
-                <li><a href="{%url 'recruitment_manager'%}">모집글관리</a></li>
-                <li><a href="{%url 'board_manager'%}">공지사항 관리</a></li>
-                <li><a href="{%url 'event_manager'%}">이벤트 관리</a></li>
-                <li><a href="{%url 'post_manager'%}">자유게시판 관리</a></li>
-                <li><a href="{%url 'banner_manager'%}">배너관리</a></li>
-            </ul>
-            <!-- 1Depth: 통계 -->
-            <li class="menu-title">통계</li>
-            <ul class="submenu">
-                <li><a href="{% url 'dashboard' %}">대시보드</a></li>
-                <li><a href="#">시설 통계</a></li>
-            </ul>
-        </ul>
-    </aside>
-
+{% block content %}
     <!-- 메인 콘텐츠 -->
-    <main class="admin-main dashboard-main">
+    <div class="admin-main">
             <!-- 필터 -->
             <div class="filter-section">
                 <form method="GET" class="filter-form">
@@ -149,8 +116,10 @@
                     <div class="stat-value">{{ comment_count }}</div>
                 </div>
             </div>
-    </main>
+    </div>
+{% endblock %}
 
+{% block extra_js %}
     <script src="{% static 'js/dashboard.js' %}"></script>
     <script>
         // 데이터 전달
@@ -162,6 +131,5 @@
         const boardStats = {{ board_stats|safe }};
         const regionRatings = {{ region_ratings|safe }};
     </script>
-</body>
-</html>
+{% endblock %}
 

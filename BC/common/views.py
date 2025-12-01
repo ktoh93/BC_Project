@@ -65,6 +65,18 @@ def login(request):
         request.session["user_name"] = user.name
         request.session["nickname"] = user.nickname
 
+        # 관리자 체크 (member_id == 1인 경우)
+        if user.member_id == 1:
+            request.session["manager_id"] = user.member_id
+            request.session["manager_name"] = user.name
+            # 로그인 유지 선택 시 세션 만료 시간 변경
+            if remember:
+                request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
+            else:
+                request.session.set_expiry(0)  # 브라우저 닫으면 만료
+            return redirect("/manager/dashboard/")  # 관리자는 관리자 페이지로
+
+        # 일반 사용자
         # 로그인 유지 선택 시 세션 만료 시간 변경
         if remember:
             request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
@@ -100,7 +112,8 @@ def signup(request):
         birthday = data.get('birthday')
         gender = data.get('gender')
         address = data.get('address')
-        address_detail = data.get('address_detail')
+        address_detail = data.get('address_detail', '')
+        address_data_str = data.get('address_data', '')
         phone = data.get('phone')
 
         if not PASSWORD_PATTERN.match(password or ""):
@@ -133,6 +146,25 @@ def signup(request):
 
         gender_value = 0 if gender == "male" else 1
 
+        # 주소 파싱
+        from common.utils import parse_address
+        import json
+        
+        addr1 = address
+        addr2 = address_detail
+        addr3 = ""
+        
+        if address_data_str:
+            try:
+                address_data = json.loads(address_data_str)
+                addr1, addr2, addr3 = parse_address(address_data, address_detail)
+            except (json.JSONDecodeError, Exception) as e:
+                # 파싱 실패 시 기존 방식 사용
+                print(f"주소 파싱 오류: {e}")
+                addr1 = address
+                addr2 = address_detail
+                addr3 = ""
+
         Member.objects.create(
             name=name,
             user_id=user_id,
@@ -140,12 +172,13 @@ def signup(request):
             nickname=nickname,
             birthday=birthday,
             gender=gender_value,
-            addr1=address,
-            addr2=address_detail,
+            addr1=addr1,
+            addr2=addr2,
+            addr3=addr3,
             phone_num=phone,
         )
 
-        return redirect("/login")
+        return render(request, 'signup_success.html')
 
     return render(request, "signup.html")
 

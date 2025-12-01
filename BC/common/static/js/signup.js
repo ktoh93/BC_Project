@@ -38,7 +38,36 @@ const addressInput = document.getElementById("address");
 addressSearchBtn.addEventListener("click", function () {
   new daum.Postcode({
     oncomplete: function (data) {
-      addressInput.value = data.address;
+      // 도로명주소 또는 지번주소 선택
+      let addr = '';
+      if (data.userSelectedType === 'R') {
+        // 사용자가 도로명 주소를 선택했을 경우
+        addr = data.roadAddress;
+      } else {
+        // 사용자가 지번 주소를 선택했을 경우
+        addr = data.jibunAddress;
+      }
+      
+      addressInput.value = addr;
+      
+      // 주소 데이터를 hidden input에 저장 (서버에서 파싱용)
+      const addrDataInput = document.getElementById("address_data");
+      if (!addrDataInput) {
+        // hidden input이 없으면 생성
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.id = 'address_data';
+        hiddenInput.name = 'address_data';
+        addressInput.parentElement.appendChild(hiddenInput);
+      }
+      document.getElementById("address_data").value = JSON.stringify({
+        sido: data.sido,
+        sigungu: data.sigungu,
+        roadAddress: data.roadAddress,
+        jibunAddress: data.jibunAddress,
+        userSelectedType: data.userSelectedType
+      });
+      
       document.getElementById("address_detail").focus();
     }
   }).open();
