@@ -28,13 +28,11 @@
             <p><strong>종료:</strong> {{ banner.end_date }}</p>
 
             <div class="btn-row">
-
-                <!-- 다운로드 -->
-                <a href="/media/{{ banner.url }}" download>
+                <!-- 강제 다운로드 경로 -->
+                <a href="{% url 'banner_download' banner.img_id %}">
                     <button type="button" class="btn btn-submit">파일 다운로드</button>
                 </a>
 
-                <!-- 수정 페이지 이동 -->
                 <a href="{% url 'banner_edit' banner.img_id %}">
                     <button type="button" class="btn btn-submit">수정하기</button>
                 </a>

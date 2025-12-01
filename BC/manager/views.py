@@ -16,6 +16,7 @@ from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
 from common.utils import handle_file_uploads
+from django.http import FileResponse, Http404
 
 # models import 
 from member.models import Member
@@ -1766,3 +1767,21 @@ def banner_delete(request):
     HeroImg.objects.filter(img_id__in=ids).update(delete_date=timezone.now())
 
     return JsonResponse({"status": "ok"})
+
+
+def banner_download(request, img_id):
+    banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
+
+    if not banner.url:
+        raise Http404("파일이 없습니다.")
+
+    file_path = os.path.join(settings.MEDIA_ROOT, banner.url)
+
+    if not os.path.exists(file_path):
+        raise Http404("파일을 찾을 수 없습니다.")
+
+    return FileResponse(
+        open(file_path, "rb"),
+        as_attachment=True,
+        filename=os.path.basename(file_path),
+    )
