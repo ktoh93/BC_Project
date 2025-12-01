@@ -34,6 +34,7 @@ urlpatterns = [
     path('banner_form/', views.banner_form, name='banner_form'),
     path("banner_edit/<int:img_id>/", views.banner_edit, name="banner_edit"),
     path("banner_delete/", views.banner_delete, name="banner_delete"),
+    path("banner_detail/<int:img_id>/", views.banner_detail, name="banner_detail"),
 
 
     # 관리자 전용 상세 페이지
