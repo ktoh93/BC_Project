@@ -13,7 +13,7 @@
 
     <h1 class="modify-header">시설 정보 수정</h1>
 
-    <!-- ✔ 전체 저장 폼 시작 -->
+
     <form id="modifyForm" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -46,21 +46,54 @@
             </div>
         </div>
 
-        <!-- 이미지 업로드 -->
+        <!-- 대표 이미지 업로드 -->
         <div class="photo-box">
-            <h2 class="section-title">시설 이미지</h2>
+            <h2 class="section-title">대표 이미지</h2>
 
-            {% if info.photo %}
-            <img src="{{ info.photo.url }}" class="facility-photo">
-            {% else %}
-            <div class="photo-placeholder">이미지 없음</div>
-            {% endif %}
+            <div class="photo-flex">
 
-            <div class="photo-upload-area">
-                <input type="file" name="photo" accept="image/*" class="photo-input">
+                <!-- 미리보기 영역 -->
+                <div id="previewArea">
+                    {% if info.photo %}
+                    <img src="{{ info.photo.url }}" class="facility-photo" id="previewImage">
+                    {% else %}
+                    <div class="photo-placeholder" id="previewPlaceholder">이미지 없음</div>
+                    <img id="previewImage" class="facility-photo" style="display:none;">
+                    {% endif %}
+                </div>
+
+                <!-- 오른쪽 파일 업로드 -->
+                <div class="photo-upload-area">
+                    <input type="file" name="photo" id="photoInput" class="photo-input" accept="image/*">
+                </div>
+
             </div>
         </div>
+        <!-- 첨부파일 -->
+        <div class="file-box">
+            <h2 class="section-title">첨부파일</h2>
 
+            {% if files %}
+            <ul class="attached-list">
+                {% for f in files %}
+                <li class="attached-item" data-id="{{ f.add_info_id }}">
+                    <span class="file-name">{{ f.file_name }}</span>
+
+                    <!-- 삭제예약 체크박스 (실제 삭제는 submit 시) -->
+                    <label>
+                        <input type="checkbox" name="delete_file" value="{{ f.add_info_id }}" class="delete-check">
+                        삭제
+                    </label>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>첨부된 파일이 없습니다.</p>
+            {% endif %}
+
+            <!-- 여러 개 업로드 가능 -->
+            <input type="file" name="attachment_files" multiple class="attachment-input">
+        </div>
         <!-- 예약 시간 설정 -->
         <div class="time-setting-box">
             <h2 class="time-setting-title">예약 가능 시간 설정</h2>

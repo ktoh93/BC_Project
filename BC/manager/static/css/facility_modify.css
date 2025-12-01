@@ -56,7 +56,7 @@
 
 
 /* ================================
-   이미지 업로드 박스
+   대표 이미지 (photo-box)
 ================================ */
 .photo-box {
     background: #fff;
@@ -67,11 +67,16 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
+.photo-flex {
+    display: flex;
+    gap: 35px;
+    align-items: center;
+}
+
+/* 미리보기 이미지 */
 .facility-photo {
     width: 240px;
-    height: auto;
     border-radius: 10px;
-    margin-bottom: 15px;
     border: 1px solid #d9d9d9;
 }
 
@@ -80,32 +85,53 @@
     height: 160px;
     border: 1px dashed #b9c3cf;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     color: #98a3af;
     border-radius: 10px;
 }
 
-.btn-photo-upload {
-    margin-left: 10px;
-    padding: 7px 13px;
-    background: #3b6eb8;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.btn-photo-upload:hover {
-    background: #2f5c9c;
+/* 업로드 영역 */
+.photo-upload-area {
+    display: flex;
+    align-items: center;
 }
 
 .photo-input {
-    margin-left: auto;   /* 자동 여백 → 오른쪽 정렬 */
-    display: block;      /* margin-left:auto를 적용하기 위해 block 필요 */
-    max-width: 250px;    /* 너무 넓어지지 않게 */
+    padding: 6px;
 }
+
+
+
+/* ================================
+   첨부파일 스타일
+================================ */
+.file-box {
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.attached-list {
+    list-style: none;
+    margin-bottom: 15px;
+}
+
+.attached-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f6;
+}
+
+.attachment-input {
+    margin-top: 10px;
+}
+
 
 /* ================================
    예약 시간 설정
@@ -224,3 +250,6 @@
     background: #3c6fb3;
 }
 
+.attached-item .file-name {
+    transition: 0.2s;
+}

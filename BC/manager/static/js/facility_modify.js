@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
      * 1. 기존 시간 JSON 파싱
      * ------------------------------- */
     let raw = document.getElementById("timeJson").textContent.trim();
+    console.log(raw)
     let timeData = {};
 
     try {
@@ -34,7 +35,6 @@ document.addEventListener("DOMContentLoaded", function () {
      * ------------------------------- */
     days.forEach(day => {
 
-        // 기본값 설정 (DB에 없거나 비었을 경우)
         if (!timeData[day.key]) {
             timeData[day.key] = {
                 open: null,
@@ -91,11 +91,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const key = row.dataset.day;
         const isActive = e.target.checked;
 
-        // input disabled 처리
         row.querySelectorAll(".open-time, .close-time, .interval-time")
             .forEach(inp => inp.disabled = !isActive);
 
-        // 데이터 업데이트
         timeData[key].active = isActive;
 
         if (!isActive) {
@@ -125,17 +123,72 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* -------------------------------
-     * 6. 전체 저장 버튼 → JSON 쓰고 submit
+     * 6. 전체 저장 버튼 → JSON 숨겨진 input에 저장
      * ------------------------------- */
     const saveBtn = document.querySelector(".btn-save-all");
-    saveBtn.addEventListener("click", function (e) {
+    saveBtn.addEventListener("click", function () {
 
-        // 저장 직전 JSON 입력
         document.getElementById("reservationTimeInput").value =
             JSON.stringify(timeData);
 
         console.log("🔥 최종 저장 JSON", timeData);
-        // form은 기본적으로 submit됨
+
+        // form은 기본 submit 됨
     });
 
+
+
+    /* -------------------------------
+     * 7. 이미지 미리보기 기능
+     * ------------------------------- */
+    const photoInput = document.getElementById("photoInput");
+    const previewImage = document.getElementById("previewImage");
+    const previewPlaceholder = document.getElementById("previewPlaceholder");
+
+    if (photoInput) {
+        photoInput.addEventListener("change", function () {
+
+            const file = this.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith("image/")) {
+                alert("이미지 파일만 업로드 가능합니다.");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                // placeholder 숨기기
+                if (previewPlaceholder) {
+                    previewPlaceholder.style.display = "none";
+                }
+
+                // 이미지 태그 보이기 + 미리보기 적용
+                previewImage.style.display = "block";
+                previewImage.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+    const deleteChecks = document.querySelectorAll(".delete-check");
+
+    deleteChecks.forEach(chk => {
+        chk.addEventListener("change", function () {
+            const row = this.closest(".attached-item");
+            const name = row.querySelector(".file-name");
+
+            if (this.checked) {
+                // 삭제 예정 → UI에서 취소선 표시
+                name.style.textDecoration = "line-through";
+                name.style.color = "#999";
+            } else {
+                // 체크 해제 → 원상복구
+                name.style.textDecoration = "none";
+                name.style.color = "#000";
+            }
+        });
+    });
 });

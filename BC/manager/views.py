@@ -15,7 +15,7 @@ from board.utils import get_category_by_type, get_board_by_name
 from django.conf import settings
 import uuid
 from django.utils.dateparse import parse_datetime
-from common.utils import handle_file_uploads
+from common.utils import handle_file_uploads, save_encoded_image, upload_multiple_files, delete_selected_files
 from django.http import FileResponse, Http404
 
 # models import 
@@ -363,18 +363,63 @@ def facility_detail(request, id):
 
 # 시설수정
 def facility_modify(request, id):
-    if request.method == 'GET' :
-        info = get_object_or_404(FacilityInfo, id=id)
-        context = {
-            "info": info
-        }
 
-        return render(request, 'facility_write.html', context)
-    
-    return
+    info = get_object_or_404(FacilityInfo, id=id)
 
-    
+    # -----------------------------
+    # GET — 수정 페이지 열기
+    # -----------------------------
+    if request.method == "GET":
+        if info.reservation_time:
+            time_json = json.dumps(info.reservation_time, ensure_ascii=False)
+        else:
+            time_json = "{}"
 
+        files = AddInfo.objects.filter(facility_id=info)
+
+        return render(request, "facility_write.html", {
+            "info": info,
+            "files": files,
+            "time_json": time_json
+        })
+    # -----------------------------
+    # POST — 실제 저장 처리
+    # -----------------------------
+    # 기본 정보 수정
+    info.tel = request.POST.get("tel", "")
+    info.homepage = request.POST.get("homepage", "")
+
+    # 예약 시간 저장
+    raw_time = request.POST.get("reservation_time", "{}")
+    try:
+        info.reservation_time = json.loads(raw_time)
+    except:
+        info.reservation_time = {}
+
+    info.save()
+
+    # 1) 대표 이미지 저장 (인코딩 방식)
+    save_encoded_image(
+        request=request,
+        instance=info,
+        field_name="photo",    # input[name="photo"]
+        sub_dir="uploads/facility/photo", 
+        delete_old=True
+    )
+
+    # 2) 삭제 체크된 첨부파일 제거
+    delete_selected_files(request)
+
+    # 3) 첨부파일 여러 개 업로드(AddInfo)
+    upload_multiple_files(
+        request=request,
+        instance=info,
+        file_field="attachment_files",   # HTML input name
+        sub_dir="uploads/facility/files"
+    )
+
+    messages.success(request, "시설 정보가 수정되었습니다.")
+    return redirect("facility_detail", id=id)
 
 def sport_type(request):
     return render(request, 'sport_type_manager.html')

@@ -541,3 +541,143 @@ def handle_file_uploads(request, article):
     
     print(f"[DEBUG] handle_file_uploads 완료: {len(uploaded_files)}개 파일 업로드됨")
     return uploaded_files
+
+
+
+# -----------------------------------------------------
+# Facility 대표 이미지 업로드 (UUID 인코딩 저장)
+# -----------------------------------------------------
+def save_encoded_image(request, instance, field_name="photo", sub_dir="uploads/facility/photo", delete_old=True):
+    """
+    단일 이미지 업로드 + 인코딩 저장 + AddInfo 저장
+    """
+    if field_name not in request.FILES:
+        return
+
+    upload = request.FILES[field_name]
+
+    allowed_ext = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+    ext = os.path.splitext(upload.name)[1].lower()
+
+    if ext not in allowed_ext:
+        raise ValueError("이미지 파일만 업로드 가능합니다.")
+
+    # -------------------------
+    # 기존 파일 삭제
+    # -------------------------
+    if delete_old:
+        old_path = None
+
+        # 기존 photo(파일 저장된 경로)
+        old_file = getattr(instance, field_name, None)
+        if old_file:
+            old_path = old_file.path
+        # AddInfo에 기존 대표이미지도 삭제
+        old_addinfo = AddInfo.objects.filter(facility_id=instance, file_name="대표이미지").first()
+
+        if old_addinfo:
+            ai_path = os.path.join(settings.MEDIA_ROOT, old_addinfo.path)
+            if os.path.exists(ai_path):
+                os.remove(ai_path)
+            old_addinfo.delete()
+
+        if old_path and os.path.exists(old_path):
+            os.remove(old_path)
+
+    # -------------------------
+    # 새 파일 저장
+    # -------------------------
+    new_name = f"{uuid.uuid4()}{ext}"
+    save_dir = os.path.join(settings.MEDIA_ROOT, sub_dir)
+    os.makedirs(save_dir, exist_ok=True)
+
+    save_path = os.path.join(save_dir, new_name)
+
+    with open(save_path, "wb+") as dest:
+        for chunk in upload.chunks():
+            dest.write(chunk)
+
+    # 모델 field에 저장
+    setattr(instance, field_name, f"{sub_dir}/{new_name}")
+    instance.save()
+
+    # AddInfo에도 저장
+    AddInfo.objects.create(
+        file_name="대표이미지",
+        encoded_name=new_name,
+        path=f"{sub_dir}/{new_name}",
+        facility_id=instance
+    )
+
+
+# -----------------------------------------------------
+# Facility 첨부파일 업로드 (여러 개, AddInfo 저장)
+# -----------------------------------------------------
+def upload_multiple_files(request, instance, file_field="attachment_files", sub_dir="uploads/facility"):
+    """
+    여러 개의 첨부파일을 업로드하고 AddInfo 테이블에 저장한다.
+
+    - instance: FacilityInfo 인스턴스 (facility_id FK로 연결)
+    - file_field: <input type="file" name="attachment_files" multiple> 의 name
+    - sub_dir: MEDIA_ROOT 기준 저장 경로 (예: uploads/facility)
+    """
+    if file_field not in request.FILES:
+        return
+
+    files = request.FILES.getlist(file_field)
+
+    save_dir = os.path.join(settings.MEDIA_ROOT, sub_dir)
+    os.makedirs(save_dir, exist_ok=True)
+
+    allowed_exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf']
+
+    for f in files:
+        ext = os.path.splitext(f.name)[1].lower()
+        if ext not in allowed_exts:
+            # 필요하면 메시지 처리
+            continue
+
+        # UUID 기반 인코딩 파일명
+        new_name = f"{uuid.uuid4()}{ext}"
+        save_path = os.path.join(save_dir, new_name)
+
+        # 실제 파일 저장
+        with open(save_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+
+        # AddInfo 레코드 생성
+        AddInfo.objects.create(
+            file_name=f.name,              # 원본 파일명
+            encoded_name=new_name,         # UUID 인코딩된 파일명
+            path=f"{sub_dir}/{new_name}",  # MEDIA_URL 기준 상대 경로
+            facility_id=instance           # FK: FacilityInfo
+        )
+
+
+# -----------------------------------------------------
+# Facility 첨부파일 삭제 (체크된 것만)
+# -----------------------------------------------------
+def delete_selected_files(request):
+    """
+    폼에서 넘어온 체크박스(name='delete_file') 목록을 기준으로
+    AddInfo + 실제 파일을 삭제한다.
+    """
+    delete_ids = request.POST.getlist("delete_file")
+
+    for fid in delete_ids:
+        try:
+            f = AddInfo.objects.get(add_info_id=fid)
+        except AddInfo.DoesNotExist:
+            continue
+
+        # 물리 파일 삭제
+        file_path = os.path.join(settings.MEDIA_ROOT, f.path)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+
+        # DB 레코드 삭제
+        f.delete()
