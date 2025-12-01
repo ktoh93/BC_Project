@@ -28,7 +28,7 @@
             <p><strong>종료:</strong> {{ banner.end_date }}</p>
 
             <div class="btn-row">
-                <a href="/media/{{ banner.url }}" download>
+                <a href="{{ banner.url|prepend:MEDIA_URL }}" download>
                     <button type="button" class="btn btn-submit">파일 다운로드</button>
                 </a>
 
