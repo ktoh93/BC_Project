@@ -55,6 +55,26 @@
     border-bottom: 1px solid var(--color-soft-gray-line);
 }
 
+/* 헤더 행 */
+.mypage-board-header {
+    display: grid;
+    grid-template-columns: 60px 300px 120px 100px;  /* 기본: 번호 / 제목(고정) / 날짜 / 조회수 */
+    align-items: center;
+    gap: 8px;
+    padding: 12px 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    background: #f5f7fa;
+    border-bottom: 2px solid var(--color-soft-gray-line);
+}
+
+/* myrecruitment 페이지 (날짜 없음) */
+.mypage-recruitment .mypage-board-header,
+.mypage-recruitment .mypage-board-row {
+    grid-template-columns: 60px 1fr 100px;  /* 번호 / 제목 / 조회수 */
+}
+
 /* 행 래퍼 (게시글 링크 + 삭제 버튼) */
 .mypage-board-row-wrapper {
     display: flex;

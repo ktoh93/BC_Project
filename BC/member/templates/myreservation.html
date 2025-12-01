@@ -48,8 +48,8 @@ mypage base
     <div class="mypage-board-top-left">
       <select class="mypage-select" name="order">
         <option value="recent">최신순</option>
-        <option value="title">제목순</option>
-        <option value="views">조회수순</option>
+        <option value="title">시설명순</option>
+        <option value="views">예약일순</option>
       </select>
     </div>
 
@@ -64,26 +64,26 @@ mypage base
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
-    {% for post in page_obj %}
+    <!-- 헤더 -->
+    <div class="mypage-board-header">
+      <span class="col-number">번호</span>
+      <span class="col-title">시설명</span>
+      <span class="col-date">예약일자</span>
+      <span class="col-views">예약번호</span>
+    </div>
+    {% for reservation in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
       <a href="#" class="mypage-board-row">
         <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-        <span class="col-title">{{ post.title }}</span>
-        <!-- 날짜 다시 살리기 -->
-        <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-        <!-- 조회수 필드명 수정 -->
-        <span class="col-views">조회수 {{ post.views }}</span>
+        <span class="col-title">{{ reservation.facility }}</span>
+        <span class="col-date">{{ reservation.reservation_date|date:"Y-m-d" }}</span>
+        <span class="col-views">예약번호: {{ reservation.reservation_num }}</span>
       </a>
     {% empty %}
       <div class="mypage-board-empty">
-        작성한 게시글이 없습니다.
+        예약 내역이 없습니다.
       </div>
     {% endfor %}
-  </div>
-
-  <!-- 하단 작성 버튼 -->
-  <div class="mypage-board-bottom">
-    <button type="button" class="mypage-write-btn">작성하기</button>
   </div>
 
 </section>

@@ -125,6 +125,13 @@ mypage base
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
+    <!-- 헤더 -->
+    <div class="mypage-board-header">
+      <span class="col-number">번호</span>
+      <span class="col-title">제목</span>
+      <span class="col-date">날짜</span>
+      <span class="col-views">조회수</span>
+    </div>
     {% for article in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
       <div class="mypage-board-row-wrapper">

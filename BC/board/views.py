@@ -14,7 +14,7 @@ from board.utils import get_category_by_type, get_board_by_name
 from common.models import Comment, AddInfo
 from member.models import Member
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-from common.utils import get_notice_pinned_posts, get_notice_dummy_list, get_event_dummy_list, get_event_pinned_posts, get_post_dummy_list
+from common.utils import get_notice_pinned_posts, get_event_pinned_posts, get_post_dummy_list
 
 def notice(request):
     # DB에서 공지사항 조회 (category_type='notice')

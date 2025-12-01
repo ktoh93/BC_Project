@@ -73,19 +73,32 @@ mypage base
 
   <!-- 목록 영역 -->
   <div class="mypage-board-list">
-    {% for post in page_obj %}
+    <!-- 헤더 -->
+    <div class="mypage-board-header">
+      <span class="col-number">번호</span>
+      <span class="col-title">제목</span>
+      <span class="col-date">날짜</span>
+      <span class="col-views">참여상태</span>
+    </div>
+    {% for join_stat in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
-      <a href="#" class="mypage-board-row">
+      <a href="/recruitment/detail/{{ join_stat.community_id.community_id }}/" class="mypage-board-row">
         <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
-        <span class="col-title">{{ post.title }}</span>
-        <!-- 날짜 다시 살리기 -->
-        <!-- <span class="col-date">{{ post.reg_date|date:"Y-m-d" }}</span> -->
-        <!-- 조회수 필드명 수정 -->
-        <span class="col-views">조회수 {{ post.views }}</span>
+        <span class="col-title">{{ join_stat.community_id.title }}</span>
+        <span class="col-date">{{ join_stat.community_id.reg_date|date:"Y-m-d" }}</span>
+        <span class="col-views">
+          {% if join_stat.join_status == 1 %}
+            참여
+          {% elif join_stat.join_status == 0 or join_stat.join_status == 2 %}
+            대기
+          {% else %}
+            상태: {{ join_stat.join_status }}
+          {% endif %}
+        </span>
       </a>
     {% empty %}
       <div class="mypage-board-empty">
-        작성한 게시글이 없습니다.
+        참여한 모집글이 없습니다.
       </div>
     {% endfor %}
   </div>

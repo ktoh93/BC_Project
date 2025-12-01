@@ -1084,7 +1084,7 @@ def event_edit(request, article_id):
         pin_top = request.POST.get('pin_top', '0')
 
         try:
-            # always_on 처리 (공지/이벤트 동일 규칙)
+            # always_on 처리
             always_on = 0 if notice_type == 'always' else 1
             if pin_top == '1':
                 always_on = 0
@@ -1105,7 +1105,9 @@ def event_edit(request, article_id):
             handle_file_uploads(request, article_obj)
 
             messages.success(request, "이벤트가 수정되었습니다.")
-            return redirect(f'/manager/event/{article_id}/')  # 상세 페이지로 이동 (notice와 동일 UX)
+
+            # 수정 후 관리자 상세 페이지로 이동
+            return redirect(f'/manager/detail/{article_id}/')
 
         except Exception as e:
             import traceback
@@ -1126,17 +1128,10 @@ def event_edit(request, article_id):
             'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
         })
 
-    # 날짜 표시용 포맷 변환
-    start_date_str = (
-        article_obj.start_date.strftime('%Y-%m-%dT%H:%M')
-        if article_obj.start_date else ''
-    )
-    end_date_str = (
-        article_obj.end_date.strftime('%Y-%m-%dT%H:%M')
-        if article_obj.end_date else ''
-    )
+    # 날짜 포맷
+    start_date_str = article_obj.start_date.strftime('%Y-%m-%dT%H:%M') if article_obj.start_date else ''
+    end_date_str = article_obj.end_date.strftime('%Y-%m-%dT%H:%M') if article_obj.end_date else ''
 
-    # form 렌더링
     context = {
         'article': article_obj,
         'existing_files': existing_files,
@@ -1146,6 +1141,8 @@ def event_edit(request, article_id):
     }
 
     return render(request, 'event_form.html', context)
+
+
 def post_manager(request):
     # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
     try:
@@ -1593,7 +1590,7 @@ def board_form(request):
 
 def board_edit(request, article_id):
     """공지사항 게시글 수정"""
-    
+
     # 관리자 체크
     if not request.session.get('manager_id'):
         messages.error(request, "관리자 권한이 필요합니다.")
@@ -1636,11 +1633,13 @@ def board_edit(request, article_id):
             article_obj.end_date = end_datetime
             article_obj.save()
 
-            # 신규 파일 업로드 처리
+            # 파일 업로드 처리
             handle_file_uploads(request, article_obj)
 
             messages.success(request, "공지사항이 수정되었습니다.")
-            return redirect(f'/manager/notice/{article_id}/')
+            
+            # 수정 후 관리자 상세페이지로 이동
+            return redirect(f'/manager/detail/{article_obj.article_id}/')
 
         except Exception as e:
             import traceback
@@ -1661,11 +1660,10 @@ def board_edit(request, article_id):
             'is_image': file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
         })
     
-    # 날짜값 포맷
+    # 날짜 포맷
     start_date_str = article_obj.start_date.strftime('%Y-%m-%dT%H:%M') if article_obj.start_date else ''
     end_date_str = article_obj.end_date.strftime('%Y-%m-%dT%H:%M') if article_obj.end_date else ''
 
-    # form으로 전달
     context = {
         'article': article_obj,
         'existing_files': existing_files,
@@ -1832,3 +1830,34 @@ def banner_download(request, img_id):
         as_attachment=True,
         filename=os.path.basename(file_path),
     )
+
+
+
+# manager deatil ----
+def manager_detail(request, article_id):
+
+    article = Article.objects.get(article_id=article_id)
+    board_type = article.board_id.board_name  # notice / event / post
+
+    # 파일 로딩
+    add_info = AddInfo.objects.filter(article_id=article_id)
+    files = []
+    images = []
+    for f in add_info:
+        ext = os.path.splitext(f.file_name)[1].lower()
+        info = {
+            "url": f"{settings.MEDIA_URL}{f.path}",
+            "name": f.file_name,
+            "is_image": ext in ['.jpg', '.jpeg', '.png', '.gif']
+        }
+        if info["is_image"]:
+            images.append(info)
+        else:
+            files.append(info)
+
+    return render(request, "manager_detail.html/", {
+        "article": article,
+        "board_type": board_type,
+        "files": files,
+        "images": images,
+    })

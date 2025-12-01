@@ -14,4 +14,9 @@ urlpatterns = [
         views.update_join_status,
         name="recruitment_update_join_status",
     ),
+
+    # 댓글
+    path('<int:pk>/comment/', views.add_comment, name="recruitment_comment"),
+
+
 ]

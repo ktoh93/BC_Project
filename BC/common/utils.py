@@ -7,10 +7,6 @@ import re
 # 모듈 레벨 변수로 캐싱 (한 번 생성 후 재사용)
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 _notice_pinned_posts_cache = None
-_recruitment_dummy_list_cache = None
-_reservation_dummy_list_cache = None
-_notice_dummy_list_cache = None
-_event_dummy_list_cache = None
 _event_pinned_posts_cache = None
 _post_dummy_list_cache = None
 
@@ -39,54 +35,6 @@ def get_notice_pinned_posts():
     return [post.copy() for post in _notice_pinned_posts_cache]
 
 
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def get_recruitment_dummy_list():
-    """모집 게시글 더미 리스트 생성 (한 번 생성 후 재사용)"""
-    global _recruitment_dummy_list_cache
-    
-    # 캐시가 없으면 생성
-    if _recruitment_dummy_list_cache is None:
-        _recruitment_dummy_list_cache = [
-            {
-                "title": f"테스트 모집글 {i}",
-                "date": "2025-11-26",
-                "views": i * 3
-            }
-            for i in range(1, 201)
-        ]
-    
-    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
-    return [item.copy() for item in _recruitment_dummy_list_cache]
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def get_reservation_dummy_list():
-    """모집 게시글 더미 리스트 생성 (한 번 생성 후 재사용)"""
-    global _reservation_dummy_list_cache
-    
-    # 캐시가 없으면 생성
-    if _reservation_dummy_list_cache is None:
-        _reservation_dummy_list_cache = [
-            {
-                "facility_num": f"시설 숫자~ {i}",
-                "facility_name": "시설명임다~",
-                "facility_addr1": "서울특별시",
-                "facility_addr2": "양천구",
-                "views": i * 3
-            }
-            for i in range(1, 201)
-        ]
-    
-    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
-    return [item.copy() for item in _reservation_dummy_list_cache]
-    
-
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def reset_reservation_cache():
-    """공지사항 고정 게시글 캐시 초기화"""
-    global _reservation_dummy_list_cache
-    _reservation_dummy_list_cache = None
 
 
 
@@ -96,83 +44,6 @@ def reset_notice_pinned_posts_cache():
     """공지사항 고정 게시글 캐시 초기화"""
     global _notice_pinned_posts_cache
     _notice_pinned_posts_cache = None
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def reset_recruitment_dummy_list_cache():
-    """모집 게시글 더미 리스트 캐시 초기화"""
-    global _recruitment_dummy_list_cache
-    _recruitment_dummy_list_cache = None
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def get_notice_dummy_list():
-    """공지사항 더미 리스트 생성 (한 번 생성 후 재사용)"""
-    global _notice_dummy_list_cache
-    
-    # 캐시가 없으면 생성
-    if _notice_dummy_list_cache is None:
-        dummy_list = []
-        titles = [
-            "공지사항", "안내", "업데이트", "변경사항", "중요 공지",
-            "시스템 점검", "이벤트 안내", "서비스 이용", "회원 안내", "정책 변경"
-        ]
-        authors = ["관리자", "운영팀", "시스템", "고객센터", "할래말래팀"]
-        
-        for i in range(1, 101):
-            random_title = random.choice(titles)
-            random_author = random.choice(authors)
-            # 랜덤 날짜 생성 (최근 1년 내)
-            days_ago = random.randint(0, 365)
-            random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
-            
-            dummy_list.append({
-                "id": i,
-                "title": f"{random_title} {i}번째 공지사항입니다",
-                "date": random_date,
-                "views": random.randint(10, 5000),
-                "author": random_author
-            })
-        _notice_dummy_list_cache = dummy_list
-    
-    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
-    return [item.copy() for item in _notice_dummy_list_cache]
-
-
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def get_event_dummy_list():
-    """이벤트 더미 리스트 생성 (한 번 생성 후 재사용)"""
-    global _event_dummy_list_cache
-    
-    # 캐시가 없으면 생성
-    if _event_dummy_list_cache is None:
-        dummy_list = []
-        titles = [
-            "이벤트", "특별 할인", "프로모션", "경품 이벤트", "참여 이벤트",
-            "시작 이벤트", "종료 임박", "신규 이벤트", "연말 이벤트", "신년 이벤트"
-        ]
-        authors = ["이벤트팀", "마케팅팀", "운영팀", "관리자", "할래말래팀"]
-        
-        for i in range(1, 101):
-            random_title = random.choice(titles)
-            random_author = random.choice(authors)
-            # 랜덤 날짜 생성 (최근 1년 내)
-            days_ago = random.randint(0, 365)
-            random_date = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
-            
-            dummy_list.append({
-                "id": i,
-                "title": f"{random_title} {i}번째 이벤트가 진행 중입니다!",
-                "date": random_date,
-                "views": random.randint(10, 5000),
-                "author": random_author
-            })
-        _event_dummy_list_cache = dummy_list
-    
-    # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
-    return [item.copy() for item in _event_dummy_list_cache]
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
@@ -197,20 +68,6 @@ def get_event_pinned_posts():
     
     # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
     return [post.copy() for post in _event_pinned_posts_cache]
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def reset_notice_dummy_list_cache():
-    """공지사항 더미 리스트 캐시 초기화"""
-    global _notice_dummy_list_cache
-    _notice_dummy_list_cache = None
-
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-def reset_event_dummy_list_cache():
-    """이벤트 더미 리스트 캐시 초기화"""
-    global _event_dummy_list_cache
-    _event_dummy_list_cache = None
 
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
@@ -276,9 +133,6 @@ def reset_post_dummy_list_cache():
 def reset_all_caches():
     """모든 캐시 초기화"""
     reset_notice_pinned_posts_cache()
-    reset_recruitment_dummy_list_cache()
-    reset_notice_dummy_list_cache()
-    reset_event_dummy_list_cache()
     reset_event_pinned_posts_cache()
     reset_post_dummy_list_cache()
 

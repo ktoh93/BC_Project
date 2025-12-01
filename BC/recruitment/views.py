@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.utils import timezone
 
@@ -158,28 +158,9 @@ def update(request, pk):
 
     # 4) POST: 실제 수정 처리
     if request.method == "POST":
-        title = request.POST.get("title")
-        region = request.POST.get("sido")
-        region2 = request.POST.get("sigungu")
-        sport_type = request.POST.get("sport")
-        num_member = request.POST.get("personnel")
         contents = request.POST.get("content")
-        chat_url = request.POST.get("openchat_url") or None
-
-        raw_facility = request.POST.get("facility", "").strip()
-        if raw_facility:
-            facility = raw_facility
-        else:
-            facility = "미정"
-
-        community.title = title
-        community.region = region
-        community.region2 = region2
-        community.sport_type = sport_type
-        community.num_member = num_member
         community.contents = contents
-        community.chat_url = chat_url
-        community.facility = facility
+
         community.update_date = timezone.now()
         community.save()
 
@@ -401,3 +382,55 @@ def update_join_status(request, pk, join_id):
 
     messages.success(request, "참여 상태를 변경했습니다.")
     return redirect("recruitment_detail", pk=pk)
+
+
+
+
+
+# 댓글 추가 기능
+def add_comment(request, pk):
+    # GET 으로 들어오면 그냥 상세로 돌려보냄
+    if request.method != "POST":
+        return redirect("recruitment_detail", pk=pk)
+
+    # 0) 세션 로그인 확인
+    user_id = request.session.get("user_id")
+    if not user_id:
+        messages.error(request, "로그인이 필요합니다.")
+        return redirect("/login/")
+
+    # 1) 로그인 회원
+    try:
+        member = Member.objects.get(user_id=user_id)
+    except Member.DoesNotExist:
+        request.session.flush()
+        messages.error(request, "다시 로그인 해주세요.")
+        return redirect("/login/")
+
+    # 2) 대상 모집글
+    community = get_object_or_404(
+        Community,
+        pk=pk,
+        delete_date__isnull=True,
+    )
+
+    # 3) 폼에서 넘어온 댓글 내용
+    content = request.POST.get("content", "").strip()
+    if not content:
+        messages.error(request, "댓글 내용을 입력해 주세요.")
+        return redirect("recruitment_detail", pk=pk)
+
+    # 4) 댓글 생성
+    Comment.objects.create(
+        community_id=community,
+        member_id=member,
+        comment=content,
+    )
+
+    messages.success(request, "댓글이 등록되었습니다.")
+    return redirect("recruitment_detail", pk=pk)
+
+
+
+
+

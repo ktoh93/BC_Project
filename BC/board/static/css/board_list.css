@@ -81,7 +81,40 @@
 /* post 페이지 전용 hero */
 .post-hero {
     background-image: url('/static/img/post_hero.png');
-    }
+}
+
+/* FAQ 페이지 전용 hero */
+.faq-hero {
+    /* 이미지를 그 위에 표시 */
+    background-image: url('/static/img/aidrip.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* FAQ hero 배경 그라데이션 (이미지 좌우 공간 채우기) */
+.faq-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* 이미지 좌우 색상에 맞춘 그라데이션 배경 */
+    background: linear-gradient(to right, 
+        #f8f9fa 0%, 
+        #f8f9fa 35%, 
+        #e3f2fd 50%, 
+        #2196f3 65%, 
+        #1976d2 100%
+    );
+    z-index: 0;
+}
+
+.faq-hero h2 {
+    position: relative;
+    z-index: 2;
+}
 
 /* 모바일 반응형은 responsive.css에서 통합 관리 */
 
