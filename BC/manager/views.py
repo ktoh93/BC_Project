@@ -227,7 +227,6 @@ def save_selected_sports(request):
 
 
 # 종목 삭제 (DB 삭제)
-@csrf_exempt
 def sport_delete(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
@@ -248,7 +247,6 @@ def sport_delete(request):
 
 
 # 시설등록(insert)
-@csrf_exempt
 def facility_register(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "POST만 가능"}, status=405)
@@ -664,30 +662,18 @@ def facility_list(request):
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
 
-    # 시설 api 정보
-    queryset = Facility.objects.all()
     
-    sports_list = Sports.objects.all()
+    # 시설 api 정보
+    queryset = FacilityInfo.objects.all()
+    
+    block_size = 10
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = block_start + block_size - 1
+    if block_end > paginator.num_pages:
+        block_end = paginator.num_pages
 
-    if sports_list.exists():
-        q = Q()
-
-        for s in sports_list:
-            word = s.s_name.strip()
-            if not word:
-                continue
-            
-            
-            q |= (
-                Q(faci_nm__icontains=word) |
-                Q(ftype_nm__icontains=word) |
-                Q(cp_nm__icontains=word) |
-                Q(cpb_nm__icontains=word)
-            )
-
-        
-        queryset = queryset.filter(q)
-
+    block_range = range(block_start, block_end + 1)
     
     if sido:
         queryset = queryset.filter(faci_addr__icontains=sido)
@@ -730,7 +716,6 @@ def facility_list(request):
     return render(request, "facility_list_manager.html", context)
 
 # 종목관리
-@csrf_exempt
 def sport_add(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
