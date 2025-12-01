@@ -322,18 +322,44 @@ def myreservation(request):
     if not login_id:
         return redirect('/login?next=/member/myreservation/')
     
-    # TODO: DB 연결 이후 Reservation 모델에서 본인의 예약 내역 조회
-    # 예: Reservation.objects.filter(member_id=user, delete_yn=0).order_by('-reg_date')
-    dummy_list = []  # DB 연결 전까지 빈 리스트
+    try:
+        # 로그인한 사용자 정보 가져오기
+        user = Member.objects.get(user_id=login_id)
+        
+        # DB에서 본인의 예약 내역 조회 (취소되지 않은 것만, 삭제되지 않은 것만)
+        from reservation.models import Reservation
+        
+        reservations = Reservation.objects.filter(
+            member=user,
+            delete_yn=0,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+        
+    except Member.DoesNotExist:
+        messages.error(request, "회원 정보를 찾을 수 없습니다.")
+        return redirect('/login/')
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] 내 예약 내역 조회 오류: {str(e)}")
+        print(traceback.format_exc())
+        reservations = Reservation.objects.none()
     
     # 정렬 기능
     sort = request.GET.get("sort", "recent")
+    if sort == "title":
+        # 예약에는 제목이 없으므로 시설명으로 정렬
+        reservations = reservations.order_by('facility')
+    elif sort == "views":
+        # 예약에는 조회수가 없으므로 예약일자로 정렬
+        reservations = reservations.order_by('-reservation_date')
+    else:  # recent
+        reservations = reservations.order_by('-reg_date')
     
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
     
-    paginator = Paginator(dummy_list, per_page)
+    paginator = Paginator(reservations, per_page)
     page_obj = paginator.get_page(page)
     
     # 페이지 블록 계산
