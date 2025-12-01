@@ -1,0 +1,92 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}시설 정보 수정{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facility_modify.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="modify-container">
+
+    <h1 class="modify-header">시설 정보 수정</h1>
+
+    <!-- ✔ 전체 저장 폼 시작 -->
+    <form id="modifyForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- 기본 정보 -->
+        <div class="facility-info-box">
+            <h2 class="section-title">기본 정보</h2>
+
+            <div class="info-row">
+                <span class="info-label">시설명</span>
+                <span class="info-value">{{ info.faci_nm }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">주소</span>
+                <span class="info-value">{{ info.address }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">전화번호</span>
+                <span class="info-value">
+                    <input type="text" name="tel" value="{{ info.tel }}">
+                </span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">홈페이지</span>
+                <span class="info-value">
+                    <input type="text" name="homepage" value="{{ info.homepage }}">
+                </span>
+            </div>
+        </div>
+
+        <!-- 이미지 업로드 -->
+        <div class="photo-box">
+            <h2 class="section-title">시설 이미지</h2>
+
+            {% if info.photo %}
+            <img src="{{ info.photo.url }}" class="facility-photo">
+            {% else %}
+            <div class="photo-placeholder">이미지 없음</div>
+            {% endif %}
+
+            <div class="photo-upload-area">
+                <input type="file" name="photo" accept="image/*" class="photo-input">
+            </div>
+        </div>
+
+        <!-- 예약 시간 설정 -->
+        <div class="time-setting-box">
+            <h2 class="time-setting-title">예약 가능 시간 설정</h2>
+
+            <div id="timeSettingContainer"></div>
+
+            <input type="hidden" id="reservationTimeInput" name="reservation_time">
+        </div>
+
+        <!-- 저장 버튼 -->
+        <div class="btn-bottom-area">
+            <a href="{% url 'facility_list' %}" class="btn-back">← 목록으로</a>
+            <button type="submit" class="btn-save-all">전체 저장</button>
+        </div>
+
+    </form>
+    <!-- ✔ 전체 저장 폼 끝 -->
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script id="timeJson" type="application/json">
+    {{ time_json|safe }}
+</script>
+
+<script src="{% static 'js/facility_modify.js' %}"></script>
+{% endblock %}

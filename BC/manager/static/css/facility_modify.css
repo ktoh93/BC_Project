@@ -1,0 +1,226 @@
+/* ================================
+   공통 레이아웃
+================================ */
+.modify-container {
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 30px 15px 80px;
+}
+
+/* 제목 */
+.modify-header {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #1A2A43;
+}
+
+
+/* ================================
+   기본 정보 박스
+================================ */
+.facility-info-box {
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.info-label {
+    width: 120px;
+    font-weight: 600;
+    color: #2b3a4b;
+}
+
+.info-value input {
+    width: 330px;
+    padding: 8px 12px;
+    border: 1px solid #cfd6df;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+
+/* ================================
+   이미지 업로드 박스
+================================ */
+.photo-box {
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.facility-photo {
+    width: 240px;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #d9d9d9;
+}
+
+.photo-placeholder {
+    width: 240px;
+    height: 160px;
+    border: 1px dashed #b9c3cf;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #98a3af;
+    border-radius: 10px;
+}
+
+.btn-photo-upload {
+    margin-left: 10px;
+    padding: 7px 13px;
+    background: #3b6eb8;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-photo-upload:hover {
+    background: #2f5c9c;
+}
+
+.photo-input {
+    margin-left: auto;   /* 자동 여백 → 오른쪽 정렬 */
+    display: block;      /* margin-left:auto를 적용하기 위해 block 필요 */
+    max-width: 250px;    /* 너무 넓어지지 않게 */
+}
+
+/* ================================
+   예약 시간 설정
+================================ */
+.time-setting-box {
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.time-setting-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* 요일 카드 */
+.day-row {
+    border: 1px solid #d8dde6;
+    background: #f9fbfd;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+}
+
+.day-row h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.active-check {
+    margin-right: 7px;
+}
+
+/* 입력 라인 */
+.time-inputs {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.time-inputs input[type="time"],
+.time-inputs input[type="number"] {
+    padding: 7px 10px;
+    border: 1px solid #ccd3dd;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.time-inputs input:disabled {
+    background: #eef0f3;
+    color: #a3a9b2;
+}
+
+/* 저장 버튼 */
+.btn-time-save {
+    margin-top: 15px;
+    padding: 11px 18px;
+    background: #2f5c9c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.btn-time-save:hover {
+    background: #3b6eb8;
+}
+
+
+/* 하단 버튼 영역 */
+.btn-bottom-area {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between; /* ← 왼/오른쪽 분리 */
+    align-items: center;
+    width: 100%;
+}
+
+/* 목록으로 버튼 */
+.btn-back {
+    padding: 10px 22px;
+    background: #dfe4eb;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #1a2a43;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-back:hover {
+    background: #cdd3dc;
+}
+
+/* 전체 저장 버튼 */
+.btn-save-all {
+    padding: 10px 22px;
+    background: #2f5c9c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-save-all:hover {
+    background: #3c6fb3;
+}
+

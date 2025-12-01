@@ -363,6 +363,14 @@ def facility_detail(request, id):
 
 # 시설수정
 def facility_modify(request, id):
+    if request.method == 'GET' :
+        info = get_object_or_404(FacilityInfo, id=id)
+        context = {
+            "info": info
+        }
+
+        return render(request, 'facility_write.html', context)
+    
     return
 
     
