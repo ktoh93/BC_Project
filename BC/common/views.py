@@ -112,7 +112,8 @@ def signup(request):
         birthday = data.get('birthday')
         gender = data.get('gender')
         address = data.get('address')
-        address_detail = data.get('address_detail')
+        address_detail = data.get('address_detail', '')
+        address_data_str = data.get('address_data', '')
         phone = data.get('phone')
 
         if not PASSWORD_PATTERN.match(password or ""):
@@ -145,6 +146,25 @@ def signup(request):
 
         gender_value = 0 if gender == "male" else 1
 
+        # 주소 파싱
+        from common.utils import parse_address
+        import json
+        
+        addr1 = address
+        addr2 = address_detail
+        addr3 = ""
+        
+        if address_data_str:
+            try:
+                address_data = json.loads(address_data_str)
+                addr1, addr2, addr3 = parse_address(address_data, address_detail)
+            except (json.JSONDecodeError, Exception) as e:
+                # 파싱 실패 시 기존 방식 사용
+                print(f"주소 파싱 오류: {e}")
+                addr1 = address
+                addr2 = address_detail
+                addr3 = ""
+
         Member.objects.create(
             name=name,
             user_id=user_id,
@@ -152,8 +172,9 @@ def signup(request):
             nickname=nickname,
             birthday=birthday,
             gender=gender_value,
-            addr1=address,
-            addr2=address_detail,
+            addr1=addr1,
+            addr2=addr2,
+            addr3=addr3,
             phone_num=phone,
         )
 

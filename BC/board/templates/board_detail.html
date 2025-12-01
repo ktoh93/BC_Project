@@ -26,7 +26,9 @@
             <h1 class="article-title">{{ article.title }}</h1>
             <div class="article-meta">
                 <div class="article-meta-left">
-                    <span class="article-author">작성자: {{ article.author }}</span>
+                    <span class="article-author {% if article.is_admin %}admin-badge{% endif %}">
+                        작성자: {{ article.author }}{% if article.is_admin %} 👑{% endif %}
+                    </span>
                     <span class="article-date">{{ article.date }}</span>
                     <span class="article-views">조회수: {{ article.views }}</span>
                 </div>
@@ -85,7 +87,9 @@
                 {% for comment in comments %}
                 <li class="comment-item">
                     <div class="comment-meta">
-                        <span class="comment-writer">{{ comment.author }}</span>
+                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% endif %}">
+                            {{ comment.author }}{% if comment.is_admin %} 👑{% endif %}
+                        </span>
                         <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
                         <!-- TODO: 수정/삭제 버튼 (본인만 표시) -->
                     </div>

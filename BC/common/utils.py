@@ -2,6 +2,7 @@
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요 - 더미 데이터 생성 함수들
 from datetime import datetime, timedelta
 import random
+import re
 
 # 모듈 레벨 변수로 캐싱 (한 번 생성 후 재사용)
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
@@ -136,7 +137,6 @@ def get_notice_dummy_list():
     
     # 캐시된 데이터의 복사본 반환 (원본 수정 방지)
     return [item.copy() for item in _notice_dummy_list_cache]
-
 
 
 
@@ -303,3 +303,136 @@ def check_login(request):
         return redirect(f'/login?next={next_url}')
     return None
 
+
+# 주소 파싱 함수
+# -----------------------------------------------------
+def parse_address(address_data, address_detail=""):
+    """
+    다음 주소 API 데이터를 파싱하여 addr1, addr2, addr3로 분리
+    
+    Args:
+        address_data: 다음 주소 API에서 반환하는 데이터 객체 또는 딕셔너리
+        address_detail: 상세주소 (직접 입력)
+    
+    Returns:
+        tuple: (addr1, addr2, addr3)
+        - addr1: 시도 (시/도, 군이 있으면 시도+군)
+        - addr2: 구 (시군구에서 구 부분만)
+        - addr3: 나머지 (도로명주소 + 상세주소)
+    
+    예시:
+        입력: sido="서울특별시", sigungu="강남구", roadAddress="테헤란로 123"
+        출력: ("서울특별시", "강남구", "테헤란로 123")
+        
+        입력: sido="경기도", sigungu="수원시 영통구", roadAddress="광교로 123"
+        출력: ("경기도 수원시", "영통구", "광교로 123")
+    """
+    # 딕셔너리인 경우와 객체인 경우 모두 처리
+    if hasattr(address_data, 'sido'):
+        sido = address_data.sido
+        sigungu = getattr(address_data, 'sigungu', '')
+        road_address = getattr(address_data, 'roadAddress', '')
+        jibun_address = getattr(address_data, 'jibunAddress', '')
+    elif isinstance(address_data, dict):
+        sido = address_data.get('sido', '')
+        sigungu = address_data.get('sigungu', '')
+        road_address = address_data.get('roadAddress', '')
+        jibun_address = address_data.get('jibunAddress', '')
+    else:
+        # 문자열인 경우 파싱 시도
+        return _parse_address_string(address_data, address_detail)
+    
+    # 시도 정리
+    sido = sido.strip() if sido else ''
+    
+    # 시군구 파싱
+    sigungu = sigungu.strip() if sigungu else ''
+    
+    # 구 추출 (시군구에서 구 부분만)
+    # 예: "강남구" -> "강남구"
+    # 예: "수원시 영통구" -> "영통구"
+    # 예: "고양시 일산동구" -> "일산동구"
+    gu = ''
+    addr1 = sido
+    
+    if sigungu:
+        # "시" 또는 "군"으로 끝나는 경우 처리
+        # 예: "수원시 영통구" -> sido="경기도", sigungu="수원시 영통구"
+        #     -> addr1="경기도 수원시", gu="영통구"
+        
+        # "구"로 끝나는 경우
+        if sigungu.endswith('구'):
+            # "시 구" 형태인지 확인 (예: "수원시 영통구")
+            if '시 ' in sigungu:
+                parts = sigungu.split('시 ')
+                if len(parts) == 2:
+                    si = parts[0] + '시'
+                    gu = parts[1]
+                    addr1 = f"{sido} {si}".strip()
+                else:
+                    gu = sigungu
+            else:
+                gu = sigungu
+        # "시"로 끝나는 경우 (구가 없는 경우)
+        elif sigungu.endswith('시'):
+            addr1 = f"{sido} {sigungu}".strip()
+        # "군"으로 끝나는 경우
+        elif sigungu.endswith('군'):
+            addr1 = f"{sido} {sigungu}".strip()
+        # "도"로 끝나는 경우 (특별시, 광역시는 시도에 포함)
+        else:
+            # 그 외의 경우는 그대로 사용
+            if ' ' in sigungu:
+                parts = sigungu.split(' ', 1)
+                addr1 = f"{sido} {parts[0]}".strip()
+                gu = parts[1] if len(parts) > 1 else ''
+            else:
+                addr1 = f"{sido} {sigungu}".strip()
+    
+    # addr3 구성 (도로명주소 + 상세주소)
+    addr3_parts = []
+    
+    # 도로명주소 사용 (우선)
+    if road_address:
+        # 도로명주소에서 시도, 시군구 부분 제거
+        road_addr = road_address
+        # "서울특별시 강남구 테헤란로 123" -> "테헤란로 123"
+        if sido and road_addr.startswith(sido):
+            road_addr = road_addr[len(sido):].strip()
+        if sigungu and road_addr.startswith(sigungu):
+            road_addr = road_addr[len(sigungu):].strip()
+        
+        addr3_parts.append(road_addr)
+    
+    # 상세주소 추가
+    if address_detail:
+        addr3_parts.append(address_detail)
+    
+    addr3 = ' '.join(addr3_parts).strip()
+    
+    return (addr1, gu, addr3)
+
+
+def _parse_address_string(address_str, address_detail=""):
+    """
+    문자열 주소를 파싱 (레거시 지원)
+    """
+    if not address_str:
+        return ("", "", address_detail)
+    
+    # 기본 파싱 시도
+    parts = address_str.split()
+    if len(parts) >= 2:
+        addr1 = parts[0]  # 시도
+        addr2 = parts[1] if len(parts) > 1 else ""  # 구
+        addr3 = ' '.join(parts[2:]) if len(parts) > 2 else ""  # 나머지
+        
+        if address_detail:
+            if addr3:
+                addr3 += " " + address_detail
+            else:
+                addr3 = address_detail
+        
+        return (addr1, addr2, addr3)
+    
+    return (address_str, "", address_detail)

@@ -75,6 +75,7 @@ def notice(request):
                 'id': article.article_id,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
+                'is_admin': article.member_id.member_id == 1 if article.member_id else False,
                 'date': article.reg_date.strftime('%Y-%m-%d'),
                 'views': article.view_cnt,
             })
@@ -175,6 +176,7 @@ def event(request):
                 'id': article.article_id,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
+                'is_admin': article.member_id.member_id == 1 if article.member_id else False,
                 'date': article.reg_date.strftime('%Y-%m-%d'),
                 'views': article.view_cnt,
             })
@@ -344,9 +346,28 @@ def post_write(request):
     
     if request.method == "POST":
         # 게시글 작성 처리
-        login_id = request.session.get('user_id')
+        # 관리자 우선 체크
+        manager_id = request.session.get('manager_id')
+        if manager_id:
+            # 관리자인 경우
+            try:
+                member = Member.objects.get(member_id=manager_id)
+            except Member.DoesNotExist:
+                messages.error(request, "관리자 정보를 찾을 수 없습니다.")
+                return redirect('/manager/')
+        else:
+            # 일반 사용자인 경우
+            login_id = request.session.get('user_id')
+            if not login_id:
+                messages.error(request, "로그인이 필요합니다.")
+                return redirect('/login/')
+            try:
+                member = Member.objects.get(user_id=login_id)
+            except Member.DoesNotExist:
+                messages.error(request, "회원 정보를 찾을 수 없습니다.")
+                return redirect('/login/')
+        
         try:
-            member = Member.objects.get(user_id=login_id)
             category = get_category_by_type('post')
             board = get_board_by_name('post')
             
@@ -370,13 +391,17 @@ def post_write(request):
             handle_file_uploads(request, article)
             
             messages.success(request, "게시글이 작성되었습니다.")
-            return redirect('/board/post/')
-        except Member.DoesNotExist:
-            messages.error(request, "회원 정보를 찾을 수 없습니다.")
-            return redirect('/login/')
+            # 관리자인 경우 관리자 페이지로, 일반 사용자는 게시판 목록으로
+            if manager_id:
+                return redirect('/manager/post_manager/')
+            else:
+                return redirect('/board/post/')
         except (Category.DoesNotExist, Board.DoesNotExist):
             messages.error(request, "게시판을 찾을 수 없습니다.")
-            return redirect('/board/post/')
+            if manager_id:
+                return redirect('/manager/post_manager/')
+            else:
+                return redirect('/board/post/')
         except Exception as e:
             import traceback
             print(f"[ERROR] post_write 오류: {str(e)}")
@@ -421,15 +446,18 @@ def notice_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -454,6 +482,7 @@ def notice_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,
@@ -526,15 +555,18 @@ def event_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -559,6 +591,7 @@ def event_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,
@@ -623,15 +656,18 @@ def post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보 안전하게 가져오기
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -656,6 +692,7 @@ def post_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,

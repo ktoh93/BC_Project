@@ -17,7 +17,94 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         console.error("폼을 찾을 수 없습니다!");
     }
+    
+    // 주소 검색 버튼 이벤트
+    const addressSearchBtn = document.getElementById("addressSearchBtn");
+    const addressInput = document.getElementById("address");
+    
+    if (addressSearchBtn && addressInput) {
+        addressSearchBtn.addEventListener("click", function () {
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    // 도로명주소 또는 지번주소 선택
+                    let addr = '';
+                    if (data.userSelectedType === 'R') {
+                        // 사용자가 도로명 주소를 선택했을 경우
+                        addr = data.roadAddress;
+                    } else {
+                        // 사용자가 지번 주소를 선택했을 경우
+                        addr = data.jibunAddress;
+                    }
+                    
+                    addressInput.value = addr;
+                    
+                    // 주소 데이터를 hidden input에 저장 (서버에서 파싱용)
+                    let addrDataInput = document.getElementById("address_data");
+                    if (!addrDataInput) {
+                        // hidden input이 없으면 생성
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.id = 'address_data';
+                        hiddenInput.name = 'address_data';
+                        addressInput.parentElement.appendChild(hiddenInput);
+                        addrDataInput = hiddenInput;
+                    }
+                    addrDataInput.value = JSON.stringify({
+                        sido: data.sido,
+                        sigungu: data.sigungu,
+                        roadAddress: data.roadAddress,
+                        jibunAddress: data.jibunAddress,
+                        userSelectedType: data.userSelectedType
+                    });
+                    
+                    // 파싱된 주소 표시 업데이트
+                    updateAddressDisplay(data);
+                    
+                    const addressDetailInput = document.getElementById("address_detail");
+                    if (addressDetailInput) {
+                        addressDetailInput.focus();
+                    }
+                }
+            }).open();
+        });
+    }
 });
+
+// 주소 표시 업데이트 함수
+function updateAddressDisplay(data) {
+    // 간단한 파싱 (서버에서 정확히 파싱)
+    const sido = data.sido || '';
+    const sigungu = data.sigungu || '';
+    
+    // 구 추출 시도
+    let gu = '';
+    let addr1 = sido;
+    
+    if (sigungu) {
+        if (sigungu.endsWith('구')) {
+            if (sigungu.includes('시 ')) {
+                const parts = sigungu.split('시 ');
+                if (parts.length === 2) {
+                    addr1 = sido + ' ' + parts[0] + '시';
+                    gu = parts[1];
+                } else {
+                    gu = sigungu;
+                }
+            } else {
+                gu = sigungu;
+            }
+        } else if (sigungu.endsWith('시') || sigungu.endsWith('군')) {
+            addr1 = sido + ' ' + sigungu;
+        }
+    }
+    
+    // 표시 업데이트
+    const displayAddr1 = document.getElementById("display_addr1");
+    const displayAddr2 = document.getElementById("display_addr2");
+    
+    if (displayAddr1) displayAddr1.textContent = addr1;
+    if (displayAddr2) displayAddr2.textContent = gu;
+}
 
 // -----------------------------
 // 정보 수정 처리 함수 (AJAX)

@@ -3,7 +3,11 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from datetime import datetime
 import re
+import json
 from member.models import Member
 
 
@@ -82,9 +86,32 @@ def edit(request):
             
             user.nickname = new_nickname
             user.phone_num = new_phone
-            user.addr1 = request.POST.get('addr1', user.addr1)
-            user.addr2 = request.POST.get('addr2', user.addr2)
-            user.addr3 = request.POST.get('addr3', user.addr3)
+            
+            # 주소 파싱
+            from common.utils import parse_address
+            import json
+            
+            address_data_str = request.POST.get('address_data', '')
+            address_detail = request.POST.get('address_detail', '')
+            
+            if address_data_str:
+                try:
+                    address_data = json.loads(address_data_str)
+                    addr1, addr2, addr3 = parse_address(address_data, address_detail)
+                    user.addr1 = addr1
+                    user.addr2 = addr2
+                    user.addr3 = addr3
+                except (json.JSONDecodeError, Exception) as e:
+                    # 파싱 실패 시 기존 방식 사용
+                    print(f"주소 파싱 오류: {e}")
+                    user.addr1 = request.POST.get('addr1', user.addr1)
+                    user.addr2 = request.POST.get('addr2', user.addr2)
+                    user.addr3 = request.POST.get('addr3', user.addr3)
+            else:
+                # 기존 방식 (레거시 지원)
+                user.addr1 = request.POST.get('addr1', user.addr1)
+                user.addr2 = request.POST.get('addr2', user.addr2)
+                user.addr3 = request.POST.get('addr3', user.addr3)
             if hasattr(user, 'email'):
                 user.email = request.POST.get('email', user.email)
             
@@ -346,18 +373,41 @@ def myrecruitment(request):
     if not login_id:
         return redirect('/login?next=/member/myrecruitment/')
     
-    # TODO: DB 연결 이후 Community 모델에서 본인의 모집글 조회
-    # 예: Community.objects.filter(member_id=user, delete_date__isnull=True).order_by('-reg_date')
-    dummy_list = []  # DB 연결 전까지 빈 리스트
+    try:
+        # 로그인한 사용자 정보 가져오기
+        user = Member.objects.get(user_id=login_id)
+        
+        # DB에서 본인이 작성한 모집글 조회 (삭제되지 않은 것만)
+        from recruitment.models import Community
+        
+        communities = Community.objects.filter(
+            member_id=user,
+            delete_date__isnull=True
+        ).order_by('-reg_date')
+        
+    except Member.DoesNotExist:
+        messages.error(request, "회원 정보를 찾을 수 없습니다.")
+        return redirect('/login/')
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] 내 모집글 조회 오류: {str(e)}")
+        print(traceback.format_exc())
+        communities = Community.objects.none()
     
     # 정렬 기능
     sort = request.GET.get("sort", "recent")
+    if sort == "title":
+        communities = communities.order_by('title')
+    elif sort == "views":
+        communities = communities.order_by('-view_cnt')
+    else:  # recent
+        communities = communities.order_by('-reg_date')
     
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
     
-    paginator = Paginator(dummy_list, per_page)
+    paginator = Paginator(communities, per_page)
     page_obj = paginator.get_page(page)
     
     # 페이지 블록 계산
@@ -520,7 +570,106 @@ def myjoin(request):
         # "pinned_posts": pinned_posts,
     }
     
-    return render('', 'myjoin.html', context)
+    return render(request, 'myjoin.html', context)
+
+
+@csrf_exempt
+def delete_my_article(request):
+    """마이페이지에서 본인이 작성한 게시글 삭제 API"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 로그인 체크
+    login_id = request.session.get("user_id")
+    if not login_id:
+        return JsonResponse({"status": "error", "msg": "로그인이 필요합니다."}, status=403)
+    
+    try:
+        user = Member.objects.get(user_id=login_id)
+        data = json.loads(request.body)
+        article_id = data.get("article_id")
+        
+        if not article_id:
+            return JsonResponse({"status": "error", "msg": "게시글 ID가 필요합니다."})
+        
+        # 본인이 작성한 게시글인지 확인
+        from board.models import Article
+        from board.utils import get_category_by_type
+        
+        category = get_category_by_type('post')
+        article = Article.objects.get(
+            article_id=article_id,
+            member_id=user,
+            category_id=category
+        )
+        
+        # 이미 삭제된 경우
+        if article.delete_date:
+            return JsonResponse({"status": "error", "msg": "이미 삭제된 게시글입니다."})
+        
+        # 삭제 처리 (soft delete)
+        article.delete_date = datetime.now()  # 한국 시간으로 저장
+        article.save(update_fields=['delete_date'])
+        
+        return JsonResponse({"status": "ok", "msg": "게시글이 삭제되었습니다."})
+    
+    except Member.DoesNotExist:
+        return JsonResponse({"status": "error", "msg": "회원 정보를 찾을 수 없습니다."}, status=404)
+    except Article.DoesNotExist:
+        return JsonResponse({"status": "error", "msg": "게시글을 찾을 수 없거나 권한이 없습니다."}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_my_article 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+
+@csrf_exempt
+def delete_my_community(request):
+    """마이페이지에서 본인이 작성한 모집글 삭제 API"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 로그인 체크
+    login_id = request.session.get("user_id")
+    if not login_id:
+        return JsonResponse({"status": "error", "msg": "로그인이 필요합니다."}, status=403)
+    
+    try:
+        user = Member.objects.get(user_id=login_id)
+        data = json.loads(request.body)
+        community_id = data.get("community_id")
+        
+        if not community_id:
+            return JsonResponse({"status": "error", "msg": "모집글 ID가 필요합니다."})
+        
+        # 본인이 작성한 모집글인지 확인
+        from recruitment.models import Community
+        
+        community = Community.objects.get(
+            community_id=community_id,
+            member_id=user
+        )
+        
+        # 이미 삭제된 경우
+        if community.delete_date:
+            return JsonResponse({"status": "error", "msg": "이미 삭제된 모집글입니다."})
+        
+        # 삭제 처리 (soft delete)
+        community.delete_date = datetime.now()  # 한국 시간으로 저장
+        community.save(update_fields=['delete_date'])
+        
+        return JsonResponse({"status": "ok", "msg": "모집글이 삭제되었습니다."})
+    
+    except Member.DoesNotExist:
+        return JsonResponse({"status": "error", "msg": "회원 정보를 찾을 수 없습니다."}, status=404)
+    except Community.DoesNotExist:
+        return JsonResponse({"status": "error", "msg": "모집글을 찾을 수 없거나 권한이 없습니다."}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_my_community 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
 
 
 

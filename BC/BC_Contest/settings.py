@@ -126,7 +126,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False  # DB에 한국 시간으로 직접 저장
 
 
 # Static files (CSS, JavaScript, Images)

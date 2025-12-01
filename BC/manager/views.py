@@ -662,7 +662,11 @@ def sport_delete(request):
 
 # 예약관리
 def recruitment_manager(request):
-    queryset = []  # 나중에 DB 들어오면 교체
+    # DB에서 모집글 조회 (삭제된 것도 포함)
+    try:
+        queryset = Community.objects.select_related('member_id').all().order_by('-reg_date')
+    except Exception:
+        queryset = []
     
     per_page = int(request.GET.get("per_page", 15))
 
@@ -682,21 +686,39 @@ def recruitment_manager(request):
     block_start = current_block * block_size + 1
     block_end = min(block_start + block_size - 1, paginator.num_pages)
 
+    # facility_json 형식으로 데이터 변환
+    start_index = (page_obj.number - 1) * per_page
+    facility_page = []
+    
+    for idx, community in enumerate(page_obj.object_list):
+        delete_date_str = None
+        if community.delete_date:
+            # 이미 한국 시간으로 저장되어 있음
+            delete_date_str = community.delete_date.strftime('%Y-%m-%d %H:%M')
+        
+        facility_page.append({
+            "id": community.community_id,
+            "title": community.title,
+            "author": community.member_id.user_id if community.member_id else "",
+            "row_no": start_index + idx + 1,
+            "delete_date": delete_date_str,
+        })
+
     context = {
         "page_obj": page_obj,
         "per_page": per_page,
+        "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": range(block_start, block_end + 1),
     }
     return render(request, 'recruitment_manager.html', context)
 
 def event_manager(request):
-    # DB에서 이벤트 조회 (category_type='event')
+    # DB에서 이벤트 조회 (category_type='event', 삭제된 것도 포함)
     try:
         from board.utils import get_category_by_type
         category = get_category_by_type('event')
         queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -724,11 +746,17 @@ def event_manager(request):
     facility_page = []
     
     for idx, article in enumerate(page_obj.object_list):
+        delete_date_str = None
+        if article.delete_date:
+            # 이미 한국 시간으로 저장되어 있음
+            delete_date_str = article.delete_date.strftime('%Y-%m-%d %H:%M')
+        
         facility_page.append({
             "id": article.article_id,
             "title": article.title,
             "author": article.member_id.user_id if article.member_id else "",
             "row_no": start_index + idx + 1,
+            "delete_date": delete_date_str,
         })
 
     context = {
@@ -742,13 +770,12 @@ def event_manager(request):
 
 
 def board_manager(request):
-    # DB에서 공지사항 조회 (category_type='notice')
+    # DB에서 공지사항 조회 (category_type='notice', 삭제된 것도 포함)
     try:
         from board.utils import get_category_by_type
         category = get_category_by_type('notice')
         queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -776,11 +803,17 @@ def board_manager(request):
     facility_page = []
     
     for idx, article in enumerate(page_obj.object_list):
+        delete_date_str = None
+        if article.delete_date:
+            # 이미 한국 시간으로 저장되어 있음
+            delete_date_str = article.delete_date.strftime('%Y-%m-%d %H:%M')
+        
         facility_page.append({
             "id": article.article_id,
             "title": article.title,
             "author": article.member_id.user_id if article.member_id else "",
             "row_no": start_index + idx + 1,
+            "delete_date": delete_date_str,
         })
 
     context = {
@@ -918,13 +951,12 @@ def event_form(request):
     return render(request, 'event_form.html')
 
 def post_manager(request):
-    # DB에서 자유게시판(post) 조회
+    # DB에서 자유게시판(post) 조회 (삭제된 것도 포함)
     try:
         from board.utils import get_category_by_type
         category = get_category_by_type('post')
         queryset = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         ).order_by('-reg_date')
     except Exception:
         queryset = []
@@ -952,11 +984,17 @@ def post_manager(request):
     facility_page = []
     
     for idx, article in enumerate(page_obj.object_list):
+        delete_date_str = None
+        if article.delete_date:
+            # 이미 한국 시간으로 저장되어 있음
+            delete_date_str = article.delete_date.strftime('%Y-%m-%d %H:%M')
+        
         facility_page.append({
             "id": article.article_id,
             "title": article.title,
             "author": article.member_id.user_id if article.member_id else "",
             "row_no": start_index + idx + 1,
+            "delete_date": delete_date_str,
         })
 
     context = {
@@ -980,8 +1018,7 @@ def manager_post_detail(request, article_id):
         category = get_category_by_type('post')
         article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
             article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         )
         
         # 댓글 조회
@@ -993,15 +1030,18 @@ def manager_post_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -1026,6 +1066,7 @@ def manager_post_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,
@@ -1060,8 +1101,7 @@ def manager_notice_detail(request, article_id):
         category = get_category_by_type('notice')
         article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
             article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         )
         
         # 댓글 조회
@@ -1073,15 +1113,18 @@ def manager_notice_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -1106,6 +1149,7 @@ def manager_notice_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,
@@ -1140,8 +1184,7 @@ def manager_event_detail(request, article_id):
         category = get_category_by_type('event')
         article_obj = Article.objects.select_related('member_id', 'category_id', 'board_id').get(
             article_id=article_id,
-            category_id=category,
-            delete_date__isnull=True
+            category_id=category
         )
         
         # 댓글 조회
@@ -1153,15 +1196,18 @@ def manager_event_detail(request, article_id):
         comments = []
         for comment_obj in comment_objs:
             comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+            comment_is_admin = comment_obj.member_id.member_id == 1 if comment_obj.member_id else False
             comments.append({
                 'comment_id': comment_obj.comment_id,
                 'comment': comment_obj.comment,
                 'author': comment_author,
+                'is_admin': comment_is_admin,
                 'reg_date': comment_obj.reg_date,
             })
         
         # 작성자 정보
         author_name = article_obj.member_id.nickname if article_obj.member_id and hasattr(article_obj.member_id, 'nickname') else '알 수 없음'
+        is_admin = article_obj.member_id.member_id == 1 if article_obj.member_id else False
         
         # 첨부파일 조회
         add_info_objs = AddInfo.objects.filter(article_id=article_id)
@@ -1186,6 +1232,7 @@ def manager_event_detail(request, article_id):
             'title': article_obj.title,
             'contents': article_obj.contents if article_obj.contents else '',
             'author': author_name,
+            'is_admin': is_admin,
             'date': article_obj.reg_date.strftime('%Y-%m-%d'),
             'views': article_obj.view_cnt,
             'reg_date': article_obj.reg_date,
@@ -1207,6 +1254,99 @@ def manager_event_detail(request, article_id):
         print(traceback.format_exc())
         messages.error(request, f"게시글을 불러오는 중 오류가 발생했습니다: {str(e)}")
         return redirect('/manager/event_manager/')
+
+@csrf_exempt
+def delete_articles(request):
+    """게시글 일괄 삭제 API (Article)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        article_ids = data.get("ids", [])
+        board_type = data.get("board_type", "")  # 'notice', 'event', 'post'
+        
+        if not article_ids:
+            return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
+        
+        # 카테고리 확인
+        from board.utils import get_category_by_type
+        try:
+            category = get_category_by_type(board_type)
+        except Exception:
+            return JsonResponse({"status": "error", "msg": f"잘못된 게시판 타입: {board_type}"})
+        
+        # 게시글 조회 및 삭제 처리
+        articles = Article.objects.filter(
+            article_id__in=article_ids,
+            category_id=category
+        )
+        
+        deleted_count = 0
+        now = datetime.now()  # 한국 시간으로 저장
+        
+        for article in articles:
+            if article.delete_date is None:  # 아직 삭제되지 않은 경우만
+                article.delete_date = now
+                article.save(update_fields=['delete_date'])
+                deleted_count += 1
+        
+        return JsonResponse({
+            "status": "ok",
+            "deleted": deleted_count,
+            "total": len(article_ids)
+        })
+    
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_articles 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+@csrf_exempt
+def delete_communities(request):
+    """모집글 일괄 삭제 API (Community)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        community_ids = data.get("ids", [])
+        
+        if not community_ids:
+            return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
+        
+        # 모집글 조회 및 삭제 처리
+        communities = Community.objects.filter(community_id__in=community_ids)
+        
+        deleted_count = 0
+        now = datetime.now()  # 한국 시간으로 저장
+        
+        for community in communities:
+            if community.delete_date is None:  # 아직 삭제되지 않은 경우만
+                community.delete_date = now
+                community.save(update_fields=['delete_date'])
+                deleted_count += 1
+        
+        return JsonResponse({
+            "status": "ok",
+            "deleted": deleted_count,
+            "total": len(community_ids)
+        })
+    
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_communities 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
 
 def board_form(request):
     if request.method == "POST":
