@@ -207,6 +207,10 @@ def detail(request, pk):
     except Community.DoesNotExist:
         raise Http404("존재하지 않는 모집글입니다.")
 
+
+    # 조회수 증가
+    recruit.view_cnt += 1
+    recruit.save()
     # 글 작성자인지 여부
     is_owner = (login_member is not None and recruit.member_id == login_member)
 
@@ -237,6 +241,7 @@ def detail(request, pk):
         "is_deleted": is_deleted,
         "is_manager": is_manager,
     }
+    
     return render(request, "recruitment_detail.html", context)
 
 
