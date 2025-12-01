@@ -1,0 +1,84 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}배너 수정{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/banner_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-title-section">
+    <h2 class="page-title">배너 수정</h2>
+</div>
+
+<div class="sub-container">
+    <div class="sub-content">
+
+        <div class="form-wrapper">
+            <form method="post" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- 파일 첨부 -->
+                <div class="form-group full-row">
+                    <label class="form-label">첨부파일</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="file" id="fileInput" class="file-input">
+
+                        <label for="fileInput" class="file-upload-btn">
+                            <span>📎 파일 선택</span>
+                        </label>
+
+                        {% if banner.url %}
+                            <p class="current-file">현재 파일: {{ banner.url }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 제목 -->
+                <div class="form-group full-row">
+                    <label class="form-label">제목</label>
+                    <input type="text"
+                           name="title"
+                           class="form-input"
+                           value="{{ banner.title }}"
+                           placeholder="제목 입력">
+                </div>
+
+                <!-- 내용 -->
+                <div class="form-group full-row">
+                    <label class="form-label">내용 / 설명</label>
+                    <textarea name="context"
+                              class="form-textarea"
+                              placeholder="본문 내용을 입력하세요">{{ banner.context }}</textarea>
+                </div>
+
+                <!-- 날짜 영역 -->
+                <div class="form-group full-row">
+                    <label class="form-label">시작 날짜</label>
+                    <input type="datetime-local"
+                           name="start_date"
+                           class="form-input"
+                           value="{{ banner.start_date|date:'Y-m-d\\TH:i' }}">
+                </div>
+
+                <div class="form-group full-row">
+                    <label class="form-label">종료 날짜</label>
+                    <input type="datetime-local"
+                           name="end_date"
+                           class="form-input"
+                           value="{{ banner.end_date|date:'Y-m-d\\TH:i' }}">
+                </div>
+
+                <!-- 버튼 -->
+                <div class="btn-row">
+                    <button type="submit" class="btn btn-submit">수정 완료</button>
+                    <button type="button" class="btn btn-list" onclick="history.back()">뒤로가기</button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

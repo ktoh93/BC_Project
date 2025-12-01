@@ -1,0 +1,125 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}관리자 - 첨부파일{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/banner_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-title-section">
+    <h2 class="page-title">첨부파일 추가</h2>
+</div>
+
+<div class="sub-container">
+    <div class="sub-content">
+
+        <div class="form-wrapper">
+            <form method="post" action="{% url 'banner_form' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+            <!-- 파일 첨부 -->
+            <div class="form-group full-row">
+                <label class="form-label">첨부파일</label>
+
+                <div class="file-upload-wrapper">
+                    <input type="file" name="file" id="fileInput" class="file-input" multiple>
+
+                    <label for="fileInput" class="file-upload-btn">
+                        <span>📎 파일 선택</span>
+                    </label>
+
+                    <div class="file-list" id="fileList"></div>
+                </div>
+            </div>
+
+            <!-- 제목 -->
+            <div class="form-group full-row">
+                <label class="form-label">제목</label>
+                <input type="text" name="title" class="form-input" placeholder="제목 입력">
+            </div>
+
+            <!-- 내용 -->
+            <div class="form-group full-row">
+                <label class="form-label">내용 / 설명</label>
+                <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요"></textarea>
+            </div>
+            
+            <div id="date-section">
+                <div class="form-row">
+                    <div class="form-group small">
+                        <label class="form-label">시작 날짜</label>
+                        <input type="datetime-local" name="start_date" class="form-input">
+                    </div>
+
+                    <div class="form-group small">
+                        <label class="form-label">종료 날짜</label>
+                        <input type="datetime-local" name="end_date" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+        
+
+            <!-- 버튼 -->
+            <div class="btn-row">
+                <button type="submit" class="btn btn-submit">등록</button>
+                <button type="button" class="btn btn-list" onclick="history.back()">목록</button>
+            </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    /* ------------------------------
+       1) 파일 업로드
+    ------------------------------ */
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    if (fileInput && fileList) {
+        fileInput.addEventListener('change', function () {
+            fileList.innerHTML = '';
+
+            let files = Array.from(fileInput.files);
+
+            files.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                item.innerHTML = `
+                    <span class="file-item-name">${file.name}</span>
+                    <button type="button" class="file-item-remove" data-index="${index}">✕</button>
+                `;
+
+                fileList.appendChild(item);
+
+                item.querySelector('.file-item-remove').addEventListener('click', function () {
+                    const removeIndex = Number(this.dataset.index);
+
+                    const dt = new DataTransfer();
+                    const updated = files.filter((_, idx) => idx !== removeIndex);
+
+                    updated.forEach(f => dt.items.add(f));
+                    fileInput.files = dt.files;
+
+                    files = updated;
+                    item.remove();
+
+                    if (updated.length === 0) {
+                        fileList.innerHTML = '';
+                    }
+                });
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

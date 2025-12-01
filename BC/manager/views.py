@@ -11,15 +11,19 @@ import xmltodict
 import pandas as pd
 from django_pandas.io import read_frame
 from django.contrib import messages
+from board.utils import get_category_by_type, get_board_by_name
+from django.conf import settings
+import uuid
+from django.utils.dateparse import parse_datetime
+
+# models import 
 from member.models import Member
 from recruitment.models import Community, EndStatus, Rating, JoinStat
 from reservation.models import Reservation
 from board.models import Article, Board, Category
-from board.utils import get_category_by_type, get_board_by_name
 from common.models import Comment, AddInfo
+from manager.models import HeroImg
 from facility.models import FacilityInfo
-from django.conf import settings
-import uuid
 
 
 from django.http import JsonResponse
@@ -870,8 +874,6 @@ def board_manager(request):
 
     return render(request, "board_manager.html", context)
 
-def banner_manager(request):
-    return render(request, 'banner_manager.html')
 
 def handle_file_uploads_manager(request, article):
     """게시글에 첨부된 파일들을 처리하고 AddInfo에 저장 (manager용)"""
@@ -1461,3 +1463,95 @@ def board_form(request):
             messages.error(request, f"공지사항 등록 중 오류가 발생했습니다: {str(e)}")
     
     return render(request, 'board_form.html')
+
+
+# 배너 관리----------------------------------
+def banner_form(request):
+    if request.method == "POST":
+        upload_file = request.FILES.get("file")
+        title = request.POST.get("title")
+        context = request.POST.get("context")
+        start_date = request.POST.get("start_date") or None
+        end_date = request.POST.get("end_date") or None
+
+        file_url = ""
+
+        if upload_file:
+            # 1) 저장 폴더
+            save_dir = os.path.join(settings.MEDIA_ROOT, "banners")
+            os.makedirs(save_dir, exist_ok=True)
+
+            # 2) 저장 파일명
+            file_name = f"{uuid.uuid4().hex}_{upload_file.name}"
+
+            # 3) 저장 실행
+            with open(os.path.join(save_dir, file_name), "wb+") as f:
+                for chunk in upload_file.chunks():
+                    f.write(chunk)
+
+            # 4) DB에 저장할 경로
+            file_url = f"banners/{file_name}"
+
+        HeroImg.objects.create(
+            url=file_url,
+            title=title,
+            context=context,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        return redirect("banner_manager")
+
+    return render(request, "banner_form.html")
+
+def banner_manager(request):
+    banners = HeroImg.objects.filter(delete_date__isnull=True).order_by('-img_id')
+    return render(request, "banner_manager.html", {"banners": banners})
+
+def banner_delete(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        ids = data.get("ids", [])
+
+        HeroImg.objects.filter(img_id__in=ids).update(
+            delete_date=timezone.now()
+        )
+
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"status": "invalid"}, status=400)
+
+def banner_edit(request, img_id):
+    banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
+
+    if request.method == "POST":
+        title = request.POST.get("title", "")
+        context = request.POST.get("context", "")
+        start_date = request.POST.get("start_date") or None
+        end_date = request.POST.get("end_date") or None
+
+        upload_file = request.FILES.get("file")
+
+        # 기존 파일 유지 or 새 파일 업로드
+        if upload_file:
+            save_dir = os.path.join(settings.MEDIA_ROOT, "banners")
+            os.makedirs(save_dir, exist_ok=True)
+
+            new_name = f"{uuid.uuid4().hex}_{upload_file.name}"
+
+            with open(os.path.join(save_dir, new_name), "wb+") as f:
+                for chunk in upload_file.chunks():
+                    f.write(chunk)
+
+            banner.url = f"banners/{new_name}"
+
+        banner.title = title
+        banner.context = context
+        banner.start_date = start_date
+        banner.end_date = end_date
+
+        banner.save()
+
+        return redirect("banner_manager")
+
+    return render(request, "banner_edit.html", {"banner": banner})

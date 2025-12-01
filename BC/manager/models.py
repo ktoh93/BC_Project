@@ -9,9 +9,10 @@ class HeroImg(models.Model):
     url = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     context = models.CharField(max_length=200)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     reg_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "hero_img"

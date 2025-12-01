@@ -14,17 +14,26 @@ urlpatterns = [
     path('sport_delete/', views.sport_delete, name='sport_delete'),
 
     path('facility_list/', views.facility_list, name='facility_list'),
+    path('post_manager/', views.post_manager, name='post_manager'),
+
+    # 게시판 관리
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),
     path('event_manager/', views.event_manager, name='event_manager'),
     path('board_manager/', views.board_manager, name='board_manager'),
-    path('post_manager/', views.post_manager, name='post_manager'),
-    path('banner/', views.banner_manager, name='banner_manager'),
     path('event_form/', views.event_form, name='event_form'),
     path('board_form/', views.board_form, name='board_form'),
+
+    # 배너 페이지
+    path('banner/', views.banner_manager, name='banner_manager'),
+    path('banner_form/', views.banner_form, name='banner_form'),
+    path("banner_edit/<int:img_id>/", views.banner_edit, name="banner_edit"),
+    path("banner_delete/", views.banner_delete, name="banner_delete"),
+
     # 관리자 전용 상세 페이지
     path('post/<int:article_id>/', views.manager_post_detail, name='manager_post_detail'),
     path('notice/<int:article_id>/', views.manager_notice_detail, name='manager_notice_detail'),
     path('event/<int:article_id>/', views.manager_event_detail, name='manager_event_detail'),
+
     # 삭제 API
     path('api/articles/delete/', views.delete_articles, name='delete_articles'),
     path('api/communities/delete/', views.delete_communities, name='delete_communities'),
