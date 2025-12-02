@@ -77,11 +77,17 @@
                 </div>
             </div>
             <hr class="dividing-line">
-           <div class="facility-list recruitment-list" id="facilityList">
+            
+            
+            
+            
+            
+            <div class="facility-list recruitment-list" id="facilityList">
                 <!-- 헤더 -->
                 <div class="facility-header">
                     <span class="facility-title">번호</span>
                     <span class="facility-title">제목</span>
+                    <span class="facility-title">모집인원</span>
                     <span class="facility-title">작성날짜</span>
                     <span class="facility-title">조회수</span>
                 </div>
@@ -89,16 +95,39 @@
                 <ul>
                     {% for item in page_obj %}
                         <li class="facility-item">
-                            <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                            <span class="facility-title"><a href="{% url 'recruitment_detail' item.pk %}">{{ item.title }}</a></span>
-                            <span class="facility-date">{{ item.reg_date|date:"Y-m-d H:i" }}</span>
-                            <span class="facility-views">{{ item.view_cnt }}</span>
+                            <!-- 번호 -->
+                            <span class="facility-order">
+                                {{ forloop.counter0|add:page_obj.start_index }}
+                            </span>
+
+                            <!-- 제목 -->
+                            <span class="facility-title">
+                                <a href="{% url 'recruitment:recruitment_detail' item.pk %}">
+                                    {{ item.title }}
+                                </a>
+                            </span>
+
+                            <!-- 모집인원 -->
+                            <span class="facility-num">
+                                {{ item.num_member }}명
+                            </span>
+
+                            <!-- 작성날짜 -->
+                            <span class="facility-date">
+                                {{ item.reg_date|date:"Y-m-d" }}
+                            </span>
+
+                            <!-- 조회수 -->
+                            <span class="facility-views">
+                                {{ item.view_cnt }}
+                            </span>
                         </li>
                     {% empty %}
                         <li class="facility-empty">등록된 모집글이 없습니다.</li>
                     {% endfor %}
                 </ul>
             </div>
+
 <!--
 DB 작성후 예시
 <ul>
@@ -117,7 +146,7 @@ DB 작성후 예시
 
         </section>
         <div class="write-btn-container">
-            <a href="/recruitment/write/" class="write-btn">작성하기</a>
+            <a href="{% url 'recruitment:recruitment_write' %}" class="write-btn">작성하기</a>
         </div>
 
         <div class="pagination">

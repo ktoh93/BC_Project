@@ -29,14 +29,31 @@
             <span>조회수: {{ recruit.view_cnt }}</span>
         </div>
         <br>  
+        
+        
+        
         <div class="detail-meta">
             <span class="detail-badge"># {{ recruit.region }} {{ recruit.region2 }}</span>
             <span class="detail-badge"># {{ recruit.sport_type }}</span>
-        <span class="detail-badge"># {{ recruit.num_member }}명</span>
-        {% if recruit.facility != "미정" %}
-            <span class="detail-badge"># {{ recruit.facility }}</span>
-        {% endif %}
+
+            <span class="detail-badge {% if is_full %}detail-badge-closed{% endif %}">
+                # {{ recruit.num_member }}명
+                {% if is_full %}
+                    · 모집 마감
+                {% else %}
+                    {% if remaining_slots > 0 %}
+                        · 잔여 {{ remaining_slots }}명
+                    {% endif %}
+                {% endif %}
+            </span>
+
+            {% if recruit.facility != "미정" %}
+                <span class="detail-badge"># {{ recruit.facility }}</span>
+            {% endif %}
         </div>
+
+
+
     </div>
 
     <hr class="detail-hr">
@@ -77,26 +94,43 @@
     <!-- 버튼(들) -->
     <div class="detail-btn-box">
         {% if is_owner %}
-            <!-- 글 작성자일 때 -->
-            <a href="{% url 'recruitment_update' recruit.community_id %}" class="detail-btn btn-edit">수정하기</a>
-        
-            <a href="{% url 'recruitment_delete' recruit.community_id %}"
-                class="detail-btn btn-delete"
-                onclick="return confirm('정말 삭제하시겠습니까?');">
-                삭제
-            </a>
+            ...
         {% else %}
-            <!-- 그 외 유저일 때 -->
             {% if is_deleted %}
-                <span class="detail-btn btn-join" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;">삭제된 게시글입니다</span>
+                <span class="detail-btn btn-join btn-join-closed">
+                    삭제된 게시글입니다
+                </span>
+            {% elif is_full %}
+                <span class="detail-btn btn-join btn-join-closed">
+                    모집 마감
+                </span>
             {% else %}
-                <a href="{% url 'recruitment_join' recruit.community_id %}" class="detail-btn btn-join">참여하기</a>
+                <a href="{% url 'recruitment:recruitment_join' recruit.community_id %}"
+                class="detail-btn btn-join">
+                참여하기
+                </a>
             {% endif %}
         {% endif %}
 
-        <!-- 항상 보이는 목록 버튼 -->
-        <a href="{% url 'recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
+        <a href="{% url 'recruitment:recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
     </div>
+
+
+
+    
+    <!-- ✅ 참여 현황 요약 (배지 스타일) -->
+<div class="join-summary">
+    <span class="join-summary-label">참여 현황</span>
+
+    <span class="status-pill status-pill-approved">
+        참여 {{ approved_count }}명 / 정원 {{ capacity }}명
+    </span>
+
+    <span class="status-pill status-pill-waiting">
+        대기 {{ waiting_rejected_count }}명
+    </span>
+</div>
+
 
 
     <!-- 참여 여부 -->
@@ -109,11 +143,16 @@
             {% for join in join_list %}
             <li class="join-item">
                 <span class="join-member">{{ join.member_id }}</span>
-                <span class="join-status">
+                <span class="join-status
+                    {% if join.join_status == 0 %} status-waiting
+                    {% elif join.join_status == 1 %} status-approved
+                    {% elif join.join_status == 2 %} status-rejected
+                    {% endif %}
+                ">
                     {% if join.join_status == 0 %}
                         대기
                     {% elif join.join_status == 1 %}
-                        승인
+                        참여
                     {% elif join.join_status == 2 %}
                         거절
                     {% else %}
@@ -123,7 +162,7 @@
 
                 <!-- 상태 변경 버튼들 -->
                 <form method="post"
-                    action="{% url 'recruitment_update_join_status' recruit.community_id join.id %}"
+                    action="{% url 'recruitment:recruitment_update_join_status' recruit.community_id join.id %}"
                     class="join-status-form">
                     {% csrf_token %}
                     <button type="submit" name="status" value="1">승인</button>
@@ -186,7 +225,7 @@
 
             <!-- 댓글 입력 폼 -->
             <form method="post"
-                action="{% url 'recruitment_comment' recruit.community_id %}"
+                action="{% url 'recruitment:recruitment_comment' recruit.community_id %}"
                 class="comment-form">                
                 {% csrf_token %}
                 <label for="comment" class="form-label">댓글 쓰기</label>

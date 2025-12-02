@@ -33,7 +33,7 @@
     <form id="recruit-form"
           class="recruitmnent-write-form"
           method="POST"
-          action="{% url 'recruitment_write' %}" 
+          action="{% url 'recruitment:recruitment_write' %}" 
           enctype="multipart/form-data">
       {% csrf_token %}
 

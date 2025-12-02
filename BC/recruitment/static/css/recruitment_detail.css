@@ -163,34 +163,40 @@
 }
 
 .join-status {
-    font-size: 13px;
+    font-size: 12px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: #e5e7eb;
-    color: #374151;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
 }
 
-/* 상태별 색 */
-.join-item .join-status::before {
-    content: "● ";
-    font-size: 8px;
-    vertical-align: middle;
+
+
+
+
+/* 상태별 색 (리스트용) */
+.join-status.status-waiting {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #c05621;
 }
-.join-item .join-status {
-    background: #e5e7eb;
-}
-.join-item .join-status:contains("대기") {
-    background: #fef3c7;
-    color: #92400e;
-}
-.join-item .join-status:contains("승인") {
-    background: #dcfce7;
+
+.join-status.status-approved {
+    background: #ecfdf3;
+    border-color: #bbf7d0;
     color: #166534;
 }
-.join-item .join-status:contains("거절") {
-    background: #fee2e2;
+
+.join-status.status-rejected {
+    background: #fef2f2;
+    border-color: #fecaca;
     color: #b91c1c;
 }
+
+
 
 /* 상태 변경 폼 */
 .join-status-form {
@@ -213,6 +219,77 @@
     background: #eef2ff;
     transform: translateY(-1px);
 }
+
+
+/* 참여 요약 배지 */
+.join-summary {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #111827;
+}
+
+.join-summary-label {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid transparent;
+    min-width: 70px;
+}
+
+/* 스크린샷처럼 초록/주황 스타일 */
+.status-pill-approved {
+    background: #ecfdf3;      /* 연한 초록 */
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.status-pill-waiting {
+    background: #fff7ed;      /* 연한 주황 */
+    border-color: #fed7aa;
+    color: #c05621;
+}
+
+
+
+/* 모집 마감 뱃지 */
+/* .detail-badge-closed {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #b91c1c;
+} */
+
+/* 모집 마감 버튼 */
+.btn-join-closed {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* =========================
    댓글 섹션
@@ -453,3 +530,6 @@
     color: #b91c1c;
     border-color: #fecaca;
 }
+
+
+

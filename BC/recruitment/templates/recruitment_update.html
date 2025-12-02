@@ -29,7 +29,7 @@
         <form id="recruit_form"
               class="recruitmnent-write-form"
               method="post"
-              action="{% url 'recruitment_update' recruit.community_id %}">
+              action="{% url 'recruitment:recruitment_update' recruit.community_id %}">
             {% csrf_token %}
 
             <div class="form-wrapper">
@@ -107,7 +107,7 @@
                     <input type="text"
                            class="form-input"
                            name="chat_url"
-                           value="{{ recruit.chat_url }}">
+                           value="{% if recruit.char_url %}{{ recruit.chat_url }}{% endif %}">
                 </div>
 
                 <!-- 7. 버튼 -->

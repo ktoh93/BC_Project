@@ -117,7 +117,7 @@ def write(request):
             member_id=member,   # ✅ FK 에 실제 Member 인스턴스 넣기
         )
 
-        return redirect("recruitment_detail", pk=recruit.pk)
+        return redirect("recruitment:recruitment_detail", pk=recruit.pk)
 
     # 3) GET 요청이면 작성 폼 보여주기
     return render(request, "recruitment_write.html")
@@ -149,12 +149,12 @@ def update(request, pk):
         )
     except Community.DoesNotExist:
         messages.error(request, "삭제되었거나 존재하지 않는 모집글입니다.")
-        return redirect("recruitment_list")
+        return redirect("recruitment:recruitment_list")
 
     # 3) 작성자 본인인지 체크
     if community.member_id != member:
         messages.error(request, "본인이 작성한 글만 수정할 수 있습니다.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 4) POST: 실제 수정 처리
     if request.method == "POST":
@@ -164,7 +164,7 @@ def update(request, pk):
         community.update_date = timezone.now()
         community.save()
 
-        return redirect("recruitment_detail", pk=community.pk)
+        return redirect("recruitment:recruitment_detail", pk=community.pk)
 
     # 5) GET: 수정 폼 화면
     context = {
@@ -176,6 +176,84 @@ def update(request, pk):
 
 
 
+# def detail(request, pk):
+#     # 0) 로그인 체크
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         messages.error(request, "로그인이 필요합니다.")
+#         return redirect("/login/")
+
+#     login_member = None
+#     if user_id:
+#         try:
+#             login_member = Member.objects.get(user_id=user_id)
+#         except Member.DoesNotExist:
+#             login_member = None
+
+#     # 관리자 여부 확인
+#     manager_id = request.session.get('manager_id')
+#     is_manager = manager_id == 1 if manager_id else False
+
+#     # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+#     try:
+#         if is_manager:
+#             recruit = Community.objects.get(pk=pk)
+#         else:
+#             recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
+#     except Community.DoesNotExist:
+#         raise Http404("존재하지 않는 모집글입니다.")
+
+#     # 조회수 증가
+#     recruit.view_cnt += 1
+#     recruit.save()
+
+#     # 글 작성자인지 여부
+#     is_owner = (login_member is not None and recruit.member_id == login_member)
+
+#     # ✅ 참여자 공통 queryset
+#     joins_qs = JoinStat.objects.filter(community_id=recruit)
+
+#     # ✅ 인원 수 집계 (누구에게나 보여줄 값)
+#     total_join_count = joins_qs.count()
+#     approved_count = joins_qs.filter(join_status=1).count()
+#     waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
+
+#     # ✅ 상세 목록은 소유자/관리자에게만
+#     join_list = []
+#     if is_owner or is_manager:
+#         join_list = (
+#             joins_qs
+#             .select_related("member_id")
+#             .order_by("join_status", "member_id__user_id")
+#         )
+
+#     # ✅ 댓글 목록
+#     comments = Comment.objects.filter(
+#         community_id=recruit,
+#         delete_date__isnull=True
+#     ).order_by("reg_date")
+
+#     # 삭제 여부 확인
+#     is_deleted = recruit.delete_date is not None
+
+#     context = {
+#         "recruit": recruit,
+#         "is_owner": is_owner,
+#         "is_manager": is_manager,
+#         "join_list": join_list,
+
+#         # 👉 새로 추가된 통계값들
+#         "total_join_count": total_join_count,
+#         "approved_count": approved_count,
+#         "waiting_rejected_count": waiting_rejected_count,
+
+#         "comments": comments,
+#         "is_deleted": is_deleted,
+#     }
+
+#     return render(request, "recruitment_detail.html", context)
+
+
 
 def detail(request, pk):
     # 0) 로그인 체크
@@ -183,9 +261,8 @@ def detail(request, pk):
     if not user_id:
         messages.error(request, "로그인이 필요합니다.")
         return redirect("/login/")
-    user_id = request.session.get("user_id")
-    login_member = None
 
+    login_member = None
     if user_id:
         try:
             login_member = Member.objects.get(user_id=user_id)
@@ -199,35 +276,45 @@ def detail(request, pk):
     # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
     try:
         if is_manager:
-            # 관리자는 삭제된 게시글도 조회 가능
             recruit = Community.objects.get(pk=pk)
         else:
-            # 일반 사용자는 삭제되지 않은 게시글만 조회 가능
             recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
     except Community.DoesNotExist:
         raise Http404("존재하지 않는 모집글입니다.")
 
-
     # 조회수 증가
     recruit.view_cnt += 1
     recruit.save()
+
     # 글 작성자인지 여부
     is_owner = (login_member is not None and recruit.member_id == login_member)
 
-    # ✅ 참여자 목록
+    # ✅ 참여자 공통 queryset
+    joins_qs = JoinStat.objects.filter(community_id=recruit)
+
+    # ✅ 인원 수 집계
+    total_join_count = joins_qs.count()
+    approved_count = joins_qs.filter(join_status=1).count()
+    waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
+
+    # ✅ 정원/마감 여부
+    capacity = recruit.num_member or 0
+    is_full = capacity > 0 and approved_count >= capacity
+    remaining_slots = max(capacity - approved_count, 0)
+
+    # ✅ 상세 목록은 소유자/관리자에게만
     join_list = []
-    if is_owner:
+    if is_owner or is_manager:
         join_list = (
-            JoinStat.objects
-            .filter(community_id=recruit)
+            joins_qs
             .select_related("member_id")
             .order_by("join_status", "member_id__user_id")
         )
 
-    # ✅ 댓글 목록 (여기는 원래 쓰시던 코드로)
+    # ✅ 댓글 목록
     comments = Comment.objects.filter(
         community_id=recruit,
-        delete_date__isnull=True  # 삭제되지 않은 댓글만 표시
+        delete_date__isnull=True
     ).order_by("reg_date")
 
     # 삭제 여부 확인
@@ -236,12 +323,21 @@ def detail(request, pk):
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
+        "is_manager": is_manager,
         "join_list": join_list,
+
+        "total_join_count": total_join_count,
+        "approved_count": approved_count,
+        "waiting_rejected_count": waiting_rejected_count,
+
+        "capacity": capacity,
+        "is_full": is_full,
+        "remaining_slots": remaining_slots,
+
         "comments": comments,
         "is_deleted": is_deleted,
-        "is_manager": is_manager,
     }
-    
+
     return render(request, "recruitment_detail.html", context)
 
 
@@ -279,7 +375,7 @@ def delete(request, pk):
     community.save()
 
     messages.success(request, "글이 삭제되었습니다.")
-    return redirect("recruitment_list")
+    return redirect("recruitment:recruitment_list")
 
 
 
@@ -311,7 +407,7 @@ def join(request, pk):
     # 3) 본인 글 참여 방지 (URL 직접 입력하는 놈 방어)
     if community.member_id == member:
         messages.error(request, "본인이 작성한 글에는 참여 신청을 할 수 없습니다.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 4) JoinStat 생성 (이미 있으면 그대로)
     try:
@@ -334,7 +430,7 @@ def join(request, pk):
         messages.info(request, "이미 이 모집에 참여 신청을 하셨습니다.")
 
     # 6) 상세 페이지로 복귀
-    return redirect("recruitment_detail", pk=pk)
+    return redirect("recruitment:recruitment_detail", pk=pk)
 
 
 
@@ -361,32 +457,32 @@ def update_join_status(request, pk, join_id):
         community = Community.objects.get(pk=pk, delete_date__isnull=True)
     except Community.DoesNotExist:
         messages.error(request, "삭제되었거나 존재하지 않는 모집글입니다.")
-        return redirect("recruitment_list")
+        return redirect("recruitment:recruitment_list")
 
     # 3) 작성자 본인만 변경 가능
     if community.member_id != member:
         messages.error(request, "작성자만 참여 상태를 변경할 수 있습니다.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 4) JoinStat 한 줄 가져오기
     try:
         join_obj = JoinStat.objects.get(id=join_id, community_id=community)
     except JoinStat.DoesNotExist:
         messages.error(request, "해당 참여 신청을 찾을 수 없습니다.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 5) 변경할 상태값 (0=대기, 1=승인, 2=거절 등)
     try:
         new_status = int(request.POST.get("status"))
     except (TypeError, ValueError):
         messages.error(request, "잘못된 상태 값입니다.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     join_obj.join_status = new_status
     join_obj.save()
 
     messages.success(request, "참여 상태를 변경했습니다.")
-    return redirect("recruitment_detail", pk=pk)
+    return redirect("recruitment:recruitment_detail", pk=pk)
 
 
 
@@ -396,7 +492,7 @@ def update_join_status(request, pk, join_id):
 def add_comment(request, pk):
     # GET 으로 들어오면 그냥 상세로 돌려보냄
     if request.method != "POST":
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 0) 세션 로그인 확인
     user_id = request.session.get("user_id")
@@ -423,7 +519,7 @@ def add_comment(request, pk):
     content = request.POST.get("content", "").strip()
     if not content:
         messages.error(request, "댓글 내용을 입력해 주세요.")
-        return redirect("recruitment_detail", pk=pk)
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 4) 댓글 생성
     Comment.objects.create(
@@ -433,7 +529,7 @@ def add_comment(request, pk):
     )
 
     messages.success(request, "댓글이 등록되었습니다.")
-    return redirect("recruitment_detail", pk=pk)
+    return redirect("recruitment:recruitment_detail", pk=pk)
 
 
 
