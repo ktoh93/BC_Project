@@ -23,33 +23,39 @@ from django.db.models import Q
 
 
 
+
+from django.db.models import Q
+from django.core.paginator import Paginator
+
 def recruitment_list(request):
     # 0) 검색 파라미터 받기
-    search_type = request.GET.get("search_type", "all")   # 전체 / facility / sport
+    search_type = request.GET.get("search_type", "all")   # all / facility / sport
     keyword = request.GET.get("keyword", "").strip()
+
+    # 폼에서는 여전히 name="sido", "sigungu" 쓰고 있음
     sido = request.GET.get("sido", "")
     sigungu = request.GET.get("sigungu", "")
 
     # 1) 기본 QuerySet
     qs = Community.objects.filter(delete_date__isnull=True)
 
-    # 2) 지역 필터
+    # 2) 지역 필터  👉 실제 필드는 region / region2
     if sido:
-        qs = qs.filter(sido=sido)
+        qs = qs.filter(region=sido)
     if sigungu:
-        qs = qs.filter(sigungu=sigungu)
+        qs = qs.filter(region2=sigungu)
 
-    # 3) 검색어 필터
+    # 3) 검색어 필터  👉 실제 필드는 facility / sport_type
     if keyword:
         if search_type == "facility":
-            qs = qs.filter(facility_name__icontains=keyword)
+            qs = qs.filter(facility__icontains=keyword)
         elif search_type == "sport":
-            qs = qs.filter(sport__icontains=keyword)
+            qs = qs.filter(sport_type__icontains=keyword)
         else:  # all
             qs = qs.filter(
                 Q(title__icontains=keyword) |
-                Q(facility_name__icontains=keyword) |
-                Q(sport__icontains=keyword)
+                Q(facility__icontains=keyword) |
+                Q(sport_type__icontains=keyword)
             )
 
     # 4) 정렬값
@@ -77,7 +83,6 @@ def recruitment_list(request):
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
     block_end = block_start + block_size - 1
-
     if block_end > paginator.num_pages:
         block_end = paginator.num_pages
 
@@ -93,7 +98,7 @@ def recruitment_list(request):
         "block_start": block_start,
         "block_end": block_end,
 
-        # 검색값 다시 템플릿에 넘겨서 유지
+        # 검색값 유지용
         "search_type": search_type,
         "keyword": keyword,
         "sido": sido,
@@ -101,7 +106,6 @@ def recruitment_list(request):
     }
 
     return render(request, "recruitment_list.html", context)
-
 
 
 
@@ -212,92 +216,6 @@ def update(request, pk):
 
 
 
-
-
-# def detail(request, pk):
-#     # 0) 로그인 체크
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         messages.error(request, "로그인이 필요합니다.")
-#         return redirect("/login/")
-
-#     login_member = None
-#     if user_id:
-#         try:
-#             login_member = Member.objects.get(user_id=user_id)
-#         except Member.DoesNotExist:
-#             login_member = None
-
-#     # 관리자 여부 확인
-#     manager_id = request.session.get('manager_id')
-#     is_manager = manager_id == 1 if manager_id else False
-
-#     # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
-#     try:
-#         if is_manager:
-#             recruit = Community.objects.get(pk=pk)
-#         else:
-#             recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
-#     except Community.DoesNotExist:
-#         raise Http404("존재하지 않는 모집글입니다.")
-
-#     # 조회수 증가
-#     recruit.view_cnt += 1
-#     recruit.save()
-
-#     # 글 작성자인지 여부
-#     is_owner = (login_member is not None and recruit.member_id == login_member)
-
-#     # ✅ 참여자 공통 queryset
-#     joins_qs = JoinStat.objects.filter(community_id=recruit)
-
-#     # ✅ 인원 수 집계
-#     total_join_count = joins_qs.count()
-#     approved_count = joins_qs.filter(join_status=1).count()
-#     waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
-
-#     # ✅ 정원/마감 여부
-#     capacity = recruit.num_member or 0
-#     is_full = capacity > 0 and approved_count >= capacity
-#     remaining_slots = max(capacity - approved_count, 0)
-
-#     # ✅ 상세 목록은 소유자/관리자에게만
-#     join_list = []
-#     if is_owner or is_manager:
-#         join_list = (
-#             joins_qs
-#             .select_related("member_id")
-#             .order_by("join_status", "member_id__user_id")
-#         )
-
-#     # ✅ 댓글 목록
-#     comments = Comment.objects.filter(
-#         community_id=recruit,
-#         delete_date__isnull=True
-#     ).order_by("reg_date")
-
-#     # 삭제 여부 확인
-#     is_deleted = recruit.delete_date is not None
-
-#     context = {
-#         "recruit": recruit,
-#         "is_owner": is_owner,
-#         "is_manager": is_manager,
-#         "join_list": join_list,
-
-#         "total_join_count": total_join_count,
-#         "approved_count": approved_count,
-#         "waiting_rejected_count": waiting_rejected_count,
-
-#         "capacity": capacity,
-#         "is_full": is_full,
-#         "remaining_slots": remaining_slots,
-
-#         "comments": comments,
-#         "is_deleted": is_deleted,
-#     }
-
-#     return render(request, "recruitment_detail.html", context)
 
 
 
