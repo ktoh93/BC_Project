@@ -1798,7 +1798,16 @@ def banner_form(request):
                 "start_date": start_date,
                 "end_date": end_date,
             })
-
+        
+        if title == "":
+            return render(request, "banner_form.html", {
+                "alert" : "제목을 입력해주세요.",
+                "title": title,
+                "context": context,
+                "selected_status": img_status,
+                "start_date": start_date,
+                "end_date": end_date,
+            })
         img_status = int(img_status)
 
         # 기간 지정 아닐 때는 기간 날리기
