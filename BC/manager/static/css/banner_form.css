@@ -223,3 +223,11 @@
 .file-item-remove:hover {
     color: var(--color-deep-blue);
 }
+
+#date-section.hide {
+    display: none;
+}
+
+#date-section.show {
+    display: block;
+}
