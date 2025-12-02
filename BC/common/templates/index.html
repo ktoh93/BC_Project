@@ -129,6 +129,7 @@
     // Swiper 초기화
     var swiper = new Swiper(".template-main-swiper", {
       effect: "fade",
+      fadeEffect: { crossFade: true },
       loop: true,
       speed: 1000,
       autoplay: {
@@ -143,6 +144,19 @@
           return '<span class="' + className + '"></span>';
         },
       },
+    });
+    swiper.on('slideChangeTransitionStart', function () {
+        // 모든 슬라이드 텍스트 초기화 (CSS와 동일하게!)
+        $('.move-txt01').css({opacity:0, marginTop:'-25px'});
+        $('.move-txt02').css({opacity:0});
+
+        var active = $('.swiper-slide-active');
+
+        var t1 = active.find('.move-txt01');
+        var t2 = active.find('.move-txt02');
+
+        t1.animate({opacity:1, marginTop:'0px'}, 600);
+        t2.delay(200).animate({opacity:1}, 600);
     });
   });
   </script>
