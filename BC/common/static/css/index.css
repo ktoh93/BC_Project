@@ -926,3 +926,12 @@
     font-size: 13px;
   }
 }
+
+.template-main-swiper .swiper-slide {
+    opacity: 0;
+    transition: opacity 0.9s ease;
+}
+
+.template-main-swiper .swiper-slide.swiper-slide-active {
+    opacity: 1;
+}

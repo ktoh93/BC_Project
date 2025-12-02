@@ -61,26 +61,24 @@
   {% if request.session.user_id %}
     {% if request.session.manager_id %}
       <!-- 관리자 -->
-      <button class="header__login-btn">
-        <a href="/manager/dashboard/">{{ request.session.nickname }}님 (관리자)</a>
-      </button>
+      <a href="/manager/dashboard/" class="header__login-btn">
+        {{ request.session.nickname }}님 (관리자)
+      </a>
     {% else %}
       <!-- 일반 사용자 -->
-      <button class="header__login-btn">
-        <a href="/member/info/">{{ request.session.nickname }}님</a>
-      </button>
+      <a href="/member/info/" class="header__login-btn">
+        {{ request.session.nickname }}님
+      </a>
     {% endif %}
 
-    <button class="header__login-btn">
-      <a href="/logout/">로그아웃</a>
-    </button>
+    <a href="/logout/" class="header__login-btn">
+      로그아웃
+    </a>
 
   {% else %}
-    
-    <button class="header__login-btn">
-      <a href="/login/">로그인 / 회원가입</a>
-    </button>
-
+    <a href="/login/" class="header__login-btn">
+      로그인 / 회원가입
+    </a>
   {% endif %}
 
   <button class="header__menu-btn" id="menuBtn" aria-label="메뉴">
