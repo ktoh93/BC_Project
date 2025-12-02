@@ -7,6 +7,8 @@ from member.models import Member
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import JsonResponse
 import re
+import os
+import requests
 
 def index(request):
     # DB에서 랜덤 시설 3개 가져오기
@@ -104,7 +106,119 @@ def logout(request):
     request.session.flush()
     return redirect("/")
 
+def kakao_login(request):
+    """카카오 로그인 시작"""
+    KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
+    if not KAKAO_REST_API_KEY:
+        messages.error(request, "카카오 로그인 설정이 완료되지 않았습니다.")
+        return redirect('/login/')
+    
+    # next 파라미터 처리
+    next_url = request.GET.get('next', '')
+    if next_url:
+        request.session['kakao_next'] = next_url
+    
+    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
+    kakao_auth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={KAKAO_REST_API_KEY}&redirect_uri={REDIRECT_URI}&response_type=code"
+    return redirect(kakao_auth_url)
 
+def kakao_callback(request):
+    """카카오 로그인 콜백 처리"""
+    code = request.GET.get('code')
+    if not code:
+        messages.error(request, "카카오 로그인에 실패했습니다.")
+        return redirect('/login/')
+    
+    KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
+    if not KAKAO_REST_API_KEY:
+        messages.error(request, "카카오 로그인 설정이 완료되지 않았습니다.")
+        return redirect('/login/')
+    
+    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
+    
+    try:
+        # 1. 토큰 받기
+        token_url = "https://kauth.kakao.com/oauth/token"
+        token_data = {
+            'grant_type': 'authorization_code',
+            'client_id': KAKAO_REST_API_KEY,
+            'redirect_uri': REDIRECT_URI,
+            'code': code
+        }
+        
+        token_response = requests.post(token_url, data=token_data)
+        token_json = token_response.json()
+        
+        if 'error' in token_json:
+            messages.error(request, f"카카오 로그인에 실패했습니다: {token_json.get('error_description', '알 수 없는 오류')}")
+            return redirect('/login/')
+        
+        access_token = token_json.get('access_token')
+        
+        # 2. 사용자 정보 가져오기
+        user_info_url = "https://kapi.kakao.com/v2/user/me"
+        headers = {'Authorization': f'Bearer {access_token}'}
+        user_response = requests.get(user_info_url, headers=headers)
+        user_info = user_response.json()
+        
+        if 'error' in user_info:
+            messages.error(request, "사용자 정보를 가져오는데 실패했습니다.")
+            return redirect('/login/')
+        
+        # 3. 카카오 ID로 회원 찾기 또는 생성
+        kakao_id = str(user_info['id'])
+        kakao_account = user_info.get('kakao_account', {})
+        profile = kakao_account.get('profile', {})
+        nickname = profile.get('nickname', f'카카오사용자_{kakao_id[:6]}')
+        email = kakao_account.get('email', '')
+        
+        # 카카오 ID를 user_id로 사용 (kakao_ 접두사 추가)
+        kakao_user_id = f'kakao_{kakao_id}'
+        
+        try:
+            # 기존 회원 찾기
+            user = Member.objects.get(user_id=kakao_user_id)
+        except Member.DoesNotExist:
+            # 신규 회원 생성
+            # 닉네임 중복 체크
+            original_nickname = nickname
+            counter = 1
+            while Member.objects.filter(nickname=nickname).exists():
+                nickname = f"{original_nickname}_{counter}"
+                counter += 1
+            
+            # 필수 필드 기본값 설정
+            user = Member.objects.create(
+                user_id=kakao_user_id,
+                name=nickname,
+                nickname=nickname,
+                password=make_password('kakao_login_no_password'),  # 카카오 로그인은 비밀번호 불필요
+                birthday='19000101',  # 기본값
+                gender=0,  # 기본값
+                addr1='',  # 기본값
+                phone_num=f'010-0000-{kakao_id[-4:]}' if len(kakao_id) >= 4 else '010-0000-0000',  # 카카오 ID로 임시 전화번호 생성
+            )
+            messages.success(request, "카카오 로그인으로 회원가입이 완료되었습니다.")
+        
+        # 4. 세션에 로그인 정보 저장
+        request.session['user_id'] = user.user_id
+        request.session['user_name'] = user.name
+        request.session['nickname'] = user.nickname
+        
+        # 관리자 체크
+        if user.member_id == 1:
+            request.session['manager_id'] = user.member_id
+            request.session['manager_name'] = user.name
+            next_url = request.session.pop('kakao_next', None) or '/manager/dashboard/'
+            return redirect(next_url)
+        
+        # 이전 페이지로 리다이렉트
+        next_url = request.session.pop('kakao_next', None) or '/'
+        return redirect(next_url)
+        
+    except requests.RequestException as e:
+        messages.error(request, f"카카오 로그인 중 오류가 발생했습니다: {str(e)}")
+        return redirect('/login/')
 # 회원 가입 부분 ----------------------------------------
 USERNAME_PATTERN = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
 PASSWORD_PATTERN = re.compile(
@@ -264,10 +378,19 @@ def find_pw(request):
         phone2 = request.POST.get("phone2")
         phone3 = request.POST.get("phone3")
 
-        # 생년월일 검증
-        if len(birthday) != 8 or not birthday.isdigit():
+        # 생년월일 검증 및 DB 포맷(YYYY-MM-DD)으로 변환
+        birthday = (birthday or "").strip()
+        birthday_db = None
+
+        # 20020528 형식
+        if len(birthday) == 8 and birthday.isdigit():
+            birthday_db = f"{birthday[0:4]}-{birthday[4:6]}-{birthday[6:8]}"
+        # 2002-05-28 형식
+        elif len(birthday) == 10 and birthday.count("-") == 2:
+            birthday_db = birthday
+        else:
             return render(request, "findPW.html", {
-                "error": "생년월일은 8자리 숫자로 입력해주세요. (예: 20020528)"
+                "error": "생년월일은 20020528 또는 2002-05-28 형식으로 입력해주세요."
             })
 
         # 전화번호 검증
@@ -278,13 +401,26 @@ def find_pw(request):
                 "error": "전화번호는 3-4-4 숫자로 입력해주세요."
             })
 
-        phone_num = phone1 + phone2 + phone3
-        
-        # TODO : DB user_id = user_id 확인 하는 if 문 작성 필요 
+        # DB에 저장된 형식(010-0000-0000)에 맞게 전화번호 구성
+        phone_num = f"{phone1}-{phone2}-{phone3}"
 
-        # 12자리 랜덤 비밀번호 생성
+        # 실제 회원 정보 확인
+        try:
+            user = Member.objects.get(
+                user_id=user_id,
+                name=name,
+                birthday=birthday_db,
+                phone_num=phone_num,
+            )
+        except Member.DoesNotExist:
+            return render(request, "findPW.html", {
+                "error": "입력하신 정보와 일치하는 회원을 찾을 수 없습니다."
+            })
+
+        # 12자리 랜덤 비밀번호 생성 및 DB 비밀번호 갱신
         new_password = generate_random_pw(12)
-
+        user.password = make_password(new_password)
+        user.save(update_fields=["password"])
 
         return render(request, "findPW.html", {
             "result_pw": new_password

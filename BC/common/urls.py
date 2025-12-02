@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path('',views.index, name='index'),
     path('login/', views.login, name='login'),
+    path('login/kakao/', views.kakao_login, name='kakao_login'),
+    path('login/kakao/callback/', views.kakao_callback, name='kakao_callback'),
     path('signup/', views.signup, name='signup'),
     path('findID/', views.find_id, name='findID'),
     path('findPW/', views.find_pw, name='findPW'),

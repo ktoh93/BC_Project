@@ -2,19 +2,9 @@
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/findID.css' %}">
+<link rel="stylesheet" href="{% static 'css/findPW.css' %}">
 {% endblock %}
 {% block title %}비밀번호 찾기 - 할래말래{% endblock %}
-
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>회원가입 - 할래말래</title>
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/common.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/findPW.css' %}" />
 
 {% block contents %}
 
@@ -59,7 +49,7 @@
                 <!-- 생년월일 -->
                 <div class="form-group">
                     <label class="form-label">생년월일</label>
-                    <input type="text" name="birthday" class="form-input" placeholder="ex) 20020528" required>
+                    <input type="text" name="birthday" class="form-input" placeholder="예) 20020528 또는 2002-05-28" required>
                 </div>
 
                 <!-- 전화번호 -->
@@ -94,23 +84,94 @@
      {% if result_pw %}data-result-pw="{{ result_pw|escapejs }}"{% endif %}
      style="display: none;"></div>
 
+{% if result_pw %}
+<!-- 임시 비밀번호 모달 -->
+<div id="pwModal" class="pw-modal" aria-hidden="false">
+  <div class="pw-modal-backdrop"></div>
+  <div class="pw-modal-content" role="dialog" aria-modal="true" aria-labelledby="pwModalTitle">
+    <h2 id="pwModalTitle">임시 비밀번호 안내</h2>
+    <p>아래 임시 비밀번호로 로그인한 뒤, 마이페이지에서 반드시 비밀번호를 변경해주세요.</p>
+    <div class="pw-modal-inline">
+      <input type="text" id="pwModalInput" class="form-input" value="{{ result_pw }}" readonly>
+      <button type="button" id="pwModalCopyBtn" class="findID-btn">복사</button>
+    </div>
+    <div class="pw-modal-actions">
+      <button type="button" id="pwModalLoginBtn" class="findID-btn">로그인 페이지로 이동</button>
+      <button type="button" id="pwModalCloseBtn" class="findPW-btn secondary">닫기</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block script1 %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // 오류 메시지 alert
     var dataEl = document.getElementById('findPW-data');
-    if (!dataEl) return;
-    
-    var errorMsg = dataEl.getAttribute('data-error');
-    if (errorMsg) {
-        alert(errorMsg);
+    if (dataEl) {
+        var errorMsg = dataEl.getAttribute('data-error');
+        if (errorMsg) {
+            alert(errorMsg);
+        }
     }
-    
-    var newPassword = dataEl.getAttribute('data-result-pw');
-    if (newPassword) {
-        alert("새로운 비밀번호는 '" + newPassword + "' 입니다.\n로그인후 마이페이지에서 비밀번호를 변경해주세요.");
-        window.location.href = "/login";
+
+    // 모달 관련 요소
+    var modal = document.getElementById('pwModal');
+    var input = document.getElementById('pwModalInput');
+    var copyBtn = document.getElementById('pwModalCopyBtn');
+    var closeBtn = document.getElementById('pwModalCloseBtn');
+    var loginBtn = document.getElementById('pwModalLoginBtn');
+
+    if (modal && input) {
+        // 포커스 & 전체 선택
+        setTimeout(function() {
+            input.focus();
+            input.select();
+        }, 50);
+
+        // 복사 버튼
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function() {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(input.value)
+                        .then(function() {
+                            alert('임시 비밀번호가 복사되었습니다. 로그인 후 비밀번호를 변경해주세요.');
+                        })
+                        .catch(function() {
+                            input.select();
+                            document.execCommand('copy');
+                            alert('임시 비밀번호를 복사했습니다. (복사가 안되면 Ctrl+C를 사용해주세요)');
+                        });
+                } else {
+                    input.select();
+                    document.execCommand('copy');
+                    alert('임시 비밀번호를 복사했습니다. 로그인 후 비밀번호를 변경해주세요.');
+                }
+            });
+        }
+
+        // 로그인 페이지로 이동
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function() {
+                window.location.href = "/login";
+            });
+        }
+
+        // 닫기 버튼
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
+
+        // ESC로 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display !== 'none') {
+                modal.style.display = 'none';
+            }
+        });
     }
 });
 </script>

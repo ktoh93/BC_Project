@@ -114,14 +114,10 @@
       <div class="divider">또는</div>
       
       <div class="social-login">
-        <button type="button" class="social-btn">
-          <span>🔵</span>
-          카카오로 로그인
-        </button>
-        <button type="button" class="social-btn">
-          <span>🟢</span>
-          네이버로 로그인
-        </button>
+        <!-- 카카오 로그인: 공식 이미지 버튼만 사용 -->
+        <a href="{% url 'kakao_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="kakao-login-link" aria-label="카카오로 로그인">
+          <img src="{% static 'img/kakao-icon.png' %}" alt="카카오 로그인" class="kakao-login-img" />
+        </a>
       </div>
       
       <div class="signup-link">

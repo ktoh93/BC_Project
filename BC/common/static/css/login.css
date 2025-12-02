@@ -265,13 +265,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  max-width: 360px;      /* 소셜 로그인 영역 공통 너비 */
+  margin: 0 auto;        /* 카드 안에서 가운데 정렬 */
+  width: 100%;
 }
 
+/* 텍스트형 소셜 버튼 (네이버 등) */
 .social-btn {
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--color-soft-gray-line);
   background: var(--color-card-box);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
@@ -279,12 +283,49 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
+  text-decoration: none;
+  color: inherit;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .social-btn {
+    padding: 18px;
+    font-size: 17px;
+  }
 }
 
 .social-btn:hover {
   border-color: var(--color-deep-blue);
   background: var(--color-background);
   transform: translateY(-1px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.social-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.social-btn:disabled:hover {
+  transform: none;
+  border-color: var(--color-soft-gray-line);
+  background: var(--color-card-box);
+}
+
+/* 카카오 로그인: 이미지 전용 링크 (공식 버튼 PNG 사용) */
+.kakao-login-link {
+  display: block;
+  width: 100%;
+}
+
+.kakao-login-img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .signup-link {
