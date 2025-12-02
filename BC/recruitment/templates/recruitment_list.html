@@ -27,57 +27,67 @@
     <div class="sub-content">
         
     <!-- 검색 섹션 -->
-    <form id="searchForm" method="get">
-        <section class="search-section">
-            <div class="search-controls">
-                <select class="search-dropdown" id="searchType">
-                    <option value="all">전체</option>
-                    <option value="facility">시설명</option>
-                    <option value="sport">종목명</option>
-                </select>
+<form id="searchForm" method="get">
+    <section class="search-section">
+        <div class="search-controls">
+            <!-- 검색 타입 -->
+            <select class="search-dropdown" id="searchType" name="search_type">
+                <option value="all" {% if search_type == "all" %}selected{% endif %}>전체</option>
+                <option value="facility" {% if search_type == "facility" %}selected{% endif %}>시설명</option>
+                <option value="sport" {% if search_type == "sport" %}selected{% endif %}>종목명</option>
+            </select>
 
-                <!-- 시/도 선택 -->
-                <select id="sido" class="search-dropdown">
-                    <option value="">시/도 선택</option>
-                </select>
+            <!-- 시/도 선택 -->
+            <select id="sido" class="search-dropdown" name="sido">
+                <option value="">시/도 선택</option>
+                {% if sido %}
+                    <!-- JS에서 옵션 채울 거면, 선택값만 유지용 data 속성 -->
+                {% endif %}
+            </select>
 
-                    <!-- 구/군 선택 -->
-                <select id="sigungu" class="search-dropdown">
-                    <option value="">구/군 선택</option>
-                </select>
+            <!-- 구/군 선택 -->
+            <select id="sigungu" class="search-dropdown" name="sigungu">
+                <option value="">구/군 선택</option>
+            </select>
+        </div>
 
+        <div class="search-input-group">
+            <input
+                type="text"
+                class="search-input"
+                id="searchKeyword"
+                name="keyword"
+                placeholder="검색어를 입력하세요"
+                value="{{ keyword }}"
+            >
+            <!-- 검색 버튼은 submit -->
+            <button type="submit" class="search-btn" id="searchBtn">
+                <span>🔍</span> 검색
+            </button>
+        </div>
+    </section>
+
+    <section class="search-list-section">
+        <div class="sort-page-container">
+            <!-- 정렬 선택 -->
+            <select class="search-dropdown" id="sortSelect" name="sort">
+                <option value="recent" {% if sort == "recent" %}selected{% endif %}>최신순</option>
+                <option value="title" {% if sort == "title" %}selected{% endif %}>제목순</option>
+                <option value="views" {% if sort == "views" %}selected{% endif %}>조회수순</option>
+            </select>
+
+            <!-- 페이지당 개수 -->
+            <div class="page-selector">
+                <select class="search-dropdown" id="perPageSelect" name="per_page">
+                    <option value="15" {% if per_page == 15 %}selected{% endif %}>15개</option>
+                    <option value="30" {% if per_page == 30 %}selected{% endif %}>30개</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50개</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100개</option>
+                </select>
             </div>
-            <div class="search-input-group">
-                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
-                <button type="button" class="search-btn" id="searchBtn">
-                    <span>🔍</span> 검색
-                </button>
-            </div>
-        </section>
+        </div>
 
-        <section class="search-list-section">
-            
-            <div class="sort-page-container">
-                
-                <!-- 정렬 선택 -->
-                <select class="search-dropdown" id="sortSelect">
-                    <option value="recent">최신순</option>
-                    <option value="title">제목순</option>
-                    <option value="views">조회수순</option>
-                </select>
-
-                <!-- <h3 class="section-title">모집글 리스트</h3> -->
-                <!-- 기존 페이지당 개수 선택 -->
-                <div class="page-selector">
-                    <select class="search-dropdown" id="perPageSelect">
-                        <option value="15">15개</option>
-                        <option value="30">30개</option>
-                        <option value="50">50개</option>
-                        <option value="100">100개</option>
-                    </select>
-                </div>
-            </div>
-            <hr class="dividing-line">
+        <hr class="dividing-line">
             
             
             
