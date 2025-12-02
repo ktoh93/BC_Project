@@ -1,23 +1,22 @@
-from django.shortcuts import render
-import random
-import string
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from member.models import Member
-from django.contrib.auth.hashers import make_password, check_password
-from django.http import JsonResponse
-import re
-from django.utils import timezone
-from django.db.models import Q
-from manager.models import HeroImg
 import os
+import random
+import re
+import string
+
 import requests
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password, check_password
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from manager.models import HeroImg
+from member.models import Member
 
 def index(request):
     # DB에서 랜덤 시설 3개 가져오기
     try:
         from facility.models import FacilityInfo
-        import random
 
         all_facilities = FacilityInfo.objects.all()
 
