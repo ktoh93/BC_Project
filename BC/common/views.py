@@ -113,6 +113,9 @@ def login(request):
     return render(request, "login.html", context)
 
 def logout(request):
+    """
+    우리 서비스에서만 로그아웃 (카카오 글로벌 로그아웃 X)
+    """
     request.session.flush()
     return redirect("/")
 
@@ -129,7 +132,15 @@ def kakao_login(request):
         request.session['kakao_next'] = next_url
     
     REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
-    kakao_auth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={KAKAO_REST_API_KEY}&redirect_uri={REDIRECT_URI}&response_type=code"
+
+    # 자동로그인 방지: 항상 카카오 로그인/계정 선택 화면을 띄우도록 요청
+    kakao_auth_url = (
+        "https://kauth.kakao.com/oauth/authorize"
+        f"?client_id={KAKAO_REST_API_KEY}"
+        f"&redirect_uri={REDIRECT_URI}"
+        "&response_type=code"
+        "&prompt=login"
+    )
     return redirect(kakao_auth_url)
 
 def kakao_callback(request):
