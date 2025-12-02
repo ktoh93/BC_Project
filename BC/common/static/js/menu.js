@@ -105,10 +105,45 @@ function initMobileMenu() {
   });
 }
 
+// ============================================
+// 스크롤 리빌 애니메이션
+// ============================================
+function initScrollReveal() {
+  const targets = document.querySelectorAll('.reveal');
+  if (!targets.length) return;
+
+  // IntersectionObserver 미지원 브라우저 대비
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach((el) => el.classList.add('is-visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.2,
+    }
+  );
+
+  targets.forEach((el) => observer.observe(el));
+}
+
+function initApp() {
+  initMobileMenu();
+  initScrollReveal();
+}
+
 // DOM이 로드된 후 초기화
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initMobileMenu);
+  document.addEventListener('DOMContentLoaded', initApp);
 } else {
   // DOM이 이미 로드된 경우
-  initMobileMenu();
+  initApp();
 }

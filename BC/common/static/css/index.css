@@ -15,6 +15,7 @@
   position: relative;
   min-height: 300px;
   overflow: hidden;
+  z-index: 2;
 }
 
 .widget::before {
@@ -115,7 +116,319 @@
   color: #EF4444;
 }
 
+/* 날씨 도시 선택 칩 */
+.weather-city-chips {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
+.weather-city-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-soft-gray-line);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.weather-city-chip:hover {
+  border-color: var(--color-muted-blue);
+  color: var(--color-deep-blue);
+  background: #fff;
+}
+
+.weather-city-chip--active {
+  background: linear-gradient(
+    135deg,
+    var(--color-muted-blue),
+    var(--color-deep-blue)
+  );
+  color: #fff;
+  border-color: transparent;
+}
+
+/* 날씨 애니메이션 배경 (inner1) */
+.weather-visual {
+  position: relative;
+  overflow: hidden;
+}
+
+.weather-visual::before,
+.weather-visual::after {
+  pointer-events: none;
+}
+
+/* 날씨 애니메이션 SVG 컨테이너 */
+.weather-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  z-index: 1;
+}
+
+.weather-visual .weather-animation {
+  opacity: 1;
+}
+
+.weather-cloud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 100px;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.weather-rain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.weather-lightning {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 구름 열림/닫힘 애니메이션 */
+.cloud-open-left,
+.cloud-open-right {
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.weather-visual--rain .cloud-open-left,
+.weather-visual--rain .cloud-open-right {
+  stroke-dashoffset: 0;
+}
+
+.weather-visual--rain .cloud-path {
+  fill: rgba(100, 120, 140, 0.2);
+  stroke: rgba(100, 120, 140, 0.4);
+  transition: all 0.8s ease-in-out;
+}
+
+.weather-visual--rain .weather-cloud {
+  opacity: 1;
+}
+
+/* 비 떨어지는 애니메이션 */
+.weather-visual--rain .weather-rain {
+  opacity: 1;
+}
+
+.rain-line {
+  stroke-dasharray: 20, 30;
+  animation: rain-drop 0.8s linear infinite;
+}
+
+.rain-line-1 { animation-delay: 0s; }
+.rain-line-2 { animation-delay: 0.1s; }
+.rain-line-3 { animation-delay: 0.2s; }
+.rain-line-4 { animation-delay: 0.3s; }
+.rain-line-5 { animation-delay: 0.15s; }
+.rain-line-6 { animation-delay: 0.25s; }
+.rain-line-7 { animation-delay: 0.35s; }
+
+@keyframes rain-drop {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+}
+
+/* 번개 효과 */
+.weather-visual--rain.weather-lightning-active .weather-lightning {
+  animation: lightning-flash 0.3s ease-out;
+}
+
+@keyframes lightning-flash {
+  0%, 100% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  20% {
+    opacity: 0.2;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  40% {
+    opacity: 0;
+  }
+}
+
+/* 맑음: 떠다니는 해 */
+.weather-visual.weather-visual--sunny::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe066 0, #ffb400 60%, #ff9800 100%);
+  box-shadow: 0 0 40px rgba(255, 193, 7, 0.7);
+  animation: sunny-move 6s ease-in-out infinite alternate;
+}
+
+@keyframes sunny-move {
+  from {
+    transform: translateY(0) translateX(0);
+  }
+  to {
+    transform: translateY(20px) translateX(-10px);
+  }
+}
+
+/* 비: SVG 기반 애니메이션 (레퍼런스 기반 개선) */
+.weather-visual.weather-visual--rain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, 
+    rgba(100, 120, 140, 0.05) 0%,
+    rgba(100, 120, 140, 0.1) 100%);
+  opacity: 0.6;
+  transition: all 0.8s ease-in-out;
+}
+
+/* 눈: 여러 크기의 눈송이가 천천히 떨어짐 */
+.weather-visual.weather-visual--snow::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  background-image: 
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.9) 2px, transparent 4px),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.8) 3px, transparent 6px),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.85) 2.5px, transparent 5px),
+    radial-gradient(circle at 35% 0%, rgba(255, 255, 255, 0.75) 4px, transparent 8px),
+    radial-gradient(circle at 65% 0%, rgba(255, 255, 255, 0.7) 2.5px, transparent 5px);
+  background-size: 100% 120px, 100% 150px, 100% 100px, 100% 180px, 100% 130px;
+  background-position: 0 0, 15px 0, 30px 0, 45px 0, 60px 0;
+  animation: snow-fall 8s linear infinite;
+  opacity: 0.95;
+}
+
+@keyframes snow-fall {
+  0% {
+    background-position-y: 0, 0, 0, 0, 0;
+    opacity: 0.9;
+  }
+  100% {
+    background-position-y: 120px, 150px, 100px, 180px, 130px;
+    opacity: 1;
+  }
+}
+
+/* 흐림: 부드러운 구름 레이어 (더 자연스럽게) */
+.weather-visual.weather-visual--cloudy::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -30%;
+  width: 160%;
+  height: 80%;
+  background: 
+    radial-gradient(ellipse 120% 60% at 15% 20%, rgba(255, 255, 255, 0.85) 0%, rgba(240, 245, 250, 0.7) 30%, transparent 60%),
+    radial-gradient(ellipse 100% 50% at 70% 40%, rgba(235, 240, 245, 0.75) 0%, rgba(220, 230, 240, 0.6) 35%, transparent 65%),
+    radial-gradient(ellipse 90% 45% at 40% 60%, rgba(230, 235, 242, 0.7) 0%, rgba(210, 220, 235, 0.5) 40%, transparent 70%);
+  animation: clouds-move 20s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+@keyframes clouds-move {
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  to {
+    transform: translateX(-30px) translateY(10px);
+  }
+}
+
+/* 바람: 가로로 스치는 바람 줄기 (더 역동적으로) */
+.weather-visual.weather-visual--wind::before {
+  content: '';
+  position: absolute;
+  left: -50%;
+  top: 15%;
+  width: 200%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(146, 184, 216, 0.5) 20%,
+    rgba(47, 92, 156, 0.8) 50%,
+    rgba(146, 184, 216, 0.5) 80%,
+    transparent 100%
+  );
+  border-radius: 999px;
+  filter: blur(1px);
+  animation: wind-move 2.5s linear infinite;
+}
+
+.weather-visual.weather-visual--wind::after {
+  content: '';
+  position: absolute;
+  left: -60%;
+  top: 35%;
+  width: 220%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(146, 184, 216, 0.4) 25%,
+    rgba(47, 92, 156, 0.7) 55%,
+    rgba(146, 184, 216, 0.4) 85%,
+    transparent 100%
+  );
+  border-radius: 999px;
+  filter: blur(1.5px);
+  animation: wind-move 3s linear infinite;
+}
+
+@keyframes wind-move {
+  from {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(150px);
+    opacity: 0.6;
+  }
+}
 /* 모바일 (768px 이하) */
 @media (max-width: 768px) {
 
@@ -356,15 +669,18 @@
 }
 
 .template-section-01 .btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
   top: 0;
   right: 0;
   width: 157px;
   height: 157px;
   text-align: center;
-  line-height: 157px;
+  line-height: 1;
   font-weight: 700;
+  font-size: 18px;
   background: linear-gradient(360deg, var(--color-deep-blue) 40%, var(--color-muted-blue) 100%);
   color: #fff;
   background-size: 200% 200%;

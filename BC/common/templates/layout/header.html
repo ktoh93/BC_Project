@@ -36,21 +36,57 @@
     <!-- 모바일 메뉴: 네비 -->
     <ul class="header__nav-list">
       <li class="header__nav-item">
-        <a href="/facility" class="header__nav-link">시설 안내</a>
+        <a
+          href="/facility"
+          class="header__nav-link{% if '/facility' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+        >
+          시설 안내
+        </a>
       </li>
       <li class="header__nav-item">
-        <a href="/recruitment" class="header__nav-link">모집할래</a>
+        <a
+          href="/recruitment"
+          class="header__nav-link{% if '/recruitment' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+        >
+          모집할래
+        </a>
       </li>
       <li class="header__nav-item">
-        <a href="/reservation" class="header__nav-link">예약할래</a>
+        <a
+          href="/reservation"
+          class="header__nav-link{% if '/reservation' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+        >
+          예약할래
+        </a>
       </li>
       <li class="header__nav-item has-submenu">
-        <a href="/board/notice" class="header__nav-link">정보알래</a>
+        <a
+          href="/board/notice"
+          class="header__nav-link{% if '/board/' in request.path and not '/manager/' in request.path %} header__nav-link--active{% endif %}"
+        >
+          정보알래
+        </a>
         <ul class="header__submenu">
-          <li><a href="/board/notice">공지할래</a></li>
-          <li><a href="/board/event">이벤트볼래</a></li>
-          <li><a href="/board/post">수다떨래</a></li>
-          <li><a href="/board/faq">FAQ</a></li>
+          <li>
+            <a href="/board/notice"
+               class="{% if '/board/notice' in request.path %}header__submenu-link--active{% endif %}"
+            >공지할래</a>
+          </li>
+          <li>
+            <a href="/board/event"
+               class="{% if '/board/event' in request.path %}header__submenu-link--active{% endif %}"
+            >이벤트볼래</a>
+          </li>
+          <li>
+            <a href="/board/post"
+               class="{% if '/board/post' in request.path %}header__submenu-link--active{% endif %}"
+            >수다떨래</a>
+          </li>
+          <li>
+            <a href="/board/faq"
+               class="{% if '/board/faq' in request.path %}header__submenu-link--active{% endif %}"
+            >FAQ</a>
+          </li>
         </ul>
       </li>
     </ul>

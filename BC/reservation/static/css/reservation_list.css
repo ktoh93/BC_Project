@@ -48,7 +48,7 @@
 }
 
 .board-hero h2 {
-    font-size: 80px;
+    font-size: 56px;
     font-weight: 900;
     color: #ffffff;
     margin: 0;
@@ -56,11 +56,7 @@
     line-height: 1;
     position: relative;
     z-index: 2;
-    text-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.5),
-        0 4px 16px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(0, 0, 0, 0.3),
-        2px 2px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 14px 30px rgba(15, 23, 42, 0.55);
 }
 
 /* 예약할래 페이지 전용 hero */
@@ -329,31 +325,13 @@
 }
 
 /* ============================================
-   버튼 스타일
+   버튼 스타일 (전역 .btn 기반 커스터마이징)
    ============================================ */
-/* 기본 버튼 */
-.btn {
-    padding: 12px 24px;
-    background: var(--color-deep-blue);
-    color: var(--color-card-box);
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-base);
-    display: inline-block;
-    text-align: center;
-    text-decoration: none;
-}
-
-.btn:hover {
-    background: var(--color-deep-blue-hover);
-}
-
 /* 취소 버튼 */
 .btn--cancel {
     background: var(--color-soft-gray-line);
     color: var(--color-text-primary);
+    border-color: var(--color-soft-gray-line);
 }
 
 .btn--cancel:hover {
@@ -367,6 +345,7 @@
 .btn--join {
     background: var(--color-deep-green);
     color: var(--color-card-box);
+    border-color: var(--color-deep-green);
 }
 
 .btn--confirm:hover,

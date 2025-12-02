@@ -2,6 +2,7 @@ import os
 import random
 import re
 import string
+from datetime import timedelta
 
 import requests
 from django.contrib import messages
@@ -12,6 +13,123 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from manager.models import HeroImg
 from member.models import Member
+
+
+# ------------------------- 공통 유틸 / API ------------------------- #
+
+def weather_api(request):
+    """
+    메인 페이지 오늘의 날씨 위젯용 기상청 초단기실황 API 프록시
+    - 기본 도시는 서울(seoul)
+    - 쿼리 파라미터: ?city=seoul|busan|incheon|daejeon|daegu|gwangju
+    """
+    SERVICE_KEY = os.getenv("OPEN_WEATHER_KEY")
+    if not SERVICE_KEY:
+        return JsonResponse({"error": "OPEN_WEATHER_KEY is not configured"}, status=500)
+
+    city_code = (request.GET.get("city") or "seoul").lower()
+
+    # 기상청 격자 좌표 (nx, ny)
+    city_map = {
+        "seoul":   {"nx": 60,  "ny": 127, "label": "서울"},
+        "busan":   {"nx": 98,  "ny": 76,  "label": "부산"},
+        "incheon": {"nx": 55,  "ny": 124, "label": "인천"},
+        "daejeon": {"nx": 67,  "ny": 100, "label": "대전"},
+        "daegu":   {"nx": 89,  "ny": 90,  "label": "대구"},
+        "gwangju": {"nx": 58,  "ny": 74,  "label": "광주"},
+        "ulsan":    {"nx": 102, "ny": 84,  "label": "울산"},
+        "jeju":     {"nx": 53,  "ny": 38,  "label": "제주"},
+        "suwon":    {"nx": 60,  "ny": 121, "label": "수원"},
+        "cheongju": {"nx": 69,  "ny": 106, "label": "청주"},
+        "jeonju":   {"nx": 63,  "ny": 89,  "label": "전주"},
+    }
+    city_info = city_map.get(city_code, city_map["seoul"])
+
+    # 기준 시각(직전 정시)
+    now = timezone.now()
+    base_time_dt = now - timedelta(hours=1)
+    base_date = base_time_dt.strftime("%Y%m%d")
+    base_time = base_time_dt.strftime("%H00")
+
+    endpoint = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
+    params = {
+        "serviceKey": SERVICE_KEY,
+        "numOfRows": 100,
+        "pageNo": 1,
+        "dataType": "JSON",
+        "base_date": base_date,
+        "base_time": base_time,
+        "nx": city_info["nx"],
+        "ny": city_info["ny"],
+    }
+
+    try:
+        resp = requests.get(endpoint, params=params, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        print(f"[ERROR] weather_api(KMA) 호출 실패: {e}")
+        return JsonResponse({"error": "weather_api_failed"}, status=500)
+
+    try:
+        items = data["response"]["body"]["items"]["item"]
+    except Exception as e:
+        print(f"[ERROR] weather_api(KMA) 응답 파싱 실패: {e}")
+        return JsonResponse({"error": "weather_api_parse_error"}, status=500)
+
+    values = {}
+    for it in items:
+        cat = it.get("category")
+        val = it.get("obsrValue")
+        values[cat] = val
+
+    # 기온 / 습도 / 강수량 / 풍속 / 강수형태 / 하늘상태
+    temp = float(values.get("T1H", 0))
+    humidity = float(values.get("REH", 0))
+    wind_speed = float(values.get("WSD", 0))
+
+    rn1_raw = values.get("RN1", "0")
+    try:
+        precipitation = float(rn1_raw)
+    except ValueError:
+        precipitation = 0.0
+
+    pty = str(values.get("PTY", "0"))  # 0 없음, 1 비, 2 비/눈, 3 눈, 5/6/7: 다양한 형태
+    sky = str(values.get("SKY", "1"))  # 1 맑음, 3 구름많음, 4 흐림
+
+    # main/description 매핑
+    if pty in ("1", "2", "5", "6"):
+        main = "Rain"
+        description = "비"
+    elif pty in ("3", "7"):
+        main = "Snow"
+        description = "눈"
+    else:
+        if sky == "1":
+            main = "Clear"
+            description = "맑음"
+        elif sky == "3":
+            main = "Clouds"
+            description = "구름 많음"
+        elif sky == "4":
+            main = "Clouds"
+            description = "흐림"
+        else:
+            main = "Clouds"
+            description = "구름"
+
+    result = {
+        "city_code": city_code,
+        "city_label": city_info["label"],
+        "city_name": city_info["label"],
+        "temp": temp,
+        "description": description,
+        "main": main,
+        "precipitation": precipitation,
+        "humidity": humidity,
+        "wind_speed": wind_speed,
+    }
+    return JsonResponse(result)
 
 def index(request):
     # DB에서 랜덤 시설 3개 가져오기

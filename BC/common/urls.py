@@ -3,7 +3,7 @@ from . import views
 
 
 urlpatterns = [
-    path('',views.index, name='index'),
+    path('', views.index, name='index'),
     path('login/', views.login, name='login'),
     path('login/kakao/', views.kakao_login, name='kakao_login'),
     path('login/kakao/callback/', views.kakao_callback, name='kakao_callback'),
@@ -18,4 +18,7 @@ urlpatterns = [
 
     # 로그아웃
     path("logout/", views.logout, name="logout"),
+
+    # 공통 API
+    path("api/weather/", views.weather_api, name="weather_api"),
 ]
