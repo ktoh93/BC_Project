@@ -17,36 +17,35 @@
 {% block contents %}
  <main class="main">
     <!-- 템플릿 스타일 메인 배너 (Swiper) -->
-    <section class="template-main-banner">
-      <div class="swiper-container template-main-swiper">
-        <ul class="swiper-wrapper">
-          <li class="swiper-slide">
-            <div class="banner-txt-box">
-              <p class="move-txt01">할래말래에 <b>오신 것을 환영합니다</b></p>
-              <p class="move-txt02">스포츠 시설을 쉽고 빠르게 예약하세요</p>
-              <div class="swiper-pager"></div>
-              <p class="scroll">Scroll Down</p>
-            </div>
-          </li>
-          <li class="swiper-slide">
-            <div class="banner-txt-box">
-              <p class="move-txt01">다양한 <b>스포츠 시설</b></p>
-              <p class="move-txt02">원하는 시설을 찾아 예약하세요</p>
-              <div class="swiper-pager"></div>
-              <p class="scroll">Scroll Down</p>
-            </div>
-          </li>
-          <li class="swiper-slide">
-            <div class="banner-txt-box">
-              <p class="move-txt01">함께 즐기는 <b>스포츠</b></p>
-              <p class="move-txt02">같이 할래 말래에서 새로운 인연을 만나보세요</p>
-              <div class="swiper-pager"></div>
-              <p class="scroll">Scroll Down</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </section>
+  <section class="template-main-banner">
+    <div class="swiper-container template-main-swiper">
+      <ul class="swiper-wrapper">
+
+        {% for b in banners %}
+        <li class="swiper-slide" style="background-image: url('/media/{{ b.url }}'); background-size: cover; background-position: center;">
+          <div class="banner-txt-box">
+            <p class="move-txt01">{{ b.title }}</p>
+            <p class="move-txt02">{{ b.context }}</p>
+            <div class="swiper-pager"></div>
+            <p class="scroll">Scroll Down</p>
+          </div>
+        </li>
+        {% endfor %}
+
+        {% if banners|length == 0 %}
+        <li class="swiper-slide">
+          <div class="banner-txt-box">
+            <p class="move-txt01">등록된 배너가 없습니다</p>
+            <p class="move-txt02">관리자에서 배너를 추가해주세요</p>
+            <div class="swiper-pager"></div>
+            <p class="scroll">Scroll Down</p>
+          </div>
+        </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </section>
 
     <!-- 템플릿 섹션 01: 소개 -->
     <section class="template-section-01">

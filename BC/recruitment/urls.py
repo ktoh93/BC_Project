@@ -21,4 +21,7 @@ urlpatterns = [
     path('<int:pk>/comment/', views.add_comment, name="recruitment_comment"),
 
 
+    # 모집 마감
+    path("detail/<int:pk>/close/", views.close_recruitment, name="recruitment_close"),
+
 ]

@@ -1,125 +1,149 @@
 {% extends 'manager_base.html' %}
 {% load static %}
 
-{% block title %}관리자 - 첨부파일{% endblock %}
+{% block title %}배너 등록{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/banner_form.css' %}">
+<link rel="stylesheet" href="{% static 'css/banner_form.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="page-title-section">
-    <h2 class="page-title">첨부파일 추가</h2>
+    <h2 class="page-title">배너 등록</h2>
 </div>
 
 <div class="sub-container">
-    <div class="sub-content">
+<div class="sub-content">
 
-        <div class="form-wrapper">
-            <form method="post" action="{% url 'banner_form' %}" enctype="multipart/form-data">
-                {% csrf_token %}
+<div class="form-wrapper">
+<form method="post" action="{% url 'banner_form' %}" enctype="multipart/form-data">
+    {% csrf_token %}
 
-            <!-- 파일 첨부 -->
-            <div class="form-group full-row">
-                <label class="form-label">첨부파일</label>
+    <!-- 파일 -->
+    <div class="form-group full-row">
+        <label class="form-label">배너 이미지</label>
 
-                <div class="file-upload-wrapper">
-                    <input type="file" name="file" id="fileInput" class="file-input">
+        <div class="file-upload-wrapper">
+            <input type="file" name="file" id="fileInput" class="file-input" accept="image/*">
+            <label for="fileInput" class="file-upload-btn"><span>📎 첨부파일</span></label>
+            <div class="file-list" id="fileList"></div>
+        </div>
+    </div>
+    <!-- 제목 -->
+    <div class="form-group full-row">
+        <label class="form-label">제목</label>
+        <input type="text" name="title" class="form-input" placeholder="제목 입력" >
+    </div>
 
-                    <label for="fileInput" class="file-upload-btn">
-                        <span>📎 파일 선택</span>
-                    </label>
+    <!-- 내용 -->
+    <div class="form-group full-row">
+        <label class="form-label">내용</label>
+        <input type="text" name="context" class="form-input" placeholder="내용 입력" >
+    </div>
 
-                    <div class="file-list" id="fileList"></div>
-                </div>
-            </div>
+    <!-- 상태 라디오 -->
+    <div class="form-group full-row">
+        <label class="form-label">배너 상태</label>
 
-            <!-- 제목 -->
-            <div class="form-group full-row">
-                <label class="form-label">제목</label>
-                <input type="text" name="title" class="form-input" placeholder="제목 입력">
-            </div>
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="0"
+                class="status-radio"
+                {% if selected_status == "0" %}checked{% endif %}>
+            상시 노출
+        </label>
 
-            <!-- 내용 -->
-            <div class="form-group full-row">
-                <label class="form-label">내용 / 설명</label>
-                <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요"></textarea>
-            </div>
-            
-            <div id="date-section">
-                <div class="form-row">
-                    <div class="form-group small">
-                        <label class="form-label">시작 날짜</label>
-                        <input type="datetime-local" name="start_date" class="form-input">
-                    </div>
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="1"
+                class="status-radio"
+                {% if selected_status == "1" %}checked{% endif %}>
+            기간 지정
+        </label>
 
-                    <div class="form-group small">
-                        <label class="form-label">종료 날짜</label>
-                        <input type="datetime-local" name="end_date" class="form-input">
-                    </div>
-                </div>
-            </div>
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="2"
+                class="status-radio"
+                {% if selected_status == "2" %}checked{% endif %}>
+            배너에서 제거
+        </label>
+    </div>
 
-        
-
-            <!-- 버튼 -->
-            <div class="btn-row">
-                <button type="submit" class="btn btn-submit">등록</button>
-                <button type="button" class="btn btn-list" onclick="history.back()">목록</button>
-            </div>
-
-            </form>
+    <div id="date-section" class="form-row" style="display:none;">
+        <div class="form-group small">
+            <label class="form-label">시작 날짜</label>
+            <input type="datetime-local" name="start_date" class="form-input"
+                value="{{ start_date|default_if_none:'' }}">
         </div>
 
+        <div class="form-group small">
+            <label class="form-label">종료 날짜</label>
+            <input type="datetime-local" name="end_date" class="form-input"
+                value="{{ end_date|default_if_none:'' }}">
+        </div>
     </div>
-</div>
-{% endblock %}
 
+    </div>
+    <!-- 버튼 -->
+    <div class="btn-row">
+        <button type="submit" class="btn btn-submit">등록</button>
+        <button type="button" class="btn btn-list" onclick="history.back()">뒤로가기</button>
+    </div>
+
+</form>
+</div>
+
+</div>
+</div>
+
+{% endblock %}
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    /* ------------------------------
-       1) 파일 업로드
-    ------------------------------ */
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
+document.addEventListener("DOMContentLoaded", function () {
+    // 파일 선택하면 파일명 표시
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
 
     if (fileInput && fileList) {
-        fileInput.addEventListener('change', function () {
-            fileList.innerHTML = '';
-
-            let files = Array.from(fileInput.files);
-
-            files.forEach((file, index) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-
-                item.innerHTML = `
-                    <span class="file-item-name">${file.name}</span>
-                    <button type="button" class="file-item-remove" data-index="${index}">✕</button>
-                `;
-
+        fileInput.addEventListener("change", function () {
+            fileList.innerHTML = "";
+            if (fileInput.files.length > 0) {
+                const item = document.createElement("div");
+                item.className = "file-item";
+                item.innerHTML = "<span>" + fileInput.files[0].name + "</span>";
                 fileList.appendChild(item);
-
-                item.querySelector('.file-item-remove').addEventListener('click', function () {
-                    const removeIndex = Number(this.dataset.index);
-
-                    const dt = new DataTransfer();
-                    const updated = files.filter((_, idx) => idx !== removeIndex);
-
-                    updated.forEach(f => dt.items.add(f));
-                    fileInput.files = dt.files;
-
-                    files = updated;
-                    item.remove();
-
-                    if (updated.length === 0) {
-                        fileList.innerHTML = '';
-                    }
-                });
-            });
+            }
         });
     }
+
+    // 배너 상태에 따라 기간 영역 노출
+    const radios = document.querySelectorAll(".status-radio");
+    const dateSection = document.getElementById("date-section");
+
+    function toggleDateSection() {
+        let selected = document.querySelector(".status-radio:checked");
+        if (!selected) {
+            dateSection.style.display = "none";
+            return;
+        }
+        if (selected.value === "1") {
+            dateSection.style.display = "flex";  // form-row 레이아웃 유지
+        } else {
+            dateSection.style.display = "none";
+        }
+    }
+
+    radios.forEach(function (r) {
+        r.addEventListener("change", toggleDateSection);
+    });
+
+    // 페이지 로드 시에도 초기 상태 세팅
+    toggleDateSection();
 });
 </script>
+
+{# 서버에서 alert 전달 시 바로 띄우기 #}
+{% if alert %}
+<script>
+    alert("{{ alert }}");
+</script>
+{% endif %}
 {% endblock %}

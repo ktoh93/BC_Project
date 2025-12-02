@@ -170,3 +170,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const searchForm = document.getElementById("searchForm");
+    const sortSelect = document.getElementById("sortSelect");
+    const perPageSelect = document.getElementById("perPageSelect");
+
+    if (sortSelect) {
+        sortSelect.addEventListener("change", () => {
+            searchForm.submit();
+        });
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", () => {
+            // 항상 1페이지부터 보게 하고 싶으면 hidden input으로 page=1 세팅하거나
+            // 쿼리스트링 조정하면 됩니다.
+            searchForm.submit();
+        });
+    }
+});

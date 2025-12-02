@@ -4,6 +4,7 @@
 {% block title %}할래말래 - 모집글 상세{% endblock %}
 
 {% block css %}
+<link rel="stylesheet" href="{% static 'css/recruitment_list.css' %}">
 <link rel="stylesheet" href="{% static 'css/recruitment_detail.css' %}">
 {% endblock %}
 
@@ -12,8 +13,17 @@
 {% endblock %}
 
 {% block contents %}
+<!-- Hero 섹션 -->
+<div class="board-hero recruitment-hero">
+  <h2>모집할래</h2>
+</div>
 
-<div class="detail-wrapper">
+
+
+<!-- 리스트랑 동일 레이아웃 -->
+<div class="sub-container page-recruitment">
+  <div class="sub-content">
+
 
     <!-- 제목 영역 -->
     <div class="detail-title-box {% if is_deleted %}deleted-post{% endif %}">
@@ -36,9 +46,9 @@
             <span class="detail-badge"># {{ recruit.region }} {{ recruit.region2 }}</span>
             <span class="detail-badge"># {{ recruit.sport_type }}</span>
 
-            <span class="detail-badge {% if is_full %}detail-badge-closed{% endif %}">
+            <span class="detail-badge {% if is_closed_or_full %}detail-badge-closed{% endif %}">
                 # {{ recruit.num_member }}명
-                {% if is_full %}
+                {% if is_closed_or_full %}
                     · 모집 마감
                 {% else %}
                     {% if remaining_slots > 0 %}
@@ -59,9 +69,7 @@
     <hr class="detail-hr">
 
     <!-- 본문 -->
-    <div class="detail-content-box">
-        {{ recruit.contents|linebreaksbr }}
-    </div>
+    <div class="detail-content-box">{{ recruit.contents|linebreaksbr }}</div>
 
 
 
@@ -93,27 +101,54 @@
     
     <!-- 버튼(들) -->
     <div class="detail-btn-box">
-        {% if is_owner %}
-            ...
+        {% if is_owner or is_manager %}
+            {# ✅ 모집 마감 버튼 (작성자 + 관리자) #}
+            {% if not is_deleted %}
+                {% if not is_closed %}
+                    <form method="post"
+                          action="{% url 'recruitment:recruitment_close' recruit.community_id %}"
+                          class="detail-inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="detail-btn btn-close">
+                            모집 마감
+                        </button>
+                    </form>
+                {% else %}
+                    <span class="detail-btn btn-closed-label">
+                        모집 마감됨
+                    </span>
+                {% endif %}
+            {% endif %}
+
+            <!-- 글 수정 / 삭제 (지금처럼 둘 다에게 권한 줄지, 작성자만 줄지는 필요하면 따로 조건 나눠도 됨) -->
+            <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
+               class="detail-btn btn-edit">수정하기</a>
+        
+            <a href="{% url 'recruitment:recruitment_delete' recruit.community_id %}"
+               class="detail-btn btn-delete"
+               onclick="return confirm('정말 삭제하시겠습니까?');">
+                삭제
+            </a>
         {% else %}
             {% if is_deleted %}
                 <span class="detail-btn btn-join btn-join-closed">
                     삭제된 게시글입니다
                 </span>
-            {% elif is_full %}
+            {% elif is_closed_or_full %}
                 <span class="detail-btn btn-join btn-join-closed">
                     모집 마감
                 </span>
             {% else %}
                 <a href="{% url 'recruitment:recruitment_join' recruit.community_id %}"
-                class="detail-btn btn-join">
-                참여하기
+                   class="detail-btn btn-join">
+                    참여하기
                 </a>
             {% endif %}
         {% endif %}
 
         <a href="{% url 'recruitment:recruitment_list' %}" class="detail-btn btn-list">목록으로</a>
     </div>
+
 
 
 
@@ -243,6 +278,7 @@
 
 
 
+</div>
 </div>
 
 {% endblock %}

@@ -27,7 +27,6 @@
     <div class="sub-content">
         
     <!-- 검색 섹션 -->
-    <form id="searchForm" method="get">
         <section class="search-section">
             <div class="search-controls">
                 <select class="search-dropdown" id="searchType">
@@ -81,70 +80,53 @@
             
             
             
-<div class="facility-list recruitment-list" id="facilityList">
-    <!-- 헤더 -->
-    <div class="facility-header">
-        <span class="facility-col col-no">번호</span>
-        <span class="facility-col col-title">제목</span>
-        <span class="facility-col col-num">모집인원</span>
-        <span class="facility-col col-status">마감여부</span>
-        <span class="facility-col col-writer">작성자</span>
-        <span class="facility-col col-views">조회수</span>
-        <span class="facility-col col-date">작성날짜</span>
-    </div>
+            
+            
+            <div class="facility-list recruitment-list" id="facilityList">
+                <!-- 헤더 -->
+                <div class="facility-header">
+                    <span class="facility-title">번호</span>
+                    <span class="facility-title">제목</span>
+                    <span class="facility-title">모집인원</span>
+                    <span class="facility-title">작성날짜</span>
+                    <span class="facility-title">조회수</span>
+                </div>
+                
+                <ul>
+                    {% for item in page_obj %}
+                        <li class="facility-item">
+                            <!-- 번호 -->
+                            <span class="facility-order">
+                                {{ forloop.counter0|add:page_obj.start_index }}
+                            </span>
 
-    <ul>
-        {% for item in page_obj %}
-            <li class="facility-item">
-                
-                <!-- 번호 -->
-                <span class="facility-col col-no">
-                    {{ forloop.counter0|add:page_obj.start_index }}
-                </span>
+                            <!-- 제목 -->
+                            <span class="facility-title">
+                                <a href="{% url 'recruitment:recruitment_detail' item.pk %}">
+                                    {{ item.title }}
+                                </a>
+                            </span>
 
-                <!-- 제목 -->
-                <span class="facility-col col-title">
-                    <a href="{% url 'recruitment:recruitment_detail' item.pk %}">
-                        {{ item.title }}
-                    </a>
-                </span>
+                            <!-- 모집인원 -->
+                            <span class="facility-num">
+                                {{ item.num_member }}명
+                            </span>
 
-                
-                <!-- 모집인원 -->
-                <span class="facility-col col-num">
-                    {{ item.num_member }}명
-                </span>
-                
-                <!-- 마감여부 -->
-                <span class="facility-col col-status">
-                    {% if item.current_member >= item.num_member %}
-                    <span class="badge badge-end">마감</span>
-                    {% else %}
-                    <span class="badge badge-open">진행중</span>
-                    {% endif %}
-                </span>
-                
-                
-                <!-- 작성자 -->
-                <span class="facility-col col-writer">
-                    {{ item.member_id.user_id }}
-                </span>
-                <!-- 조회수 -->
-                <span class="facility-col col-views">
-                    {{ item.view_cnt }}
-                </span>
-                
-                <!-- 작성날짜 -->
-                <span class="facility-col col-date">
-                    {{ item.reg_date|date:"Y-m-d" }}
-                </span>
-            </li>
-        {% empty %}
-            <li class="facility-empty">등록된 모집글이 없습니다.</li>
-        {% endfor %}
-    </ul>
-</div>
+                            <!-- 작성날짜 -->
+                            <span class="facility-date">
+                                {{ item.reg_date|date:"Y-m-d" }}
+                            </span>
 
+                            <!-- 조회수 -->
+                            <span class="facility-views">
+                                {{ item.view_cnt }}
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li class="facility-empty">등록된 모집글이 없습니다.</li>
+                    {% endfor %}
+                </ul>
+            </div>
 
 <!--
 DB 작성후 예시
@@ -163,12 +145,6 @@ DB 작성후 예시
 -->
 
         </section>
-    </form>
-    
-    
-    
-    
-    
         <div class="write-btn-container">
             <a href="{% url 'recruitment:recruitment_write' %}" class="write-btn">작성하기</a>
         </div>
@@ -177,13 +153,7 @@ DB 작성후 예시
 
             <!-- 🔹 이전 블록 -->
             {% if block_start > 1 %}
-                <a href="?page={{ num }}
-                     &per_page={{ per_page }}
-                     &sort={{ sort }}
-                     &search_type={{ search_type }}
-                     &keyword={{ keyword|urlencode }}
-                     &sido={{ sido|urlencode }}
-                     &sigungu={{ sigungu|urlencode }}" class="page-btn arrow">◀ 이전</a>
+                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
             {% else %}
                 <span class="page-btn arrow disabled">◀ 이전</span>
             {% endif %}
@@ -193,25 +163,13 @@ DB 작성후 예시
                 {% if num == page_obj.number %}
                     <span class="page-btn active">{{ num }}</span>
                 {% else %}
-                    <a href="?page={{ num }}
-                     &per_page={{ per_page }}
-                     &sort={{ sort }}
-                     &search_type={{ search_type }}
-                     &keyword={{ keyword|urlencode }}
-                     &sido={{ sido|urlencode }}
-                     &sigungu={{ sigungu|urlencode }}" class="page-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- 🔹 다음 블록 -->
             {% if block_end < paginator.num_pages %}
-                <a href="?page={{ num }}
-                     &per_page={{ per_page }}
-                     &sort={{ sort }}
-                     &search_type={{ search_type }}
-                     &keyword={{ keyword|urlencode }}
-                     &sido={{ sido|urlencode }}
-                     &sigungu={{ sigungu|urlencode }}" class="page-btn arrow">다음 ▶</a>
+                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
             {% else %}
                 <span class="page-btn arrow disabled">다음 ▶</span>
             {% endif %}
