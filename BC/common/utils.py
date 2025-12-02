@@ -196,52 +196,14 @@ def parse_address(address_data, address_detail=""):
         # 문자열인 경우 파싱 시도
         return _parse_address_string(address_data, address_detail)
     
-    # 시도 정리
+    # 시도 / 시군구 정리
     sido = sido.strip() if sido else ''
-    
-    # 시군구 파싱
     sigungu = sigungu.strip() if sigungu else ''
-    
-    # 구 추출 (시군구에서 구 부분만)
-    # 예: "강남구" -> "강남구"
-    # 예: "수원시 영통구" -> "영통구"
-    # 예: "고양시 일산동구" -> "일산동구"
-    gu = ''
+
+    # addr1: 시/도 (광역단위)
+    # addr2: 시·군·구 전체 (기초지자체) - 예: "성남시 분당구", "광주시", "강남구"
     addr1 = sido
-    
-    if sigungu:
-        # "시" 또는 "군"으로 끝나는 경우 처리
-        # 예: "수원시 영통구" -> sido="경기도", sigungu="수원시 영통구"
-        #     -> addr1="경기도 수원시", gu="영통구"
-        
-        # "구"로 끝나는 경우
-        if sigungu.endswith('구'):
-            # "시 구" 형태인지 확인 (예: "수원시 영통구")
-            if '시 ' in sigungu:
-                parts = sigungu.split('시 ')
-                if len(parts) == 2:
-                    si = parts[0] + '시'
-                    gu = parts[1]
-                    addr1 = f"{sido} {si}".strip()
-                else:
-                    gu = sigungu
-            else:
-                gu = sigungu
-        # "시"로 끝나는 경우 (구가 없는 경우)
-        elif sigungu.endswith('시'):
-            addr1 = f"{sido} {sigungu}".strip()
-        # "군"으로 끝나는 경우
-        elif sigungu.endswith('군'):
-            addr1 = f"{sido} {sigungu}".strip()
-        # "도"로 끝나는 경우 (특별시, 광역시는 시도에 포함)
-        else:
-            # 그 외의 경우는 그대로 사용
-            if ' ' in sigungu:
-                parts = sigungu.split(' ', 1)
-                addr1 = f"{sido} {parts[0]}".strip()
-                gu = parts[1] if len(parts) > 1 else ''
-            else:
-                addr1 = f"{sido} {sigungu}".strip()
+    addr2 = sigungu
     
     # addr3 구성 (도로명주소 + 상세주소)
     addr3_parts = []
@@ -264,7 +226,7 @@ def parse_address(address_data, address_detail=""):
     
     addr3 = ' '.join(addr3_parts).strip()
     
-    return (addr1, gu, addr3)
+    return (addr1, addr2, addr3)
 
 
 def _parse_address_string(address_str, address_detail=""):

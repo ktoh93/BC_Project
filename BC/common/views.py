@@ -297,18 +297,18 @@ def signup(request):
         # 주소 파싱
         from common.utils import parse_address
         import json
-        
+
+        # 기본 문자열 분리 (레거시 대비)
         addr1 = address.split()[0]
         addr2 = address.split()[1]
         addr3 = ' '.join(address.split()[2:]) + address_detail
-        
+
         if address_data_str:
             try:
                 address_data = json.loads(address_data_str)
                 addr1, addr2, addr3 = parse_address(address_data, address_detail)
-            except (json.JSONDecodeError, Exception) as e:
+            except (json.JSONDecodeError, Exception):
                 # 파싱 실패 시 기존 방식 사용
-                print(f"주소 파싱 오류: {e}")
                 addr1 = address
                 addr2 = address_detail
                 addr3 = ""
