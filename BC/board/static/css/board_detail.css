@@ -253,10 +253,11 @@
     flex-shrink: 0;
 }
 
-/* 관리자 배지 스타일 */
-.admin-badge {
-    color: #d9534f !important;
-    font-weight: 700 !important;
+/* 관리자 배지 스타일 - 구체적인 선택자로 우선순위 확보 */
+.article-author.admin-badge,
+.comment-writer.admin-badge {
+    color: #d9534f;
+    font-weight: 700;
     background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
     padding: 2px 8px;
     border-radius: 4px;

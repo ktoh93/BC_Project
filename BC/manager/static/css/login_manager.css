@@ -65,7 +65,6 @@ body.login-page {
     font-size: 17px;
 
     background: var(--color-deep-blue);
-    color: #fff !important;           /* a 태그 링크색 방지 */
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -73,6 +72,16 @@ body.login-page {
     text-decoration: none;            /* 링크 밑줄 제거 */
 
     transition: 150ms ease;
+}
+
+/* 링크 상태별 색상 명시적 지정 (a 태그 기본 링크색 방지) */
+.admin-login-btn,
+.admin-login-btn:link,
+.admin-login-btn:visited,
+.admin-login-btn:hover,
+.admin-login-btn:active,
+.admin-login-btn:focus {
+    color: #fff;
 }
 
 /* hover */

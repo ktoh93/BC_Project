@@ -79,11 +79,11 @@ mypage base
     <div class="register-brand">
       <h2>My Page</h2>
       <ul class="register-brand-features">
-        <li><a href="/member/info/">내 정보</a></li>
-        <li><a href="/member/myreservation/">내 예약 내역</a></li>
-        <li><a href="/member/myrecruitment/">내 모집글</a></li>
-        <li><a href="/member/myarticle/">내 게시글</a></li>
-        <li><a href="/member/myjoin/">내 참여 내역</a></li>
+        <li><a href="/member/info/" class="{% if request.path == '/member/info/' or request.path == '/member/edit/' %}active{% endif %}">내 정보</a></li>
+        <li><a href="/member/myreservation/" class="{% if request.path == '/member/myreservation/' %}active{% endif %}">내 예약 내역</a></li>
+        <li><a href="/member/myrecruitment/" class="{% if request.path == '/member/myrecruitment/' %}active{% endif %}">내 모집글</a></li>
+        <li><a href="/member/myarticle/" class="{% if request.path == '/member/myarticle/' %}active{% endif %}">내 게시글</a></li>
+        <li><a href="/member/myjoin/" class="{% if request.path == '/member/myjoin/' %}active{% endif %}">내 참여 내역</a></li>
       </ul>
     </div>
     

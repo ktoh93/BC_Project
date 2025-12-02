@@ -1,13 +1,18 @@
 /* =====================================================
    배너 페이지(등록/수정/관리) 전체 레이아웃을
    admin-main 구조와 동일하게 맞춘 최종 통합 CSS
+   
+   주의: 이 CSS 파일은 다른 스타일 파일들보다 나중에 로드되어야 합니다.
+   (예: base.html에서 {% block css %} 다음에 로드)
+   다른 스타일에서 .sub-container의 max-width를 설정해도 이 파일이 나중에 로드되면
+   여기서 설정한 max-width: none이 적용됩니다.
 ===================================================== */
 
 /* 페이지 전체 폭을 admin-main 과 동일하게 확장 */
 .sub-container {
     width: 100%;
-    max-width: none !important;    /* 기존 제한 제거 */
-    margin: 0;                     /* 가운데 정렬 제거 */
+    max-width: none;    /* 기존 제한 제거 - CSS 로드 순서에 의존 */
+    margin: 0;          /* 가운데 정렬 제거 */
     padding: 0;
 }
 
@@ -47,7 +52,7 @@
     border-radius: 10px;
 
     width: 100%;
-    max-width: 100% !important;
+    max-width: 100%;    /* CSS 로드 순서에 의존 */
     box-shadow: 0 4px 10px rgba(42, 67, 110, 0.06);
 
     position: relative;
