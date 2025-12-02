@@ -134,7 +134,8 @@ function handle_edit_profile(form) {
     
     console.log("AJAX 요청 전송 시작");
     // AJAX 요청
-    fetch('/member/edit/', {
+    const editUrl = typeof MEMBER_EDIT_URL !== 'undefined' ? MEMBER_EDIT_URL : '/member/edit/';
+    fetch(editUrl, {
         method: 'POST',
         body: formData,
         headers: {
@@ -158,7 +159,8 @@ function handle_edit_profile(form) {
             // 2초 후 내 정보 페이지로 이동 (캐시 무시)
             setTimeout(function() {
                 // 캐시를 무시하고 강제로 새로고침
-                window.location.href = '/member/info/?_=' + new Date().getTime();
+                const infoUrl = typeof MEMBER_INFO_URL !== 'undefined' ? MEMBER_INFO_URL : '/member/info/';
+                window.location.href = infoUrl + '?_=' + new Date().getTime();
             }, 2000);
         } else {
             // 실패 토스트 메시지 표시

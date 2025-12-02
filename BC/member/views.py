@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.urls import reverse
 from datetime import datetime
 import re
 import json
@@ -15,7 +16,7 @@ def info(request):
     login_id = request.session.get("user_id")
     
     if not login_id:
-        return redirect('/login?next=/member/info/')
+        return redirect(f'/login?next={reverse("member:info")}')
 
     try:
         # DB에서 최신 회원 정보 가져오기 (캐시 무시)
@@ -51,7 +52,7 @@ def edit(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/edit/')
+        return redirect(f'/login?next={reverse("member:edit")}')
     
     if request.method == "POST":
         # AJAX 요청인지 확인
@@ -140,7 +141,7 @@ def edit(request):
                 })
             else:
                 messages.success(request, "정보가 수정되었습니다.")
-                return redirect('/member/info/')
+                return redirect('member:info')
         except Member.DoesNotExist:
             if is_ajax:
                 return JsonResponse({
@@ -149,7 +150,7 @@ def edit(request):
                 }, status=400)
             else:
                 messages.error(request, "회원 정보를 찾을 수 없습니다.")
-                return redirect('/member/info/')
+                return redirect('member:info')
         except Exception as e:
             if is_ajax:
                 return JsonResponse({
@@ -158,14 +159,14 @@ def edit(request):
                 }, status=500)
             else:
                 messages.error(request, "수정 중 오류가 발생했습니다.")
-                return redirect('/member/info/')
+                return redirect('member:info')
     
     # GET 요청 - 정보 조회
     try:
         user = Member.objects.get(user_id=login_id)
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
-        return redirect('/member/info/')
+        return redirect('member:info')
     
     # 템플릿으로 전달될 데이터
     context = {
@@ -186,7 +187,7 @@ def edit_password(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/password/')
+        return redirect(f'/login?next={reverse("member:password")}')
     
     # AJAX 요청인지 확인
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -275,7 +276,7 @@ def edit_password(request):
                 })
             else:
                 messages.success(request, "비밀번호가 변경되었습니다.")
-                return redirect('/member/info/')
+                return redirect('member:info')
                 
         except Member.DoesNotExist:
             if is_ajax:
@@ -285,7 +286,7 @@ def edit_password(request):
                 }, status=400)
             else:
                 messages.error(request, "회원 정보를 찾을 수 없습니다.")
-                return redirect('/member/info/')
+                return redirect('member:info')
         except Exception as e:
             if is_ajax:
                 return JsonResponse({
@@ -317,7 +318,7 @@ def myreservation(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/myreservation/')
+        return redirect(f'/login?next={reverse("member:myreservation")}')
     
     try:
         # 로그인한 사용자 정보 가져오기
@@ -394,7 +395,7 @@ def myrecruitment(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/myrecruitment/')
+        return redirect(f'/login?next={reverse("member:myrecruitment")}')
     
     try:
         # 로그인한 사용자 정보 가져오기
@@ -464,7 +465,7 @@ def myarticle(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/myarticle/')
+        return redirect(f'/login?next={reverse("member:myarticle")}')
     
     try:
         # 로그인한 사용자 정보 가져오기
@@ -541,7 +542,7 @@ def myjoin(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
     if not login_id:
-        return redirect('/login?next=/member/myjoin/')
+        return redirect(f'/login?next={reverse("member:myjoin")}')
     
     try:
         # 로그인한 사용자 정보 가져오기

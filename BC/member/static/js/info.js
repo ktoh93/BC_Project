@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 정보 수정 버튼 클릭 시
 function handle_edit_profile() {
     // 예시: 수정 페이지로 이동
-    window.location.href = "/member/edit/";
+    window.location.href = typeof MEMBER_EDIT_URL !== 'undefined' ? MEMBER_EDIT_URL : "/member/edit/";
 
     // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
     // alert("정보 수정 기능 준비중");
@@ -36,7 +36,7 @@ function handle_edit_profile() {
 // 비밀번호 변경 버튼 클릭 시
 function handle_password_change() {
     // 예시: 비밀번호 변경 페이지로 이동
-    window.location.href = "/member/password/";
+    window.location.href = typeof MEMBER_PASSWORD_URL !== 'undefined' ? MEMBER_PASSWORD_URL : "/member/password/";
     
     // 모달 열기/폼 보여주기 등 수정 가능
     // alert("비밀번호 변경 기능 준비중");

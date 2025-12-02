@@ -45,7 +45,8 @@ function handlePasswordChange(form) {
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
     // AJAX 요청
-    fetch('/member/password/', {
+    const passwordUrl = typeof MEMBER_PASSWORD_URL !== 'undefined' ? MEMBER_PASSWORD_URL : '/member/password/';
+    fetch(passwordUrl, {
         method: 'POST',
         body: formData,
         headers: {
@@ -64,7 +65,8 @@ function handlePasswordChange(form) {
             
             // 2초 후 내 정보 페이지로 이동
             setTimeout(function() {
-                window.location.href = '/member/info/';
+                const infoUrl = typeof MEMBER_INFO_URL !== 'undefined' ? MEMBER_INFO_URL : '/member/info/';
+                window.location.href = infoUrl;
             }, 2000);
         } else {
             // 실패 토스트 메시지 표시
