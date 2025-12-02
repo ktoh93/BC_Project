@@ -8,9 +8,9 @@
 /* 프로필 박스 */
 .mypage-profile {
   background: var(--color-card-box);
+  border: 1px solid var(--color-soft-gray-line);
   border-radius: 18px;
   padding: var(--spacing-xl) var(--spacing-2xl);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
 }
 
 /* 제목 */

@@ -29,12 +29,8 @@
     flex-direction: column;
     justify-content: center;
     padding: var(--spacing-2xl);
-    background: linear-gradient(
-      135deg,
-      var(--color-muted-blue) 0%,
-      var(--color-muted-green) 100%
-    );
-    color: var(--color-card-box);
+    background: #F0F4FF;
+    border: 1px solid var(--color-soft-gray-line);
     border-radius: 16px;
 
     height: 100%;        /* ✅ 그리드 셀 전체 높이 채우기 */
@@ -44,6 +40,7 @@
     font-size: 36px;
     font-weight: 900;
     margin-bottom: var(--spacing-lg);
+    color: #1E2A3A;
   }
 
   .register-brand-features {
@@ -52,14 +49,14 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-xs);
   }
 
   .register-brand-features li a {
     display: block;
     font-size: 16px;
     text-decoration: none;
-    color: var(--color-card-box);
+    color: #1E2A3A;
     padding: 10px 16px;
     border-radius: 8px;
     transition: all var(--transition-base);
@@ -67,27 +64,20 @@
   }
 
   .register-brand-features li a:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(58, 122, 254, 0.1);
     text-decoration: none;
   }
 
   /* 활성 메뉴 스타일 */
   .register-brand-features li a.active {
-    background: rgba(255, 255, 255, 0.25);
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: #3A7AFE;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(58, 122, 254, 0.3);
   }
 
   .register-brand-features li a.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 60%;
-    background: var(--color-card-box);
-    border-radius: 0 2px 2px 0;
+    display: none;
   }
   .mypage-menu-toggle {
     display: none;
@@ -127,6 +117,27 @@
 
     display: flex;          /* 모바일에서도 보이게 */
     border-radius: 0 16px 16px 0;
+    background: #F0F4FF;
+    border: 1px solid var(--color-soft-gray-line);
+    padding: var(--spacing-2xl);
+  }
+
+  .register-brand h2 {
+    color: #1E2A3A;
+  }
+
+  .register-brand-features li a {
+    color: #1E2A3A;
+  }
+
+  .register-brand-features li a:hover {
+    background: rgba(58, 122, 254, 0.1);
+  }
+
+  .register-brand-features li a.active {
+    background: #3A7AFE;
+    color: #fff;
+    font-weight: 600;
   }
 
   /* 열렸을 때 */
