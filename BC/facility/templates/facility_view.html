@@ -26,7 +26,7 @@
 
 <!-- Hero 섹션 -->
 <div class="board-hero facility-hero">
-  <h2>시설안내</h2>
+    <h2>시설안내</h2>
 </div>
 
 <div class="sub-container">
@@ -70,13 +70,26 @@
                 </section>
 
                 <section class="detail-info-row">
-                    <b>예약가능 :</b> <span>가능</span>
+                    <b>예약가능 :</b>
+                    <span>
+                        {% if can_reserve %}
+                        가능
+                        {% else %}
+                        해당 시설에 문의해주세요
+                        {% endif %}
+                    </span>
                 </section>
                 </p>
 
                 <section class="detail-buttons">
+                    {% if can_reserve %}
                     <a href="/reservation/reserve/{{ facility.id }}">예약하기</a>
+                    {% endif %}
                     <a href="/recruitment/{{ facility.id }}">모집글가기</a>
+                    
+                    <a href="javascript:history.back();" class="back-btn">
+                        리스트로 돌아가기
+                    </a>
                 </section>
             </section>
 
@@ -160,7 +173,7 @@
             infowindow.open(map, marker);
 
             map.setCenter(pos);
-            map.setLevel(4);
+            map.setLevel(2);
         } else {
             console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
         }

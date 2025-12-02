@@ -8,12 +8,18 @@ from django.core.cache import cache
 from django.shortcuts import render
 from django.core.paginator import Paginator
 
+
+from facility.models import Facility
+from facility.models import FacilityInfo
+from member.models import Member
+
 # 시설 api 가져오기
 FACILITY_CACHE_TIMEOUT = 60 * 10  # 10분
 GEO_CACHE_TTL = 60 * 30  # 30분
 _geo_cache = {}
 
 
+# 공공 api 안쓸거여
 def facility(data, rows=200):
 
     DATA_API_KEY = os.getenv("DATA_API_KEY")  
@@ -84,12 +90,73 @@ def facility(data, rows=200):
 def facility_list(request):
          
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")  
-    cp_nm = request.GET.get('cpNm', "서울특별시")
-    cpb_nm = request.GET.get('cpbNm', "강남구")
-    keyword = request.GET.get('keyword', '')    
-    data = {'cp_nm' : cp_nm, 'cpb_nm' : cpb_nm, 'keyword' : keyword}
-    facilities = facility(data)
 
+    cp_nm = request.GET.get('cpNm')
+    cpb_nm = request.GET.get('cpbNm')
+    keyword = request.GET.get('keyword')    
+    if keyword is None:
+        keyword = ''
+    
+    # data = {'cp_nm' : cp_nm, 'cpb_nm' : cpb_nm, 'keyword' : keyword}
+    # facilities = facility(data)
+
+    # 로그인 되어있는지 세션체크
+    user = request.session.get("user_id")
+    
+    if not cp_nm or not cpb_nm:
+        if user:
+            try:
+                member = Member.objects.get(user_id=user)
+                # addr1 = 서울특별시 / addr2 = 강남구 이런 구조라고 가정
+                if not cp_nm:
+                    cp_nm = member.addr1.strip()
+                if not cpb_nm:
+                    cpb_nm = member.addr2.strip()
+            except Member.DoesNotExist:
+                pass
+
+    # 비로그인
+    if not keyword : 
+        if not cp_nm:
+            cp_nm = "서울특별시"
+        if not cpb_nm:
+            cpb_nm = "강남구"
+
+    qs = Facility.objects.all()
+    # qs.filter(faci_gb_nm__icontains'공공')
+    if cp_nm:
+        qs = qs.filter(cp_nm=cp_nm)
+
+    if cpb_nm:
+        qs = qs.filter(cpb_nm=cpb_nm)
+
+    if keyword:
+        qs = qs.filter(faci_nm__icontains=keyword)
+
+    qs = qs.filter(faci_stat_nm__icontains='정상운영')
+    facilities = []
+ 
+    for f in qs:
+        facilities.append({
+            "id": f.faci_cd,                       # 상세 이동 key
+            "name": f.faci_nm or "",
+            "address": f.faci_road_addr or f.faci_addr or "",
+            "sido": f.cp_nm or "",
+            "sigungu": f.cpb_nm or "",
+            "phone": f.faci_tel_no or "",
+
+            "fcob_nm": f.fcob_nm or "",
+            "homepage": getattr(f, "faci_homepage", "") or "",
+            "faci_stat_nm": getattr(f, "faci_stat_nm", "") or "",
+            "schk_tot_grd_nm": getattr(f, "schk_tot_grd_nm", "") or "",
+            "schk_open_ymd": getattr(f, "schk_open_ymd", "") or "",
+            "faci_gfa": getattr(f, "faci_gfa", "") or "",
+
+            "lat": f.faci_lat,
+            "lng": f.faci_lot,
+        })
+
+    no_result = (len(facilities) == 0)
     per_page = int(request.GET.get("per_page", 10))
     page = int(request.GET.get("page", 1))
  
@@ -120,9 +187,10 @@ def facility_list(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
+        "no_result": no_result,
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     }
-    print(page_facilities)
+    
     return render(request, "facility_list.html", context)
 
 
@@ -188,100 +256,123 @@ def kakao_for_map(page_obj):
 
     return list(page_obj)
 
-
-
-
-# 상세페이지
 def facility_detail(request, fk):
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     try:
-        # FacilityInfo에서 시설 정보 가져오기
-        from facility.models import FacilityInfo
-        facility_info = FacilityInfo.objects.get(id=fk)
-        
-        # FacilityInfo 데이터를 딕셔너리로 변환
-        r_data = {
-            'id': facility_info.id,
-            'name': facility_info.faci_nm,
-            'address': facility_info.address,
-            'phone': facility_info.tel if facility_info.tel else '',
-            'homepage': facility_info.homepage if facility_info.homepage else '',
-            'lat': None,
-            'lng': None,
-        }
-        
-        # Facility 모델이 있으면 추가 정보 가져오기
-        if facility_info.facility:
-            fac = facility_info.facility
-            r_data.update({
-                'sido': fac.cp_nm if fac.cp_nm else '',
-                'sigungu': fac.cpb_nm if fac.cpb_nm else '',
-                'fcob_nm': fac.fcob_nm if fac.fcob_nm else '',
-                'faci_stat_nm': fac.faci_stat_nm if fac.faci_stat_nm else '',
-                'schk_tot_grd_nm': fac.schk_tot_grd_nm if fac.schk_tot_grd_nm else '',
-                'lat': fac.faci_lat,
-                'lng': fac.faci_lot,
+        # 1) FacilityInfo / Facility 조회
+        facility_info = FacilityInfo.objects.filter(facility_id=fk).first()
+        facility = Facility.objects.filter(faci_cd=fk).first()
+
+        if not facility_info and not facility:
+            return render(request, "facility_view.html", {
+                "error": "시설 정보를 찾을 수 없습니다."
             })
-        
-        # 지도 좌표가 없으면 카카오 지오코딩으로 가져오기
-        if not r_data.get('lat') or not r_data.get('lng'):
-            r_data_with_map = kakao_for_map([r_data])[0]
+
+        # 2) 기본 데이터 구조
+        r_data = {
+            "id": fk,
+            "name": "",
+            "address": "",
+            "sido": "",
+            "sigungu": "",
+            "phone": "",
+            "homepage": "",
+            "fcob_nm": "",
+            "faci_stat_nm": "",
+            "schk_tot_grd_nm": "",
+            "lat": None,
+            "lng": None,
+            "image_url": "/media/default.png",
+        }
+
+        # ✅ 예약 관련 기본값
+        can_reserve = False
+        reserve_message = "해당 시설에 문의해주세요"
+
+        # 3) Case 1: FacilityInfo 우선 적용
+        if facility_info:
+            # 기본 정보
+            r_data["name"] = facility_info.faci_nm or r_data["name"]
+            r_data["address"] = facility_info.address or r_data["address"]
+            r_data["sido"] = facility_info.sido or r_data["sido"]
+            r_data["sigungu"] = facility_info.sigugun or r_data["sigungu"]
+            r_data["phone"] = facility_info.tel or r_data["phone"]
+            r_data["homepage"] = facility_info.homepage or r_data["homepage"]
+
+            # ★ 이미지: FacilityInfo 먼저
+            if facility_info.photo:
+                r_data["image_url"] = facility_info.photo.url
+            else:
+                r_data["image_url"] = "/media/default.png"
+
+            # ✅ 예약 가능 여부 (reservation_time 이 있으면 True)
+            if facility_info.reservation_time:
+                can_reserve = True
+                reserve_message = "가능"
+
+            # 부족한 부분 Facility 테이블에서 채우기
+            if facility:
+                r_data["sido"] = r_data["sido"] or facility.cp_nm
+                r_data["sigungu"] = r_data["sigungu"] or facility.cpb_nm
+                r_data["phone"] = r_data["phone"] or facility.faci_tel_no
+                r_data["homepage"] = r_data["homepage"] or facility.faci_homepage
+                r_data["fcob_nm"] = facility.fcob_nm or ""
+                r_data["faci_stat_nm"] = facility.faci_stat_nm or ""
+                r_data["schk_tot_grd_nm"] = facility.schk_tot_grd_nm or ""
+                r_data["lat"] = facility.faci_lat
+                r_data["lng"] = facility.faci_lot
+
+        # 4) Case 2: FacilityInfo가 없는 경우 (→ 네이버 이미지)
         else:
-            r_data_with_map = r_data
+            # Facility 데이터로 기본 채우기
+            r_data = {
+                "id": facility.faci_cd,
+                "name": facility.faci_nm or "",
+                "address": facility.faci_road_addr or facility.faci_addr or "",
+                "sido": facility.cp_nm or "",
+                "sigungu": facility.cpb_nm or "",
+                "phone": facility.faci_tel_no or "",
+                "homepage": facility.faci_homepage or "",
+                "fcob_nm": facility.fcob_nm or "",
+                "faci_stat_nm": facility.faci_stat_nm or "",
+                "schk_tot_grd_nm": facility.schk_tot_grd_nm or "",
+                "lat": facility.faci_lat,
+                "lng": facility.faci_lot,
+                "image_url": "/media/default.png",
+            }
 
-        # 네이버 이미지 검색
-        query = f"{r_data_with_map.get('name', '')}"
-        img_url = get_naver_image(query)
-        
-        r_data_with_map["image_url"] = img_url 
-        
-        # FacilityInfo의 photo가 있으면 사용
-        if facility_info.photo:
-            r_data_with_map["image_url"] = facility_info.photo.url
+            # ★ FacilityInfo 없으면 네이버 이미지 검색 실행
+            query = r_data["name"]
+            img_url = get_naver_image(query)
 
+            if img_url:
+                r_data["image_url"] = img_url
+            else:
+                r_data["image_url"] = "/media/default.png"
+
+            # 🔹 FacilityInfo가 아예 없으니까 can_reserve=False 유지
+            #     => "해당 시설에 문의해주세요" + 예약 버튼 없음
+
+        # 5) 좌표 없으면 카카오 지오코딩
+        if not r_data["lat"] or not r_data["lng"]:
+            r_data = kakao_for_map([r_data])[0]
+
+        # 6) 템플릿 렌더링
         return render(request, "facility_view.html", {
-            "facility": r_data_with_map,
+            "facility": r_data,
             "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
+            "can_reserve": can_reserve,          # ✅ 추가
+            "reserve_message": reserve_message,  # ✅ 추가
         })
-        
-    except FacilityInfo.DoesNotExist:
-        # FacilityInfo에 없으면 기존 방식(공공데이터 API)으로 시도
-        faci_cd = fk
-        faci_nm = request.GET.get('fName')
 
-        # 목록 검색
-        data = {'keyword': faci_nm}
-        facility_data = facility(data)
-
-        # 해당 시설 찾기
-        r_data = None
-        for f_data in facility_data:
-            if f_data.get('id') == faci_cd:
-                r_data = f_data
-                break
-
-        if r_data is None:
-            return render(request, 'facility_view.html', {"error": "시설 정보를 찾을 수 없습니다."})
-
-         # 지도 좌표 1개만 처리
-        r_data_with_map = kakao_for_map([r_data])[0]
-
-        # 네이버 이미지 검색
-        query = f"{r_data_with_map.get('name', '')}"
-        img_url = get_naver_image(query)
-        
-        r_data_with_map["image_url"] = img_url 
-
-        return render(request, "facility_view.html", {
-            "facility": r_data_with_map,
-            "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
-        })
     except Exception as e:
-        print(f"[ERROR] facility_detail 오류: {str(e)}")
+        print("[facility_detail ERROR]", e)
         import traceback
         print(traceback.format_exc())
-        return render(request, 'facility_view.html', {"error": f"시설 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"})
+        return render(request, "facility_view.html", {
+            "error": f"상세 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"
+        })
 
 
 

@@ -152,14 +152,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // 1-3. URL에 시/도(cpNm), 구/군(cpbNm)이 있을 경우 기존 값 복원
-        const nowSido = params.get("cpNm") || "";
-        const nowSigungu = params.get("cpbNm") || "";
+        const nowSido = document.getElementById('hiddenSido').value;
+        const nowSigungu = document.getElementById('hiddenSigungu').value;
 
         if (nowSido && regionData[nowSido]) {
-            // 시/도 선택 복원
             sidoEl.value = nowSido;
 
-            // 구/군 목록 채우기
             sigunguEl.innerHTML = `<option value="">구/군 선택</option>`;
             regionData[nowSido].forEach((gu) => {
                 const option = document.createElement("option");
@@ -168,7 +166,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 sigunguEl.appendChild(option);
             });
 
-            // 구/군 선택 복원
             if (nowSigungu) {
                 sigunguEl.value = nowSigungu;
             }
@@ -221,18 +218,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const sido = $('#sido').val();
         const sigungu = $('#sigungu').val();
+        const keyword = $('#searchKeyword').val();
 
-        if (sido === '') {
-            alert('시/도 선택해주세요');
-            $('#sido').focus();
-            return;
+        if (keyword == '') {
+            if (sido === '') {
+                alert('시/도 선택해주세요');
+                $('#sido').focus();
+                return;
+            }
+
+            if (sigungu === '') {
+                alert('구/군 선택 해주세요');
+                $('#sigungu').focus();
+                return;
+            }
         }
 
-        if (sigungu === '') {
-            alert('구/군 선택 해주세요');
-            $('#sigungu').focus();
-            return;
-        }
 
         // 검증 통과하면 실제 submit
         this.submit();
@@ -241,6 +242,10 @@ document.addEventListener("DOMContentLoaded", function () {
     /* ===========================
        5) 카카오 지도 + 마커 + 인포윈도우
        =========================== */
+    /* ===========================
+   5) 카카오 지도 + 마커 + 인포윈도우
+=========================== */
+
     var container = document.getElementById("map");
     if (!container || typeof kakao === "undefined") {
         return;
@@ -248,17 +253,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var map = new kakao.maps.Map(container, {
         center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 7,
-        draggable: false,                    // 드래그 금지
-        scrollwheel: false,                  // 휠 확대/축소 금지
-        disableDoubleClickZoom: true,        // 더블클릭 확대 금지
-        keyboardShortcuts: false             // 키보드 이동 금지
+        level: 5,
+        draggable: false,
+        scrollwheel: false,
+        disableDoubleClickZoom: true,
+        keyboardShortcuts: false
     });
 
     var bounds = new kakao.maps.LatLngBounds();
     var markerMap = {};
-    var fixedInfoWindow = null;  // ⭐ 고정된 인포윈도우 저장
+    var fixedInfoWindow = null;
 
+    // =========================
+    // 지도 마커 생성
+    // =========================
     facilities.forEach(function (item) {
         var lat = parseFloat(item.lat);
         var lng = parseFloat(item.lng);
@@ -272,25 +280,32 @@ document.addEventListener("DOMContentLoaded", function () {
             position: pos
         });
 
+        // 인포윈도우 내용
         var iwContent =
             `<div style="padding:5px 8px;font-size:13px;white-space:nowrap;">
-                <a href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}"
-                   style="text-decoration:none;color:#1A2A43;font-weight:600;">
-                    ${item.name}
-                </a>
-             </div>`;
+            <a href="/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}"
+               style="text-decoration:none;color:#1A2A43;font-weight:600;">
+                ${item.name}
+            </a>
+        </div>`;
 
         var infowindow = new kakao.maps.InfoWindow({
             content: iwContent
         });
 
-        // hover 시에는 임시로 띄우되, 고정창이 아닌 경우만 닫힘
+        // =========================
+        // 마커 클릭 → 바로 상세페이지 이동
+        // =========================
+        kakao.maps.event.addListener(marker, "click", function () {
+            window.location.href = `/facility/detail/${item.id}?fName=${encodeURIComponent(item.name)}`;
+        });
+
+        // 리스트 호버 = 지도 마커 강조(임시)
         kakao.maps.event.addListener(marker, "mouseover", function () {
             infowindow.open(map, marker);
         });
 
         kakao.maps.event.addListener(marker, "mouseout", function () {
-            // ⭐ 고정된 창(fixedInfoWindow)이 아니면 닫기
             if (fixedInfoWindow !== infowindow) {
                 infowindow.close();
             }
@@ -305,14 +320,19 @@ document.addEventListener("DOMContentLoaded", function () {
         bounds.extend(pos);
     });
 
+    // =========================
+    // 지도 범위 이동
+    // =========================
     if (!bounds.isEmpty()) {
         map.setBounds(bounds);
     }
 
-    // ⭐ 리스트 클릭 → 지도 포커스 + 인포윈도우 "고정"
+    // =========================
+    // 리스트 클릭 → 지도 이동 + 고정 인포윈도우
+    // =========================
     document.querySelectorAll(".facility-link").forEach(function (link) {
         link.addEventListener("click", function (e) {
-            e.preventDefault();  // a 태그 기본 이동 막고, 상세는 말풍선 링크로만
+            e.preventDefault();
 
             var id = this.dataset.id;
             var obj = markerMap[id];
@@ -324,18 +344,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // 지도 이동
             map.setCenter(obj.position);
-            map.setLevel(5);
+            map.setLevel(7);
 
-            // 이전 고정 인포윈도우 닫기
             if (fixedInfoWindow) {
                 fixedInfoWindow.close();
             }
 
-            // 새 인포윈도우 열고 고정
             obj.infowindow.open(map, obj.marker);
             fixedInfoWindow = obj.infowindow;
 
-            // 스크롤을 지도 가까이로
+            // 스크롤 지도 위치로 이동
             const mapRect = container.getBoundingClientRect();
             window.scrollTo({
                 top: window.pageYOffset + mapRect.top - 100,
@@ -343,4 +361,34 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    // =========================
+    // 리스트 Hover → 지도에 임시 인포윈도우 표시
+    // =========================
+    document.querySelectorAll(".facility-item").forEach(function (row) {
+        row.addEventListener("mouseenter", function () {
+            const link = this.querySelector(".facility-link");
+            if (!link) return;
+
+            const id = link.dataset.id;
+            const obj = markerMap[id];
+            if (!obj) return;
+
+            obj.infowindow.open(map, obj.marker);
+        });
+
+        row.addEventListener("mouseleave", function () {
+            const link = this.querySelector(".facility-link");
+            if (!link) return;
+
+            const id = link.dataset.id;
+            const obj = markerMap[id];
+            if (!obj) return;
+
+            if (fixedInfoWindow !== obj.infowindow) {
+                obj.infowindow.close();
+            }
+        });
+    });
+
 });
