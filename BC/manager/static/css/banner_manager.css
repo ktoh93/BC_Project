@@ -1,138 +1,53 @@
-/* =====================================================
-   배너 페이지(등록/수정/관리) 전체 레이아웃을
-   admin-main 구조와 동일하게 맞춘 최종 통합 CSS
-   
-   주의: 이 CSS 파일은 다른 스타일 파일들보다 나중에 로드되어야 합니다.
-   (예: base.html에서 {% block css %} 다음에 로드)
-   다른 스타일에서 .sub-container의 max-width를 설정해도 이 파일이 나중에 로드되면
-   여기서 설정한 max-width: none이 적용됩니다.
-===================================================== */
-
-/* 페이지 전체 폭을 admin-main 과 동일하게 확장 */
-.sub-container {
-    width: 100%;
-    max-width: none;    /* 기존 제한 제거 - CSS 로드 순서에 의존 */
-    margin: 0;          /* 가운데 정렬 제거 */
-    padding: 0;
-}
-
-.sub-content {
-    width: 100%;
-    padding: 0;
-}
-
 /* -----------------------------------------------------
-   폼 / 수정 페이지 박스 = admin-main 카드 스타일 동일하게
+   배너 관리 전용 테이블 & 버튼 전부 고정 스타일
 ------------------------------------------------------ */
-.form-wrapper {
-    background: #fff;
-    border: 1px solid #cdd3da;
-    padding: 30px 40px;
-    border-radius: 10px;
 
-    width: 100%;
-    max-width: 100%;               /* 가로 제한 완전 제거 */
-    box-shadow: 0 4px 10px rgba(42, 67, 110, 0.06);
-}
-
-/* input / textarea 모두 넓이 100% 확정 */
-.form-input,
-.form-textarea {
-    width: 100%;
-    max-width: 100%;
-}
-
-/* -----------------------------------------------------
-   배너 목록 박스 (facility-box) → admin-main 스타일 통합
------------------------------------------------------- */
-.facility-box {
-    background: #fff;
-    border: 1px solid #cdd3da;
-    padding: 30px 40px;
-    border-radius: 10px;
-
-    width: 100%;
-    max-width: 100%;    /* CSS 로드 순서에 의존 */
-    box-shadow: 0 4px 10px rgba(42, 67, 110, 0.06);
-
-    position: relative;
-}
-
-/* 제목도 관리자 스타일로 */
-.box-header,
-.page-title {
-    width: 100%;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e1e6ef;
-}
-
-/* -----------------------------------------------------
-   테이블 스타일 (관리자 테이블과 동일하게)
------------------------------------------------------- */
-.facility-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid #e1e6ef;
-    background: #ffffff;
-    margin-top: 20px;
-}
-
-.facility-table thead tr {
-    background: #f0f4fa;
-}
-
-.facility-table th,
-.facility-table td {
-    padding: 14px 10px;
-    border-bottom: 1px solid #e1e6ef;
-    font-size: 15px;
-}
-
-.facility-table tbody tr:hover {
-    background: #f8fbff;
-}
-
-/* 번호/체크박스 정렬 */
+/* 번호 */
 .facility-table th:nth-child(1),
-.facility-table td:nth-child(1),
+.facility-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+/* 체크박스 */
 .facility-table th:nth-child(2),
 .facility-table td:nth-child(2) {
+    width: 60px;
     text-align: center;
-    width: 80px;
 }
 
-/* 이미지 정보 칸 넓게 */
+/* 이미지 정보: 가운데 정렬 */
 .facility-table th:nth-child(3),
 .facility-table td:nth-child(3) {
-    width: 300px;
-}
-
-/* 등록일 칸 */
-.facility-table th:nth-child(4),
-.facility-table td:nth-child(4) {
-    width: 200px;
     text-align: center;
 }
 
+/* 등록일 */
+.facility-table th:nth-child(4),
+.facility-table td:nth-child(4) {
+    width: 180px;
+    text-align: center;
+}
+
+/* 링크 자체 가운데 정렬 */
+.detail-link {
+    display: inline-block;
+    text-align: center;
+}
+
+
 /* -----------------------------------------------------
-   버튼 (등록/삭제)
+   버튼
 ------------------------------------------------------ */
 .btn-area {
+    margin-top: 25px;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 25px;
 }
 
 .register-btn,
-.delete-btn,
-.btn-submit,
-.btn-list {
+.delete-btn {
     padding: 10px 20px;
     border-radius: 6px;
     font-size: 15px;
@@ -140,8 +55,7 @@
     border: none;
 }
 
-.register-btn,
-.btn-submit {
+.register-btn {
     background: #2F5C9C;
     color: white;
 }
@@ -149,84 +63,4 @@
 .delete-btn {
     background: #d9534f;
     color: #fff;
-}
-
-.btn-list {
-    background: #aaa;
-    color: #fff;
-}
-
-/* 페이징 */
-.page-selector{
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--spacing-xs);
-}
-
-.pagination {
-    margin-top: var(--spacing-xl);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-}
-
-.page-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--color-soft-gray-line);
-    border-radius: 6px;
-    background: var(--color-card-box);
-    color: var(--color-text-primary);
-    text-decoration: none;
-    cursor: pointer;
-    transition: var(--transition-base);
-}
-
-.page-btn:hover {
-    background: var(--color-muted-blue);
-    color: white;
-}
-
-.page-btn.active {
-    background: var(--color-deep-blue);
-    color: white;
-    border-color: var(--color-deep-blue);
-    font-weight: 700;
-}
-
-.page-btn.arrow {
-    font-weight: 600;
-}
-
-.page-btn.disabled {
-    opacity: 0.4;
-    cursor: default;
-}
-
-.page-dots {
-    padding: 6px 10px;
-    color: var(--color-text-secondary);
-}
-
-.sort-page-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-}
-
-.sort-page-container .search-dropdown {
-    min-width: 140px;
-}
-
-.page-selector {
-    display: flex;
-    justify-content: flex-end;
-    width: 150px; /* 원하면 조절 가능 */
-}
-
-#perPageSelect {
-    margin-bottom: var(--spacing-md);
-    
 }

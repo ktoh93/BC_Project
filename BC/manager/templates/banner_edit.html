@@ -5,6 +5,10 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/banner_form.css' %}">
+<style>
+    #date-section.hide { display: none; }
+    #date-section.show { display: block; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,73 +17,126 @@
 </div>
 
 <div class="sub-container">
-    <div class="sub-content">
+<div class="sub-content">
 
-        <div class="form-wrapper">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
+<div class="form-wrapper">
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- 파일 -->
+    <div class="form-group full-row">
+        <label class="form-label">배너 이미지</label>
 
-                <!-- 항상 서버로 넘어가게 hidden 생성 -->
-                <input type="hidden" name="delete_file" id="deleteFileFlag" value="0">
-
-                <div class="form-group full-row">
-                    <label class="form-label">첨부파일</label>
-
-                    <div class="file-upload-wrapper">
-
-                        <!-- 실제 파일 입력 -->
-                        <input type="file" name="file" id="fileInput" class="file-input">
-                        <label for="fileInput" class="file-upload-btn">📎 파일 선택</label>
-
-                        <!-- 현재 파일 표시 + 삭제 버튼 -->
-                        {% if banner.url %}
-                        <div id="currentFileBox" class="current-file-box">
-                            <span class="current-file-name">{{ banner.url }}</span>
-                            <button type="button" class="file-remove-btn" id="deleteFileBtn">✕</button>
-                        </div>
-                        {% endif %}
-
-                        <!-- 새 파일명 표시 영역 -->
-                        <p id="uploadedFileName" style="margin-top:10px; display:none;"></p>
-
-                    </div>
-                </div>
-
-                <div class="form-group full-row">
-                    <label class="form-label">제목</label>
-                    <input type="text" name="title" class="form-input"
-                           value="{{ banner.title }}">
-                </div>
-
-                <div class="form-group full-row">
-                    <label class="form-label">내용</label>
-                    <textarea name="context" class="form-textarea">{{ banner.context }}</textarea>
-                </div>
-
-                <div class="form-group full-row">
-                    <label class="form-label">시작 날짜</label>
-                    <input type="datetime-local" name="start_date" class="form-input"
-                           value="{{ banner.start_date|date:'Y-m-d\\TH:i' }}">
-                </div>
-
-                <div class="form-group full-row">
-                    <label class="form-label">종료 날짜</label>
-                    <input type="datetime-local" name="end_date" class="form-input"
-                           value="{{ banner.end_date|date:'Y-m-d\\TH:i' }}">
-                </div>
-
-                <div class="btn-row">
-                    <button type="submit" class="btn btn-submit">수정 완료</button>
-                    <button type="button" class="btn btn-list" onclick="history.back()">뒤로가기</button>
-                </div>
-
-            </form>
+        <div class="file-upload-wrapper">
+            <input type="file" name="file" id="fileInput" class="file-input" accept="image/*">
+            <label for="fileInput" class="file-upload-btn"><span>📎 첨부파일</span></label>
+            <div class="file-list" id="fileList"></div>
         </div>
 
+        {% if banner.url %}
+        <div id="currentFileBox" class="existing-files" style="margin-top: 10px;">
+            <label class="form-label" style="font-size: 14px;">현재 이미지:</label>
+            <div style="margin-top: 5px; display:flex; align-items:center; gap:10px;">
+                <a href="/media/{{ banner.url }}" target="_blank" style="color:#2f5c9c;">{{ banner.url }}</a>
+                <button type="button" id="deleteFileBtn" class="file-delete-btn" style="color:red;">X</button>
+            </div>
+            <input type="hidden" name="delete_file" id="deleteFileFlag" value="0">
+        </div>
+        {% endif %}
     </div>
+
+    <!-- 제목 -->
+    <div class="form-group full-row">
+        <label class="form-label">제목</label>
+        <input type="text" name="title" class="form-input" value="{{ banner.title }}">
+    </div>
+
+    <!-- 내용 -->
+    <div class="form-group full-row">
+        <label class="form-label">내용</label>
+        <input type="text" name="context" class="form-input" value="{{ banner.context }}">
+    </div>
+
+    <!-- 상태 라디오 -->
+    <div class="form-group full-row">
+        <label class="form-label">배너 상태</label>
+
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="0"
+                   class="status-radio"
+                   {% if banner.img_status == 0 %}checked{% endif %}>
+            상시 노출
+        </label>
+
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="1"
+                   class="status-radio"
+                   {% if banner.img_status == 1 %}checked{% endif %}>
+            기간 지정
+        </label>
+
+        <label class="radio-label">
+            <input type="radio" name="img_status" value="2"
+                   class="status-radio"
+                   {% if banner.img_status == 2 %}checked{% endif %}>
+            노출 종료
+        </label>
+    </div>
+
+    <!-- 기간 영역 -->
+    {% if banner.img_status == 1 %}
+    <div id="date-section" class="form-row">
+    {% else %}
+    <div id="date-section" class="form-row" style="display:none;">
+    {% endif %}
+        <div class="form-group small">
+            <label class="form-label">시작 날짜</label>
+            <input type="datetime-local" name="start_date" class="form-input"
+                value="{{ banner.start_date|date:'Y-m-d\\TH:i' }}">
+        </div>
+
+        <div class="form-group small">
+            <label class="form-label">종료 날짜</label>
+            <input type="datetime-local" name="end_date" class="form-input"
+                value="{{ banner.end_date|date:'Y-m-d\\TH:i' }}">
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button type="submit" class="btn btn-submit">수정 완료</button>
+        <button type="button" class="btn btn-list" onclick="history.back()">뒤로가기</button>
+    </div>
+
+</form>
+</div>
+
+</div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/banner_manager.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const radios = document.querySelectorAll(".status-radio");
+    const dateSection = document.getElementById("date-section");
+
+    function toggleDateSection() {
+        let selected = document.querySelector(".status-radio:checked");
+        if (!selected) {
+            dateSection.style.display = "none";
+            return;
+        }
+        if (selected.value === "1") {
+            dateSection.style.display = "flex";
+        } else {
+            dateSection.style.display = "none";
+        }
+    }
+
+    radios.forEach(function (r) {
+        r.addEventListener("change", toggleDateSection);
+    });
+
+    toggleDateSection();
+});
+</script>
 {% endblock %}

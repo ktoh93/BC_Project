@@ -1737,23 +1737,18 @@ def banner_manager(request):
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
 
+    # 모델 그대로 가져오기 ( dict로 재조립 절대 안함 )
     queryset = HeroImg.objects.filter(delete_date__isnull=True).order_by('-img_id')
 
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
 
+    # row_no 계산 (import 없음)
     start_index = (page_obj.number - 1) * per_page
 
-    # row_no 포함된 리스트 생성 (HTML에서도 이걸 그대로 사용 가능)
-    banner_list = []
-    for idx, b in enumerate(page_obj.object_list):
-        banner_list.append({
-            "id": b.img_id,
-            "title": b.title,
-            "url": b.url,
-            "reg_date": b.reg_date.strftime("%Y-%m-%d %H:%M"),
-            "row_no": start_index + idx + 1,
-        })
+    # 모델 객체 그대로 사용하면서 row_no만 붙여줌
+    for idx, obj in enumerate(page_obj.object_list):
+        obj.row_no = start_index + idx + 1
 
     # 블록 페이징
     block_size = 5
@@ -1763,12 +1758,8 @@ def banner_manager(request):
 
     context = {
         "page_obj": page_obj,
+        "banner_list": page_obj.object_list,   # 모델 객체 그대로 전달!
         "per_page": per_page,
-
-        # HTML에서도 직접 쓰면서 JS에도 넘길 수 있음
-        "banner_list": banner_list,
-        "banner_json": json.dumps(banner_list, ensure_ascii=False),
-
         "block_range": range(block_start, block_end + 1),
     }
 
@@ -1782,57 +1773,107 @@ def banner_detail(request, img_id):
 def banner_form(request):
     if request.method == "POST":
         upload_file = request.FILES.get("file")
-        title = request.POST.get("title")
-        context = request.POST.get("context")
+        title = request.POST.get("title", "").strip()
+        context = request.POST.get("context", "").strip()
+        img_status = request.POST.get("img_status", "").strip()
         start_date = request.POST.get("start_date") or None
         end_date = request.POST.get("end_date") or None
 
-        file_url = ""
+        # ====== 필수값 검증 ======
+        if not upload_file:
+            return render(request, "banner_form.html", {
+                "alert": "배너 이미지를 첨부해주세요.",
+                "title": title,
+                "context": context,
+                "selected_status": img_status,
+                "start_date": start_date,
+                "end_date": end_date,
+            })
 
-        if upload_file:
-            save_dir = os.path.join(settings.MEDIA_ROOT, "banners")
-            os.makedirs(save_dir, exist_ok=True)
+        if img_status == "":
+            return render(request, "banner_form.html", {
+                "alert": "배너 상태를 선택해주세요.",
+                "title": title,
+                "context": context,
+                "start_date": start_date,
+                "end_date": end_date,
+            })
+        
+        if title == "":
+            return render(request, "banner_form.html", {
+                "alert" : "제목을 입력해주세요.",
+                "title": title,
+                "context": context,
+                "selected_status": img_status,
+                "start_date": start_date,
+                "end_date": end_date,
+            })
+        img_status = int(img_status)
 
-            filename = f"{uuid.uuid4().hex}_{upload_file.name}"
-            filepath = os.path.join(save_dir, filename)
+        # 기간 지정 아닐 때는 기간 날리기
+        if img_status != 1:
+            start_date = None
+            end_date = None
 
-            with open(filepath, "wb+") as f:
-                for chunk in upload_file.chunks():
-                    f.write(chunk)
+        # ====== 파일 저장 ======
+        save_dir = os.path.join(settings.MEDIA_ROOT, "banners")
+        os.makedirs(save_dir, exist_ok=True)
 
-            file_url = f"banners/{filename}"
+        filename = f"{uuid.uuid4().hex}_{upload_file.name}"
+        filepath = os.path.join(save_dir, filename)
+
+        with open(filepath, "wb+") as f:
+            for chunk in upload_file.chunks():
+                f.write(chunk)
+
+        file_url = f"banners/{filename}"
 
         HeroImg.objects.create(
             url=file_url,
             title=title,
             context=context,
+            img_status=img_status,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
         )
 
         return redirect("banner_manager")
 
+    # GET
     return render(request, "banner_form.html")
-
 
 def banner_edit(request, img_id):
     banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
 
     if request.method == "POST":
         upload_file = request.FILES.get("file")
-        delete_file_flag = request.POST.get("delete_file")  # "0" or "1"
+        title = request.POST.get("title")
+        context = request.POST.get("context")
 
-        banner.title = request.POST.get("title")
-        banner.context = request.POST.get("context")
-        banner.start_date = request.POST.get("start_date") or None
-        banner.end_date = request.POST.get("end_date") or None
+        img_status = int(request.POST.get("img_status", 0))
+        start_date = request.POST.get("start_date") or None
+        end_date = request.POST.get("end_date") or None
 
-        # 파일 저장 폴더 준비
+        if img_status != 1:
+            start_date = None
+            end_date = None
+
+        # 삭제 플래그 (X 버튼 또는 새 파일 선택 시 "1")
+        delete_flag = request.POST.get("delete_file", "0")
+
+        banner.title = title
+        banner.context = context
+        banner.img_status = img_status
+        banner.start_date = start_date
+        banner.end_date = end_date
+
+        # 파일 저장 디렉터리
         save_dir = os.path.join(settings.MEDIA_ROOT, "banners")
         os.makedirs(save_dir, exist_ok=True)
 
-        # 1) 새 파일 업로드가 있으면: 기존 파일 삭제 후 새 파일 저장
+        # 새 파일 업로드 우선 처리
         if upload_file:
+            # 기존 파일 삭제
             if banner.url:
                 old_path = os.path.join(settings.MEDIA_ROOT, banner.url)
                 if os.path.exists(old_path):
@@ -1847,20 +1888,18 @@ def banner_edit(request, img_id):
 
             banner.url = f"banners/{filename}"
 
-        # 2) 새 파일은 없고, 삭제 플래그만 1인 경우: 기존 파일만 삭제
-        elif delete_file_flag == "1":
+        # 새 파일은 없고, delete_flag == "1" 인 경우 → 기존 파일만 삭제
+        elif delete_flag == "1":
             if banner.url:
                 old_path = os.path.join(settings.MEDIA_ROOT, banner.url)
                 if os.path.exists(old_path):
                     os.remove(old_path)
-            banner.url = ""
+            banner.url = ""  # 또는 None
 
-        # 3) 둘 다 아니면 파일 유지
         banner.save()
         return redirect("banner_manager")
 
     return render(request, "banner_edit.html", {"banner": banner})
-
 
 def banner_delete(request):
     data = json.loads(request.body)

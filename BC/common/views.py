@@ -7,6 +7,9 @@ from member.models import Member
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import JsonResponse
 import re
+from django.utils import timezone
+from django.db.models import Q
+from manager.models import HeroImg
 import os
 import requests
 
@@ -15,15 +18,13 @@ def index(request):
     try:
         from facility.models import FacilityInfo
         import random
-        
-        # 모든 시설 가져오기
+
         all_facilities = FacilityInfo.objects.all()
-        
-        # 랜덤으로 3개 선택 (최대 3개)
+
         if all_facilities.exists():
             facilities_list = list(all_facilities)
             random_facilities = random.sample(facilities_list, min(3, len(facilities_list)))
-            
+
             facilities = []
             for fac in random_facilities:
                 facilities.append({
@@ -37,11 +38,21 @@ def index(request):
     except Exception as e:
         print(f"[ERROR] index 함수 시설 데이터 로드 오류: {str(e)}")
         facilities = []
-    
+
+    now = timezone.now()
+
+    banners = HeroImg.objects.filter(
+        delete_date__isnull=True
+    ).filter(
+        Q(img_status=0) |
+        Q(img_status=1, start_date__lte=now, end_date__gte=now)
+    ).order_by('-img_id')
+
     context = {
         'random_facilities': facilities,
+        'banners': banners,   # ← 이거 추가!
     }
-    
+
     return render(request, 'index.html', context)
 
 def login(request):
