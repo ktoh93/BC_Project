@@ -143,7 +143,7 @@ def facility(request):
 
     # 이미 등록된 시설 제외
     registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
-    queryset = queryset.exclude(id__in=registered_ids)
+    queryset = queryset.exclude(faci_cd__in=registered_ids)
 
     paginator = Paginator(queryset, per_page)
     page_obj = paginator.get_page(page)
@@ -271,14 +271,13 @@ def facility_register(request):
         count = 0
         for fac in facilities:
             FacilityInfo.objects.create(
-                facility=fac,
+                facility_id = fac.faci_cd or "",
                 faci_nm=fac.faci_nm or "",
                 address=fac.faci_road_addr or "",
                 sido = fac.cp_nm or "",
                 sigugun = fac.cpb_nm or "",
                 tel=fac.faci_tel_no or "",
                 homepage=fac.faci_homepage or "",
-                sports=None,
                 photo=None,
                 reservation_time=None,
             )
@@ -367,29 +366,28 @@ def facility_modify(request, id):
     info = get_object_or_404(FacilityInfo, id=id)
 
     # -----------------------------
-    # GET — 수정 페이지 열기
+    # GET — 수정 페이지
     # -----------------------------
     if request.method == "GET":
-        if info.reservation_time:
-            time_json = json.dumps(info.reservation_time, ensure_ascii=False)
-        else:
-            time_json = "{}"
 
-        files = AddInfo.objects.filter(facility_id=info)
+        time_json = json.dumps(info.reservation_time, ensure_ascii=False) if info.reservation_time else "{}"
+
+        # ✔ AddInfo는 FK → facility_id = info.id
+        files = AddInfo.objects.filter(facility_id=info.id)
 
         return render(request, "facility_write.html", {
             "info": info,
             "files": files,
             "time_json": time_json
         })
+
     # -----------------------------
-    # POST — 실제 저장 처리
+    # POST — 실제 저장
     # -----------------------------
-    # 기본 정보 수정
     info.tel = request.POST.get("tel", "")
     info.homepage = request.POST.get("homepage", "")
 
-    # 예약 시간 저장
+    # 예약 JSON 파싱
     raw_time = request.POST.get("reservation_time", "{}")
     try:
         info.reservation_time = json.loads(raw_time)
@@ -398,28 +396,29 @@ def facility_modify(request, id):
 
     info.save()
 
-    # 1) 대표 이미지 저장 (인코딩 방식)
+    # 1) 대표 이미지 저장
     save_encoded_image(
         request=request,
         instance=info,
-        field_name="photo",    # input[name="photo"]
-        sub_dir="uploads/facility/photo", 
+        field_name="photo",
+        sub_dir="uploads/facility/photo",
         delete_old=True
     )
 
-    # 2) 삭제 체크된 첨부파일 제거
+    # 2) 첨부파일 삭제
     delete_selected_files(request)
 
-    # 3) 첨부파일 여러 개 업로드(AddInfo)
+    # 3) 첨부파일 업로드 (FK 자동 저장됨)
     upload_multiple_files(
         request=request,
         instance=info,
-        file_field="attachment_files",   # HTML input name
+        file_field="attachment_files",
         sub_dir="uploads/facility/files"
     )
 
     messages.success(request, "시설 정보가 수정되었습니다.")
     return redirect("facility_detail", id=id)
+
 
 @csrf_exempt
 def facility_delete(request):
@@ -433,49 +432,37 @@ def facility_delete(request):
         if not ids:
             return JsonResponse({"status": "error", "msg": "삭제할 항목이 없습니다."})
 
-        # -------------------------------------------------
-        # 1) AddInfo 첨부파일 삭제
-        # -------------------------------------------------
-        files = AddInfo.objects.filter(facility_id__in=ids)
-
-        for f in files:
-            if f.path:
-                file_path = os.path.join(settings.MEDIA_ROOT, f.path)  # ★ 반드시 MEDIA_ROOT 기준 경로로 변환
-                if os.path.exists(file_path):
-                    try:
-                        os.remove(file_path)
-                    except Exception:
-                        pass
-
-        files.delete()
-
-        # -------------------------------------------------
-        # 2) FacilityInfo 대표이미지 삭제
-        # -------------------------------------------------
+        # 1) 삭제 대상 FacilityInfo
         infos = FacilityInfo.objects.filter(id__in=ids)
 
+        # 2) 관련 AddInfo 가져오기 (PK 기반)
+        files = AddInfo.objects.filter(facility_id__in=ids)
+
+        # 2-1) 파일 삭제
+        for f in files:
+            if f.path:
+                file_path = os.path.join(settings.MEDIA_ROOT, f.path)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
+        # 2-2) DB 레코드 삭제
+        files.delete()
+
+        # 3) FacilityInfo 대표이미지 삭제
         for info in infos:
-            # info.photo는 "uploads/facility/photo/xxxxx.png" 형태
             if info.photo and info.photo.name:
                 photo_path = os.path.join(settings.MEDIA_ROOT, info.photo.name)
                 if os.path.exists(photo_path):
-                    try:
-                        os.remove(photo_path)
-                    except Exception:
-                        pass
+                    os.remove(photo_path)
 
-        # -------------------------------------------------
-        # 3) FacilityInfo 레코드 삭제
-        # -------------------------------------------------
-        FacilityInfo.objects.filter(id__in=ids).delete()
+        # 4) FacilityInfo 삭제 (FK CASCADE로 AddInfo 자동삭제 가능)
+        infos.delete()
 
         return JsonResponse({"status": "success", "deleted": ids})
 
     except Exception as e:
         import traceback; traceback.print_exc()
         return JsonResponse({"status": "error", "msg": str(e)})
-
-
 
 
 def sport_type(request):
