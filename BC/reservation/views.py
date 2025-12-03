@@ -10,7 +10,7 @@ from facility.models import FacilityInfo
 from reservation.models import Sports, Reservation
 from member.models import Member
 from .models import TimeSlot
-from django.db.models import Q
+
 
 # TODO: DB 연결 이후 FacilityInfo 모델에서 시설 정보 조회
 # from facility.models import FacilityInfo
@@ -33,21 +33,12 @@ def reservation_list(request):
     if keyword:
         facilities = facilities.filter(faci_nm__icontains=keyword)
     
-    q = Q()
+    if sport:
+        facilities = facilities.filter(faci_nm__icontains=sport)
+
+
     
-    if sport:
-        q |= (
-                Q(faci_nm__icontains=sport) |
-                Q(ftype_nm__icontains=sport) |
-                Q(cp_nm__icontains=sport) |
-                Q(cpb_nm__icontains=sport)
-        )
-    facilities = facilities.filter(q)
-
-
-    if sport:
-        facilities = facilities.filter()
-
+ 
 
     sports_list = []
     for s in sports:
@@ -117,7 +108,8 @@ def reservation_list(request):
         "block_range": block_range,
         "block_start": block_start,
         "block_end": block_end,
-        "sportsList" : sports_list
+        "sportsList" : sports_list,
+        "sport" : sport
     }
 
     return render(request, "reservation_list.html", context)

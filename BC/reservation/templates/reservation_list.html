@@ -28,14 +28,17 @@
     <form method="GET" id="searchForm" action="{% url 'reservation_list' %}">
       <!-- 검색 섹션 -->
       <section class="search-section">
-
         <!-- 종목 선택 -->
         <div class="filter-group">
           <label class="filter-label">종목</label>
           <div class="filter-options" id="sportOptions">
+            <label class="filter-radio">
+              <input type="radio" name="sport" value="" checked >
+              <span>전체</span>
+            </label>
             {% for s in sportsList %}
             <label class="filter-radio">
-              <input type="radio" name="sport" value="{{ s.sName }}">
+              <input type="radio" name="sport" value="{{ s.sName }}" {% if sport == s.sName %} checked {% endif %}>
               <span>{{ s.sName }}</span>
             </label>
             {% endfor %}
