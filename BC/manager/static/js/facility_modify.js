@@ -191,4 +191,21 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    const rsCheck = document.getElementById("rsPosible");
+    const timeBox = document.getElementById("timeSettingBox");
+    const reservationHidden = document.getElementById("reservationTimeInput");
+
+    function toggleTimeBox() {
+        if (rsCheck.checked) {
+            timeBox.classList.remove("time-disabled");
+        } else {
+            timeBox.classList.add("time-disabled");
+            reservationHidden.value = "{}";  // 시간 초기화 (POST 시 DB 초기화)
+        }
+    }
+
+    toggleTimeBox(); // 최초 로딩 시 상태 적용
+
+    rsCheck.addEventListener("change", toggleTimeBox);
 });

@@ -56,7 +56,7 @@
 
 
 /* ================================
-   대표 이미지 (photo-box)
+   대표 이미지 업로드
 ================================ */
 .photo-box {
     background: #fff;
@@ -73,7 +73,6 @@
     align-items: center;
 }
 
-/* 미리보기 이미지 */
 .facility-photo {
     width: 240px;
     border-radius: 10px;
@@ -91,7 +90,6 @@
     border-radius: 10px;
 }
 
-/* 업로드 영역 */
 .photo-upload-area {
     display: flex;
     align-items: center;
@@ -102,9 +100,8 @@
 }
 
 
-
 /* ================================
-   첨부파일 스타일
+   첨부파일
 ================================ */
 .file-box {
     background: #fff;
@@ -134,7 +131,42 @@
 
 
 /* ================================
-   예약 시간 설정
+   예약하기 활성화 UI
+================================ */
+.reserve-posible {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    background: #ffffff;
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: background 0.2s;
+}
+
+.reserve-posible:hover {
+    background: #f9fbff;
+}
+
+.reserve-posible label {
+    font-size: 17px;
+    font-weight: 600;
+    color: #2b3a4b;
+    cursor: pointer;
+}
+
+.reserve-posible input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: #2f5c9c;
+    cursor: pointer;
+}
+
+
+/* ================================
+   예약 시간 박스
 ================================ */
 .time-setting-box {
     background: #fff;
@@ -143,33 +175,66 @@
     padding: 25px 30px;
     margin-bottom: 40px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    position: relative;
+    transition: 0.25s ease;
 }
 
-.time-setting-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 20px;
+/* 비활성화 → 흐림 + 오버레이 */
+.time-disabled {
+    opacity: 0.45;
+    pointer-events: none;
 }
 
-/* 요일 카드 */
+.time-disabled::after {
+    content: "예약하기 비활성화 상태입니다";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 18px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #ccd3dd;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #4e5563;
+}
+
+
+/* ================================
+   요일 카드
+================================ */
 .day-row {
     border: 1px solid #d8dde6;
     background: #f9fbfd;
     border-radius: 12px;
     padding: 18px 20px;
     margin-bottom: 18px;
+    border-left: 4px solid #2f5c9c;
+    transition: 0.2s;
+}
+
+.day-row:hover {
+    background: #eef4ff;
+    border-left-color: #3b6fb3;
 }
 
 .day-row h3 {
     margin: 0 0 10px;
     font-size: 18px;
+    font-weight: 700;
+    color: #1a2a43;
 }
 
 .active-check {
-    margin-right: 7px;
+    width: 18px;
+    height: 18px;
+    accent-color: #2f5c9c;
 }
 
-/* 입력 라인 */
+
+/* ================================
+   입력 칸
+================================ */
 .time-inputs {
     display: flex;
     gap: 15px;
@@ -180,10 +245,16 @@
 .time-inputs input[type="time"],
 .time-inputs input[type="number"] {
     padding: 7px 10px;
-    border: 1px solid #ccd3dd;
+    border: 1px solid #bfc9d6;
     border-radius: 6px;
     font-size: 14px;
     min-width: 120px;
+    background: #fff;
+}
+
+.time-inputs input:focus {
+    border-color: #2f5c9c;
+    box-shadow: 0 0 4px rgba(47, 92, 156, 0.4);
 }
 
 .time-inputs input:disabled {
@@ -191,7 +262,10 @@
     color: #a3a9b2;
 }
 
-/* 저장 버튼 */
+
+/* ================================
+   저장 버튼
+================================ */
 .btn-time-save {
     margin-top: 15px;
     padding: 11px 18px;
@@ -201,6 +275,7 @@
     border-radius: 8px;
     font-size: 15px;
     cursor: pointer;
+    font-weight: 600;
 }
 
 .btn-time-save:hover {
@@ -208,16 +283,17 @@
 }
 
 
-/* 하단 버튼 영역 */
+/* ================================
+   하단 버튼 영역
+================================ */
 .btn-bottom-area {
     margin-top: 40px;
     display: flex;
-    justify-content: space-between; /* ← 왼/오른쪽 분리 */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
 }
 
-/* 목록으로 버튼 */
 .btn-back {
     padding: 10px 22px;
     background: #dfe4eb;
@@ -233,7 +309,6 @@
     background: #cdd3dc;
 }
 
-/* 전체 저장 버튼 */
 .btn-save-all {
     padding: 10px 22px;
     background: #2f5c9c;
@@ -248,8 +323,4 @@
 
 .btn-save-all:hover {
     background: #3c6fb3;
-}
-
-.attached-item .file-name {
-    transition: 0.2s;
 }

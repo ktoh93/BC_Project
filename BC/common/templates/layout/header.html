@@ -11,24 +11,21 @@
 
     <!-- 모바일 메뉴: 로그인 섹션 -->
     <div class="mobile-menu-login">
-
-      {% if request.session.user_id %}
-        <!-- 로그인 상태 -->
-        <div class="mobile-user-menu">
-          {% if request.session.manager_id %}
-            <!-- 관리자 -->
-            <a href="/manager/dashboard/" class="mobile-user-link">{{ request.session.nickname }}님 (관리자)</a>
-          {% else %}
-            <!-- 일반 사용자 -->
-            <a href="/member/info" class="mobile-user-link">{{ request.session.nickname }}님</a>
-          {% endif %}
-          <a href="/logout" class="mobile-user-link">로그아웃</a>
-        </div>
+      <!-- 로그인 상태 -->
+      <div class="mobile-user-menu">
+      {% if request.session.manager_id %}
+        <!-- 관리자 -->
+        <a href="/manager/dashboard/" class="mobile-user-link">{{ request.session.nickname }}님 (관리자)</a>
+        <a href="/logout" class="mobile-user-link">로그아웃</a>
+      {% elif request.session.user_id %}
+        <!-- 일반 사용자 -->
+        <a href="/member/info" class="mobile-user-link">{{ request.session.nickname }}님</a>
+        <a href="/logout" class="mobile-user-link">로그아웃</a>
       {% else %}
         <!-- 비로그인 -->
         <a href="/login" class="mobile-login-link">로그인 / 회원가입</a>
       {% endif %}
-
+      </div>
     </div>
 
     <div class="mobile-menu-divider"></div>

@@ -80,9 +80,13 @@ def manager(request):
                 })
             
             # 로그인 성공 → 세션에 저장
+            
             request.session['manager_id'] = admin_user.member_id
             request.session['manager_name'] = admin_user.name
-            
+            request.session["user_id"] = admin_user.user_id
+            request.session["user_name"] = admin_user.name
+            request.session["nickname"] = admin_user.nickname
+
             return redirect('/manager/dashboard/')
             
         except Exception as e:
@@ -434,7 +438,8 @@ def facility_modify(request, id):
     # -----------------------------
     info.tel = request.POST.get("tel", "")
     info.homepage = request.POST.get("homepage", "")
-
+    rs_posible = 1 if request.POST.get("rs_posible") else 0
+    info.rs_posible = rs_posible
     # 예약 JSON 파싱
     raw_time = request.POST.get("reservation_time", "{}")
     try:

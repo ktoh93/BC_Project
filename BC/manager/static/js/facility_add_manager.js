@@ -282,9 +282,24 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert("선택된 종목이 저장되었습니다.");
+
+                    // 팝업 닫기
                     sportsPopup.style.display = "none";
+
+                    // URL 파라미터 수정
+                    const params = new URLSearchParams(window.location.search);
+                    params.set("apply_sports", "1");   // 종목 적용 ON
+                    params.set("page", "1");           // 첫 페이지로 이동
+
+                    // 부모 페이지 reload
+                    window.location.search = params.toString();
+                } else {
+                    alert("저장 실패");
                 }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("저장 중 오류가 발생했습니다.");
             });
     });
 

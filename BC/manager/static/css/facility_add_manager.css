@@ -316,11 +316,11 @@
     font-size: 16px;
     color: #1A2A43;
     font-weight: 600;
-
-    width: 100%;           /* ★ wrap 안에서 꽉 차게 */
+    width: 100%;
     box-sizing: border-box;
-}
 
+    position: relative;  /* ★ X 버튼이 카드 안에서 잘 붙도록 */
+}
 
 /* hover */
 .sports-card:hover {
@@ -334,21 +334,29 @@
     color: #2F5C9C;
 }
 
-/* 삭제 버튼 */
+/* 삭제(X) 버튼 - 깔끔한 스타일 */
 .sport-del-btn {
     position: absolute;
-    top: -6px;
-    right: -6px;
+    top: 6px;            /* ★ 카드 안쪽에 배치 */
+    right: 6px;
+
+    width: 22px;
+    height: 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     background: #ff4d4d;
     color: #fff;
     border: none;
-    width: 22px;
-    height: 22px;
     border-radius: 50%;
+
     cursor: pointer;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 1;
+
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);  /* ★ 둥둥 뜨는 느낌 */
 }
 
 .sport-del-btn:hover {

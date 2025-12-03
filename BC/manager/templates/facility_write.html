@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/facility_modify.css' %}">
+
 {% endblock %}
 
 {% block content %}
@@ -13,11 +14,12 @@
 
     <h1 class="modify-header">시설 정보 수정</h1>
 
-
     <form id="modifyForm" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <!-- 기본 정보 -->
+        <!-- ================================
+             기본 정보
+        ================================= -->
         <div class="facility-info-box">
             <h2 class="section-title">기본 정보</h2>
 
@@ -46,13 +48,15 @@
             </div>
         </div>
 
-        <!-- 대표 이미지 업로드 -->
+
+        <!-- ================================
+             대표 이미지 업로드
+        ================================= -->
         <div class="photo-box">
             <h2 class="section-title">대표 이미지</h2>
 
             <div class="photo-flex">
 
-                <!-- 미리보기 영역 -->
                 <div id="previewArea">
                     {% if info.photo %}
                     <img src="{{ info.photo.url }}" class="facility-photo" id="previewImage">
@@ -62,14 +66,17 @@
                     {% endif %}
                 </div>
 
-                <!-- 오른쪽 파일 업로드 -->
                 <div class="photo-upload-area">
                     <input type="file" name="photo" id="photoInput" class="photo-input" accept="image/*">
                 </div>
 
             </div>
         </div>
-        <!-- 첨부파일 -->
+
+
+        <!-- ================================
+             첨부파일
+        ================================= -->
         <div class="file-box">
             <h2 class="section-title">첨부파일</h2>
 
@@ -79,7 +86,6 @@
                 <li class="attached-item" data-id="{{ f.add_info_id }}">
                     <span class="file-name">{{ f.file_name }}</span>
 
-                    <!-- 삭제예약 체크박스 (실제 삭제는 submit 시) -->
                     <label>
                         <input type="checkbox" name="delete_file" value="{{ f.add_info_id }}" class="delete-check">
                         삭제
@@ -91,11 +97,27 @@
             <p>첨부된 파일이 없습니다.</p>
             {% endif %}
 
-            <!-- 여러 개 업로드 가능 -->
             <input type="file" name="attachment_files" multiple class="attachment-input">
         </div>
-        <!-- 예약 시간 설정 -->
-        <div class="time-setting-box">
+
+
+        <!-- ================================
+             예약 가능 여부
+        ================================= -->
+        <div class="reserve-posible" style="margin-bottom:20px;">
+            <label for="rsPosible">예약하기 활성화</label>
+            <input type="checkbox"
+                   id="rsPosible"
+                   name="rs_posible"
+                   value="1"
+                   {% if info.rs_posible == 1 %}checked{% endif %}>
+        </div>
+
+
+        <!-- ================================
+             예약 시간 설정
+        ================================= -->
+        <div id="timeSettingBox" class="time-setting-box {% if info.rs_posible == 0 %}time-disabled{% endif %}">
             <h2 class="time-setting-title">예약 가능 시간 설정</h2>
 
             <div id="timeSettingContainer"></div>
@@ -103,14 +125,16 @@
             <input type="hidden" id="reservationTimeInput" name="reservation_time">
         </div>
 
-        <!-- 저장 버튼 -->
+
+        <!-- ================================
+             하단 버튼
+        ================================= -->
         <div class="btn-bottom-area">
             <a href="{% url 'facility_list' %}" class="btn-back">← 목록으로</a>
             <button type="submit" class="btn-save-all">전체 저장</button>
         </div>
 
     </form>
-    <!-- ✔ 전체 저장 폼 끝 -->
 
 </div>
 
@@ -121,5 +145,8 @@
     {{ time_json|safe }}
 </script>
 
+<!-- 기존 JS -->
 <script src="{% static 'js/facility_modify.js' %}"></script>
+
+
 {% endblock %}

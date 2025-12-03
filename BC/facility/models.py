@@ -18,8 +18,8 @@ class FacilityInfo(models.Model):
     sigugun = models.CharField(max_length=200, null=True, blank=True)
     tel = models.CharField(max_length=50, null=True, blank=True)
     homepage = models.CharField(max_length=200, null=True, blank=True)
-    # 예약가능한상태인지
-    rs_posible = models.IntegerField(default=0)
+    # 예약가능한상태인지(0: 불가 1: 가능)
+    rs_posible = models.IntegerField(default=0) 
 
     reg_date = models.DateTimeField(auto_now_add=True)
     view_cnt = models.IntegerField(default=0)
