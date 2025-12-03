@@ -13,7 +13,7 @@ from django.contrib import messages
 
 from django.views.decorators.http import require_POST
 from django.db import transaction, IntegrityError
-from django.db.models import Q
+from django.db.models import Q, F, Count
 
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 # from common.utils import get_recruitment_dummy_list
@@ -27,86 +27,181 @@ from django.db.models import Q
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-def recruitment_list(request):
-    # 0) 검색 파라미터 받기
-    search_type = request.GET.get("search_type", "all")   # all / facility / sport
-    keyword = request.GET.get("keyword", "").strip()
+# def recruitment_list(request):
+#     # 0) 검색 파라미터 받기
+#     search_type = request.GET.get("search_type", "all")   # all / facility / sport
+#     keyword = request.GET.get("keyword", "").strip()
 
-    # 폼에서는 여전히 name="sido", "sigungu" 쓰고 있음
+#     # 폼에서는 여전히 name="sido", "sigungu" 쓰고 있음
+#     sido = request.GET.get("sido", "")
+#     sigungu = request.GET.get("sigungu", "")
+
+#     # 1) 기본 QuerySet
+#     qs = Community.objects.filter(delete_date__isnull=True)
+
+#     # 2) 지역 필터  👉 실제 필드는 region / region2
+#     if sido:
+#         qs = qs.filter(region=sido)
+#     if sigungu:
+#         qs = qs.filter(region2=sigungu)
+
+#     # 3) 검색어 필터  👉 실제 필드는 facility / sport_type
+#     if keyword:
+#         if search_type == "facility":
+#             qs = qs.filter(facility__icontains=keyword)
+#         elif search_type == "sport":
+#             qs = qs.filter(sport_type__icontains=keyword)
+#         else:  # all
+#             qs = qs.filter(
+#                 Q(title__icontains=keyword) |
+#                 Q(facility__icontains=keyword) |
+#                 Q(sport_type__icontains=keyword)
+#             )
+
+#     # 4) 정렬값
+#     sort = request.GET.get("sort", "recent")
+
+#     if sort == "title":
+#         qs = qs.order_by("title")
+#     elif sort == "views":
+#         qs = qs.order_by("-view_cnt")
+#     else:  # recent (등록일 최신순)
+#         qs = qs.order_by("-reg_date")
+
+#     # 5) 페이지당 표시 개수
+#     per_page = int(request.GET.get("per_page", 15))
+
+#     # 6) 현재 페이지
+#     page = int(request.GET.get("page", 1))
+
+#     # 7) Paginator
+#     paginator = Paginator(qs, per_page)
+#     page_obj = paginator.get_page(page)
+
+#     # 8) 블록 페이징
+#     block_size = 5
+#     current_block = (page - 1) // block_size
+#     block_start = current_block * block_size + 1
+#     block_end = block_start + block_size - 1
+#     if block_end > paginator.num_pages:
+#         block_end = paginator.num_pages
+
+#     block_range = range(block_start, block_end + 1)
+
+#     for obj in page_obj:
+#         obj.is_closed = (obj.endstatus and obj.endstatus.end_stat == 1)
+
+#     context = {
+#         "page_obj": page_obj,
+#         "paginator": paginator,
+#         "per_page": per_page,
+#         "page": page,
+#         "sort": sort,
+#         "block_range": block_range,
+#         "block_start": block_start,
+#         "block_end": block_end,
+
+#         # 검색값 유지용
+#         "search_type": search_type,
+#         "keyword": keyword,
+#         "sido": sido,
+#         "sigungu": sigungu,
+#     }
+
+#     return render(request, "recruitment_list.html", context)
+
+
+def recruitment_list(request):
+    search_type = request.GET.get("search_type", "all")
+    keyword = request.GET.get("keyword", "").strip()
     sido = request.GET.get("sido", "")
     sigungu = request.GET.get("sigungu", "")
+    status = request.GET.get("status", "all")
 
-    # 1) 기본 QuerySet
-    qs = Community.objects.filter(delete_date__isnull=True)
+    # 모집글 + end_status + 참가자수 join
+    qs = (
+        Community.objects
+        .filter(delete_date__isnull=True)
+        .select_related("endstatus")
+        .annotate(
+            current_member=Count("joinstat"),
+            comment_count = Count('comment', distinct=True),
+        )
+    )
 
-    # 2) 지역 필터  👉 실제 필드는 region / region2
+    # 지역 필터
     if sido:
         qs = qs.filter(region=sido)
     if sigungu:
         qs = qs.filter(region2=sigungu)
 
-    # 3) 검색어 필터  👉 실제 필드는 facility / sport_type
+    # 검색 필터
     if keyword:
         if search_type == "facility":
             qs = qs.filter(facility__icontains=keyword)
         elif search_type == "sport":
             qs = qs.filter(sport_type__icontains=keyword)
-        else:  # all
+        else:
             qs = qs.filter(
                 Q(title__icontains=keyword) |
                 Q(facility__icontains=keyword) |
                 Q(sport_type__icontains=keyword)
             )
 
-    # 4) 정렬값
-    sort = request.GET.get("sort", "recent")
+    # 모집 상태 필터
+    if status == "closed":
+        qs = qs.filter(endstatus__end_stat=1)
+    elif status == "open":
+        qs = qs.exclude(endstatus__end_stat=1)
 
+    # 정렬
+    sort = request.GET.get("sort", "recent")
     if sort == "title":
         qs = qs.order_by("title")
     elif sort == "views":
         qs = qs.order_by("-view_cnt")
-    else:  # recent (등록일 최신순)
+    else:
         qs = qs.order_by("-reg_date")
 
-    # 5) 페이지당 표시 개수
+    # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
-
-    # 6) 현재 페이지
     page = int(request.GET.get("page", 1))
-
-    # 7) Paginator
     paginator = Paginator(qs, per_page)
     page_obj = paginator.get_page(page)
 
-    # 8) 블록 페이징
+    # 블록 페이징
     block_size = 5
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-
+    block_end = min(block_start + block_size - 1, paginator.num_pages)
     block_range = range(block_start, block_end + 1)
+
+    # 템플릿용 마감 상태
+    for obj in page_obj:
+        es = getattr(obj, "endstatus", None)
+        obj.is_closed = (es and es.end_stat == 1)
+
+
+
+
 
     context = {
         "page_obj": page_obj,
         "paginator": paginator,
-        "per_page": per_page,
         "page": page,
+        "per_page": per_page,
         "sort": sort,
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
-
-        # 검색값 유지용
         "search_type": search_type,
         "keyword": keyword,
         "sido": sido,
         "sigungu": sigungu,
+        "status": status,
+        "block_range": block_range,
+        "block_start": block_start,
+        "block_end": block_end,
     }
 
     return render(request, "recruitment_list.html", context)
-
 
 
 def write(request):
@@ -223,30 +318,126 @@ def update(request, pk):
 
 
 
+# def detail(request, pk):
+#     # 0) 로그인 체크
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         messages.error(request, "로그인이 필요합니다.")
+#         return redirect("/login/")
+
+#     login_member = None
+#     if user_id:
+#         try:
+#             login_member = Member.objects.get(user_id=user_id)
+#         except Member.DoesNotExist:
+#             login_member = None
+
+#     # 관리자 여부 확인
+#     manager_id = request.session.get('manager_id')
+#     is_manager = manager_id == 1 if manager_id else False
+
+#     # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+#     try:
+#         if is_manager:
+#             recruit = Community.objects.get(pk=pk)
+#         else:
+#             recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
+#     except Community.DoesNotExist:
+#         raise Http404("존재하지 않는 모집글입니다.")
+
+#     # 조회수 증가
+#     recruit.view_cnt += 1
+#     recruit.save()
+
+#     # 글 작성자인지 여부
+#     is_owner = (login_member is not None and recruit.member_id == login_member)
+
+#     # ✅ 참여자 공통 queryset
+#     joins_qs = JoinStat.objects.filter(community_id=recruit)
+
+#     # ✅ 인원 수 집계
+#     total_join_count = joins_qs.count()
+#     approved_count = joins_qs.filter(join_status=1).count()
+#     waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
+
+#     # ✅ 정원/마감 여부 (인원 기준)
+#     capacity = recruit.num_member or 0
+#     is_full = capacity > 0 and approved_count >= capacity
+#     remaining_slots = max(capacity - approved_count, 0)
+
+#     # ✅ EndStatus 기준 수동 마감 여부
+#     try:
+#         end_status = EndStatus.objects.get(community=recruit)
+#         is_closed = (end_status.end_stat == 1)
+#     except EndStatus.DoesNotExist:
+#         end_status = None
+#         is_closed = False
+
+#     # 둘 중 하나라도 true면 화면에서는 “모집 마감”
+#     is_closed_or_full = is_full or is_closed
+
+#     # ✅ 상세 목록은 소유자/관리자에게만
+#     join_list = []
+#     if is_owner or is_manager:
+#         join_list = (
+#             joins_qs
+#             .select_related("member_id")
+#             .order_by("join_status", "member_id__user_id")
+#         )
+
+#     # ✅ 댓글 목록
+#     comments = Comment.objects.filter(
+#         community_id=recruit,
+#         delete_date__isnull=True
+#     ).order_by("reg_date")
+
+#     # 삭제 여부 확인
+#     is_deleted = recruit.delete_date is not None
+
+#     context = {
+#         "recruit": recruit,
+#         "is_owner": is_owner,
+#         "is_manager": is_manager,
+#         "join_list": join_list,
+
+#         "total_join_count": total_join_count,
+#         "approved_count": approved_count,
+#         "waiting_rejected_count": waiting_rejected_count,
+
+#         "capacity": capacity,
+#         "is_full": is_full,
+#         "remaining_slots": remaining_slots,
+
+#         "is_closed": is_closed,
+#         "is_closed_or_full": is_closed_or_full,
+
+#         "comments": comments,
+#         "is_deleted": is_deleted,
+#     }
+
+#     return render(request, "recruitment_detail.html", context)
+
+
+
 def detail(request, pk):
-    # 0) 로그인 체크
+    # 로그인 체크
     user_id = request.session.get("user_id")
     if not user_id:
         messages.error(request, "로그인이 필요합니다.")
         return redirect("/login/")
 
-    login_member = None
-    if user_id:
-        try:
-            login_member = Member.objects.get(user_id=user_id)
-        except Member.DoesNotExist:
-            login_member = None
+    login_member = Member.objects.filter(user_id=user_id).first()
 
-    # 관리자 여부 확인
+    # 관리자 여부
     manager_id = request.session.get('manager_id')
-    is_manager = manager_id == 1 if manager_id else False
+    is_manager = (manager_id == 1)
 
-    # 모집글 조회 (관리자는 삭제된 게시글도 볼 수 있음)
+    # 모집글 조회
     try:
-        if is_manager:
-            recruit = Community.objects.get(pk=pk)
-        else:
-            recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
+        recruit = Community.objects.get(
+            pk=pk,
+            delete_date__isnull=True
+        )
     except Community.DoesNotExist:
         raise Http404("존재하지 않는 모집글입니다.")
 
@@ -254,34 +445,40 @@ def detail(request, pk):
     recruit.view_cnt += 1
     recruit.save()
 
-    # 글 작성자인지 여부
-    is_owner = (login_member is not None and recruit.member_id == login_member)
-
-    # ✅ 참여자 공통 queryset
+    # 참여자 목록
     joins_qs = JoinStat.objects.filter(community_id=recruit)
 
-    # ✅ 인원 수 집계
-    total_join_count = joins_qs.count()
+    # 승인된 인원만 count
     approved_count = joins_qs.filter(join_status=1).count()
-    waiting_rejected_count = joins_qs.filter(join_status__in=[0, 2]).count()
-
-    # ✅ 정원/마감 여부 (인원 기준)
     capacity = recruit.num_member or 0
-    is_full = capacity > 0 and approved_count >= capacity
-    remaining_slots = max(capacity - approved_count, 0)
 
-    # ✅ EndStatus 기준 수동 마감 여부
-    try:
-        end_status = EndStatus.objects.get(community=recruit)
-        is_closed = (end_status.end_stat == 1)
-    except EndStatus.DoesNotExist:
-        end_status = None
-        is_closed = False
+    # -------------------------
+    # 🔥 자동 마감 처리 로직 (핵심)
+    # -------------------------
+    end_status, created = EndStatus.objects.get_or_create(
+        community=recruit,
+        defaults={
+            "end_set_date": timezone.now().date(),
+            "end_stat": 0,
+        }
+    )
 
-    # 둘 중 하나라도 true면 화면에서는 “모집 마감”
-    is_closed_or_full = is_full or is_closed
+    # 승인된 인원이 정원 이상이면 자동 마감
+    if approved_count >= capacity and capacity > 0:
+        if end_status.end_stat != 1:  
+            end_status.end_stat = 1
+            end_status.end_date = timezone.now().date()
+            end_status.save()
 
-    # ✅ 상세 목록은 소유자/관리자에게만
+    # -------------------------
+    # 최종 마감 여부
+    # -------------------------
+    is_closed = (end_status.end_stat == 1)
+
+    # 소유자 여부
+    is_owner = (login_member and recruit.member_id == login_member)
+
+    # 상세 참여 리스트 (owner/관리자만)
     join_list = []
     if is_owner or is_manager:
         join_list = (
@@ -290,34 +487,20 @@ def detail(request, pk):
             .order_by("join_status", "member_id__user_id")
         )
 
-    # ✅ 댓글 목록
     comments = Comment.objects.filter(
         community_id=recruit,
         delete_date__isnull=True
     ).order_by("reg_date")
-
-    # 삭제 여부 확인
-    is_deleted = recruit.delete_date is not None
 
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
         "is_manager": is_manager,
         "join_list": join_list,
-
-        "total_join_count": total_join_count,
         "approved_count": approved_count,
-        "waiting_rejected_count": waiting_rejected_count,
-
         "capacity": capacity,
-        "is_full": is_full,
-        "remaining_slots": remaining_slots,
-
         "is_closed": is_closed,
-        "is_closed_or_full": is_closed_or_full,
-
         "comments": comments,
-        "is_deleted": is_deleted,
     }
 
     return render(request, "recruitment_detail.html", context)

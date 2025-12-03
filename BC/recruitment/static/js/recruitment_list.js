@@ -82,8 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     /* ---------- 요소 가져오기 ---------- */
     const sidoEl     = document.getElementById("sido");
     const sigunguEl  = document.getElementById("sigungu");
-    const perPageEl  = document.getElementById("perPageSelect");
-    const sortEl     = document.getElementById("sortSelect");
+
 
     /* ===========================
        1) 시/도 / 구·군 셀렉터 처리
@@ -139,33 +138,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    /* ===========================
-       2) 페이지당 개수(per_page) 처리
-       =========================== */
-    if (perPageEl) {
-        const nowPer = params.get("per_page") || "15";
-        perPageEl.value = nowPer;
+    const searchForm = document.getElementById("searchForm");
+    const sortSelect = document.getElementById("sortSelect");
+    const perPageSelect = document.getElementById("perPageSelect");
+    const statusSelect = document.getElementById("statusFilter"); // 🔹 추가
 
-        perPageEl.addEventListener("change", function () {
-            const newParams = new URLSearchParams(window.location.search);
-            newParams.set("per_page", this.value);
-            newParams.set("page", 1); 
-            window.location.search = newParams.toString();
+    if (sortSelect) {
+        sortSelect.addEventListener("change", () => {
+            searchForm.submit();
         });
     }
 
-    /* ===========================
-       3) sort 처리 (정렬 유지)
-       =========================== */
-    if (sortEl) {
-        const nowSort = params.get("sort") || "recent";
-        sortEl.value = nowSort;
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", () => {
+            searchForm.submit();
+        });
+    }
 
-        sortEl.addEventListener("change", function () {
-            const newParams = new URLSearchParams(window.location.search);
-            newParams.set("sort", this.value);
-            newParams.set("page", 1); // 정렬 바꾸면 1페이지로
-            window.location.search = newParams.toString();
+    if (statusSelect) {
+        statusSelect.addEventListener("change", () => {
+            searchForm.submit();
         });
     }
 

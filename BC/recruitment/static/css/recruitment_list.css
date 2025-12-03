@@ -209,6 +209,20 @@
     margin-bottom: var(--spacing-md);
 }
 
+/* 왼쪽 묶음: 정렬 + 모집상태 */
+.sort-left-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* 오른쪽 묶음: 페이지당 개수 */
+.sort-right-group {
+    display: flex;
+    align-items: center;
+}
+
+
 .sort-page-container .search-dropdown {
     min-width: 140px;
 }
