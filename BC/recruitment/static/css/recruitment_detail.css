@@ -518,3 +518,26 @@
         margin-top: 6px;
     }
 }
+
+
+.chat-section {
+    margin-top: 25px;
+}
+
+.chat-box {
+    background: #f1f1f1;
+    /* border: 1px solid #cdd9ff; */
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.chat-link {
+    color: #2f5c9c;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.chat-link:hover {
+    color: #3e6fb3;
+}

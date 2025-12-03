@@ -147,11 +147,6 @@ def write(request):
             .filter(member=member, delete_date__isnull=True)
             .order_by("-reg_date")
         )
-
-
-
-
-
         
         my_slots = (
             TimeSlot.objects
@@ -193,6 +188,7 @@ def write(request):
 
     # 2) POST 처리
     if request.method == "POST":
+        print("POST data:", request.POST)
         title = request.POST.get("title")
         region = request.POST.get("sido")
         region2 = request.POST.get("sigungu")
@@ -201,9 +197,18 @@ def write(request):
         contents = request.POST.get("content")
         chat_url = request.POST.get("openchat_url") or None
 
+        reservation_id = request.POST.get("reservation_choice")
+        if reservation_id:
 
+            time_slot = TimeSlot.objects.select_related("facility_id").get(
+                reservation_id_id=reservation_id,  # 컬럼이 reservation_id_id 이니까 이렇게
+                delete_yn=0,                       # 필요하면 조건 추가
+            )
+            facility = time_slot.facility_id  # FK 필드 이름에 맞게 (예: facility, facility_id)
 
-
+            region = facility.sido        # facility_info.sido
+            region2 = facility.sigugun    # facility_info.sigungu
+            
         # 시설(예약) 선택 값
         reservation_id = request.POST.get("reservation_choice")
 
@@ -298,10 +303,6 @@ def update(request, pk):
 
 
 
-
-
-
-
 # recruitment/views.py
 
 
@@ -335,7 +336,7 @@ def detail(request, pk):
 
     # 참여자 목록
     joins_qs = JoinStat.objects.filter(community_id=recruit)
-
+    waiting_count= joins_qs.count()
     # 승인된 인원만 count
     approved_count = joins_qs.filter(join_status=1).count()
     capacity = recruit.num_member or 0
@@ -380,6 +381,8 @@ def detail(request, pk):
         delete_date__isnull=True
     ).order_by("reg_date")
 
+
+
     context = {
         "recruit": recruit,
         "is_owner": is_owner,
@@ -389,6 +392,7 @@ def detail(request, pk):
         "capacity": capacity,
         "is_closed": is_closed,
         "comments": comments,
+        "waiting_rejected_count":waiting_count,
     }
 
     return render(request, "recruitment_detail.html", context)
@@ -398,14 +402,10 @@ def detail(request, pk):
 
 
 def delete(request, pk):
-    # 0) 로그인 체크
-    user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
 
     # 1) 세션 user_id 로 Member 조회
     try:
+        user_id = request.session.get("user_id")
         member = Member.objects.get(user_id=user_id)
     except Member.DoesNotExist:
         request.session.flush()
@@ -419,9 +419,9 @@ def delete(request, pk):
         raise Http404("존재하지 않는 글입니다.")
 
     # 3) 작성자 본인 확인 (URL로 악의적 접근 방지)
-    if community.member_id != member:
-        messages.error(request, "작성자만 글을 삭제할 수 있습니다.")
-        return redirect("recruitment_detail", pk=pk)
+    if member.user_id !='admin':
+        messages.error(request, "관리자만 글을 삭제할 수 있습니다.")
+        return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 4) soft delete
     community.delete_date = timezone.now()

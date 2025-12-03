@@ -71,7 +71,19 @@
     <!-- 본문 -->
     <div class="detail-content-box">{{ recruit.contents|linebreaksbr }}</div>
 
-
+    <section class="chat-section">
+        {% if recruit.chat_url %}
+        <div class="chat-box">
+            <a href="{{ recruit.chat_url }}" target="_blank" class="chat-link">
+                👉 오픈채팅 참여하기
+            </a>         
+        </div>
+        {% else %}
+        <!-- <div class="chat-box">
+        오픈 채팅이 없습니다.
+        </div> -->
+        {% endif %}
+    </section>
 
     <!-- 첨부파일 섹션 -->
     <section class="attach-section">
@@ -124,11 +136,6 @@
             <a href="{% url 'recruitment:recruitment_update' recruit.community_id %}"
                class="detail-btn btn-edit">수정하기</a>
         
-            <a href="{% url 'recruitment:recruitment_delete' recruit.community_id %}"
-               class="detail-btn btn-delete"
-               onclick="return confirm('정말 삭제하시겠습니까?');">
-                삭제
-            </a>
         {% else %}
             {% if is_deleted %}
                 <span class="detail-btn btn-join btn-join-closed">
@@ -247,7 +254,7 @@
                 {% for comment in comments %}
                 <li class="comment-item">
                     <div class="comment-meta">
-                        <span class="comment-writer">{{ comment.member_id}}</span>
+                        <span class="comment-writer">{{ comment.member_id.nickname }}{% if is_owner %}😁😁😁😁😁😁{% endif %}</span>
                         <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
                         <!-- TODO: 수정/삭제 버튼 (본인만 표시) -->
                     </div>
