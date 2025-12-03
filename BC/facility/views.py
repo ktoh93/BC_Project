@@ -316,45 +316,45 @@ def kakao_for_map(page_obj):
         # ----------------------------------
         # 1) 원래 DB 좌표가 있으면 최우선 사용
         # ----------------------------------
-        if fac.get("lat") and fac.get("lng"):
-            lat = fac["lat"]
-            lng = fac["lng"]
+        # if fac.get("lat") and fac.get("lng"):
+        #     lat = fac["lat"]
+        #     lng = fac["lng"]
         
-        else:
+        # else:
             # -------------------------------
             # 2) 캐시 조회
             # -------------------------------
-            if clean_addr_text:
-                cached = _get_cached_geo(clean_addr_text)
-                if cached:
-                    lat, lng = cached
+        if clean_addr_text:
+            cached = _get_cached_geo(clean_addr_text)
+            if cached:
+                lat, lng = cached
 
             # -------------------------------
             # 3) 카카오 지오코딩 호출
             # -------------------------------
-            if headers and clean_addr_text and (lat is None or lng is None):
-                try:
-                    resp = requests.get(
-                        "https://dapi.kakao.com/v2/local/search/address.json",
-                        params={"query": clean_addr_text},
-                        headers=headers,
-                        timeout=3,
-                    )
-                    docs = resp.json().get("documents")
+        if headers and clean_addr_text and (lat is None or lng is None):
+            try:
+                resp = requests.get(
+                    "https://dapi.kakao.com/v2/local/search/address.json",
+                    params={"query": clean_addr_text},
+                    headers=headers,
+                    timeout=3,
+                )
+                docs = resp.json().get("documents")
 
-                    if docs:
-                        lat = float(docs[0]["y"])
-                        lng = float(docs[0]["x"])
-                        _set_cached_geo(clean_addr_text, lat, lng)
+                if docs:
+                    lat = float(docs[0]["y"])
+                    lng = float(docs[0]["x"])
+                    _set_cached_geo(clean_addr_text, lat, lng)
 
-                except Exception as e:
-                    print("[지오코딩 오류]", e)
+            except Exception as e:
+                print("[지오코딩 오류]", e)
 
             # -------------------------------
             # 4) 여전히 좌표가 없으면 시군구 fallback
             # -------------------------------
-            if lat is None or lng is None:
-                lat, lng = get_sigungu_center(fac["sido"], fac["sigungu"])
+        if lat is None or lng is None:
+            lat, lng = get_sigungu_center(fac["sido"], fac["sigungu"])
 
         # 최종 좌표 부여
         fac["lat"] = lat
@@ -491,13 +491,13 @@ def facility_detail(request, fk):
         # ======================================================
         # 5) 좌표 보완 (카카오 지오코딩)
         # ======================================================
-        if not r_data["lat"] or not r_data["lng"]:
-            try:
-                geo_fixed = kakao_for_map([r_data])[0]
-                r_data["lat"] = geo_fixed["lat"]
-                r_data["lng"] = geo_fixed["lng"]
-            except:
-                print("카카오 지오코딩 실패 → 좌표 없음")
+        #if not r_data["lat"] or not r_data["lng"]:
+        try:
+            geo_fixed = kakao_for_map([r_data])[0]
+            r_data["lat"] = geo_fixed["lat"]
+            r_data["lng"] = geo_fixed["lng"]
+        except:
+            print("카카오 지오코딩 실패 → 좌표 없음")
 
         # ======================================================
         # 6) 댓글 조회
