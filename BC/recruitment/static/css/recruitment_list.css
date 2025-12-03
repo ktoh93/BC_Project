@@ -319,7 +319,7 @@
 /* 제목 */
 .col-title a {
     text-decoration: none;
-    color: #2f5c9c;
+    color: var(--color-text-primary);
     font-size: 0.9rem;
 }
 

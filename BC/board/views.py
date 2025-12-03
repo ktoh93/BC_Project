@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
@@ -22,18 +22,28 @@ def notice(request):
         now = timezone.now()
         category = get_category_by_type('notice')
         
-        # 기간 필터링: 현재 시간이 start_date 이후이고 end_date 이전인 게시글만
-        # always_on=0 (상시표시)인 경우는 기간 제한 무시
-        articles = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
-        ).filter(
-            Q(always_on=0) |  # 상시표시는 항상 표시
-            Q(
-                Q(start_date__isnull=True) | Q(start_date__lte=now),  # 시작일이 없거나 현재 시간 이후
-                Q(end_date__isnull=True) | Q(end_date__gte=now)      # 종료일이 없거나 현재 시간 이전
+        articles = (
+            Article.objects
+            .select_related('member_id', 'category_id')
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
             )
-        ).order_by('-reg_date')
+            .filter(
+                Q(always_on=0) |
+                Q(
+                    Q(start_date__isnull=True) | Q(start_date__lte=now),
+                    Q(end_date__isnull=True) | Q(end_date__gte=now)
+                )
+            )
+            .annotate(
+                comment_count=Count(
+                    "comment",
+                    filter=Q(comment__delete_date__isnull=True)
+                )  # 🔥 댓글 개수
+            )
+            .order_by('-reg_date')
+        )
         
         # 상단 고정 게시글 (always_on=0) - 고정 섹션용
         pinned_articles = articles.filter(always_on=0).order_by('-reg_date')[:5]
@@ -73,6 +83,7 @@ def notice(request):
         for article in pinned_articles:
             pinned_posts.append({
                 'id': article.article_id,
+                'comment_count': article.comment_count,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
                 'is_admin': article.member_id.member_id == 1 if article.member_id else False,
@@ -121,18 +132,28 @@ def event(request):
         now = timezone.now()
         category = get_category_by_type('event')
         
-        # 기간 필터링: 현재 시간이 start_date 이후이고 end_date 이전인 게시글만
-        # always_on=0 (상시표시)인 경우는 기간 제한 무시
-        articles = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
-        ).filter(
-            Q(always_on=0) |  # 상시표시는 항상 표시
-            Q(
-                Q(start_date__isnull=True) | Q(start_date__lte=now),  # 시작일이 없거나 현재 시간 이후
-                Q(end_date__isnull=True) | Q(end_date__gte=now)      # 종료일이 없거나 현재 시간 이전
+        articles = (
+            Article.objects
+            .select_related('member_id', 'category_id')
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
             )
-        ).order_by('-reg_date')
+            .filter(
+                Q(always_on=0) |
+                Q(
+                    Q(start_date__isnull=True) | Q(start_date__lte=now),
+                    Q(end_date__isnull=True) | Q(end_date__gte=now)
+                )
+            )
+            .annotate(
+                comment_count=Count(
+                    "comment",
+                    filter=Q(comment__delete_date__isnull=True)
+                )
+            )
+            .order_by('-reg_date')
+        )
         
         # 상단 고정 게시글 (always_on=0) - 고정 섹션용
         pinned_articles = articles.filter(always_on=0).order_by('-reg_date')[:5]
@@ -172,6 +193,7 @@ def event(request):
         for article in pinned_articles:
             pinned_posts.append({
                 'id': article.article_id,
+                'comment_count': article.comment_count,
                 'title': article.title,
                 'author': article.member_id.nickname if article.member_id else '',
                 'is_admin': article.member_id.member_id == 1 if article.member_id else False,
@@ -218,10 +240,21 @@ def post(request):
     # DB에서 게시글 조회
     try:
         category = get_category_by_type('post')
-        articles = Article.objects.select_related('member_id', 'category_id').filter(
-            category_id=category,
-            delete_date__isnull=True
-        ).order_by('-reg_date')
+        articles = (
+            Article.objects
+            .select_related('member_id', 'category_id')
+            .filter(
+                category_id=category,
+                delete_date__isnull=True
+            )
+            .annotate(
+                comment_count=Count(
+                    "comment",
+                    filter=Q(comment__delete_date__isnull=True)
+                )
+            )
+            .order_by('-reg_date')
+        )
     except (Category.DoesNotExist, Exception):
         # 카테고리가 없으면 더미 데이터 사용
         articles = []

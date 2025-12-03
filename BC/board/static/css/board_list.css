@@ -340,6 +340,13 @@
 }
 
 /* 작성자 */
+.facility-author {
+    display: inline-flex;       /* 텍스트 + 아이콘을 한 줄 배치 */
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;        /* 줄바꿈 금지 */
+}
+
 /* 관리자 배지 스타일 (게시글 목록) - 구체적인 선택자로 우선순위 확보 */
 .page-board-list .facility-author.admin-badge {
     color: #d9534f;

@@ -107,7 +107,7 @@
     <!-- 헤더 -->
     <div class="facility-header">
         <span class="facility-col col-no">번호</span>
-        <span class="facility-col col-title">제목 (댓글)</span>
+        <span class="facility-col col-title">제목</span>
         <span class="facility-col col-num">모집인원</span>
         <span class="facility-col col-status">마감여부</span>
         <span class="facility-col col-writer">작성자</span>
@@ -126,10 +126,9 @@
 
                 <!-- 제목 -->
                 <span class="facility-col col-title">
-                    <b><a href="{% url 'recruitment:recruitment_detail' item.pk %}">
-                        {{ item.title }}
-                    </a></b>
-                    <span class="comment-badge"> ({{ item.comment_count }}) </span>
+                    <a href="{% url 'recruitment:recruitment_detail' item.pk %}">
+                        {{ item.title }} ({{ item.comment_count }})
+                    </a>
                 </span>
 
                 

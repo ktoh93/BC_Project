@@ -52,9 +52,9 @@
                             <li class="facility-item pinned-item">
                                 <span class="pinned-badge">고정</span>
                                 <span class="facility-order">{{ forloop.counter }}</span>
-                                <a href="/board/event/{{ item.id }}/" class="facility-title">{{ item.title }}</a>
+                                <a href="/board/event/{{ item.id }}/" class="facility-title">{{ item.title }} ({{ item.comment_count }})</a>
                                 <span class="facility-author">
-                                    {{ item.author }}{% if item.is_admin %} 👑{% endif %}
+                                    {{ item.author }}{% if item.is_admin %}👑{% endif %}
                                 </span>
                                 <span class="facility-date">{{ item.date }}</span>
                                 <span class="facility-views">{{ item.views }}</span>
@@ -104,7 +104,7 @@
                     {% for article in page_obj %}
                         <li class="facility-item">
                             <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span>
-                            <a href="/board/event/{{ article.article_id }}/" class="facility-title">{{ article.title }}</a>
+                            <a href="/board/event/{{ article.article_id }}/" class="facility-title">{{ article.title }} ({{article.comment_count}})</a>
                             <span class="facility-author {% if article.member_id.member_id == 1 %}admin-badge{% endif %}">
                                 {{ article.member_id.nickname|default:"알 수 없음" }}{% if article.member_id.member_id == 1 %} 👑{% endif %}
                             </span>
