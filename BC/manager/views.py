@@ -1877,11 +1877,10 @@ def banner_edit(request, img_id):
 
         # 새 파일은 없고, delete_flag == "1" 인 경우 → 기존 파일만 삭제
         elif delete_flag == "1":
-            if banner.url:
-                old_path = os.path.join(settings.MEDIA_ROOT, banner.url)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-            banner.url = ""  # 또는 None
+            # 이미지 삭제 후 새 이미지가 없으면 에러
+            messages.error(request, "이미지를 삭제하셨습니다. 새 이미지를 첨부해주세요.")
+            return render(request, "banner_edit.html", {"banner": banner})
+        # 새 파일도 없고 삭제 플래그도 없는 경우는 그대로 유지
 
         banner.save()
         return redirect("banner_manager")

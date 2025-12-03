@@ -1,66 +1,30 @@
 /* -----------------------------------------------------
-   배너 관리 전용 테이블 & 버튼 전부 고정 스타일
+   배너 관리 전용 테이블 스타일만 유지
+   (버튼, 페이징, 기본 헤더 스타일은 facility_add_manager.css에서 관리)
 ------------------------------------------------------ */
 
-/* 번호 */
-.facility-table th:nth-child(1),
-.facility-table td:nth-child(1) {
-    width: 60px;
-    text-align: center;
-}
-
-/* 체크박스 */
-.facility-table th:nth-child(2),
-.facility-table td:nth-child(2) {
-    width: 60px;
-    text-align: center;
-}
-
-/* 이미지 정보: 가운데 정렬 */
-.facility-table th:nth-child(3),
-.facility-table td:nth-child(3) {
-    text-align: center;
-}
-
-/* 등록일 */
+/* 등록일: 가운데 정렬 및 너비 지정 */
 .facility-table th:nth-child(4),
 .facility-table td:nth-child(4) {
     width: 180px;
     text-align: center;
 }
 
-/* 링크 자체 가운데 정렬 */
-.detail-link {
-    display: inline-block;
+/* 종료일: 가운데 정렬 및 너비 지정 */
+.facility-table th:nth-child(5),
+.facility-table td:nth-child(5) {
+    width: 180px;
     text-align: center;
 }
 
-
-/* -----------------------------------------------------
-   버튼
------------------------------------------------------- */
-.btn-area {
-    margin-top: 25px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+/* 링크 스타일 */
+.detail-link {
+    color: #1A2A43;
+    text-decoration: none;
+    font-weight: 600;
 }
 
-.register-btn,
-.delete-btn {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 15px;
-    cursor: pointer;
-    border: none;
-}
-
-.register-btn {
-    background: #2F5C9C;
-    color: white;
-}
-
-.delete-btn {
-    background: #d9534f;
-    color: #fff;
+.detail-link:hover {
+    color: #2F5C9C;
+    text-decoration: underline;
 }

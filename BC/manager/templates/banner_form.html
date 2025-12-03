@@ -32,13 +32,13 @@
     <!-- 제목 -->
     <div class="form-group full-row">
         <label class="form-label">제목</label>
-        <input type="text" name="title" class="form-input" placeholder="제목 입력" >
+        <textarea name="title" class="form-textarea" placeholder="제목 입력" rows="3"></textarea>
     </div>
 
     <!-- 내용 -->
     <div class="form-group full-row">
         <label class="form-label">내용</label>
-        <input type="text" name="context" class="form-input" placeholder="내용 입력" >
+        <textarea name="context" class="form-textarea" placeholder="내용 입력" rows="3"></textarea>
     </div>
 
     <!-- 상태 라디오 -->
@@ -108,7 +108,25 @@ document.addEventListener("DOMContentLoaded", function () {
             if (fileInput.files.length > 0) {
                 const item = document.createElement("div");
                 item.className = "file-item";
-                item.innerHTML = "<span>" + fileInput.files[0].name + "</span>";
+                
+                const fileName = document.createElement("span");
+                fileName.className = "file-item-name";
+                fileName.textContent = fileInput.files[0].name;
+                
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.className = "file-item-remove";
+                removeBtn.textContent = "✕";
+                removeBtn.title = "업로드 취소";
+                removeBtn.addEventListener("click", function() {
+                    // 파일 input 초기화
+                    fileInput.value = "";
+                    // 파일 리스트 비우기
+                    fileList.innerHTML = "";
+                });
+                
+                item.appendChild(fileName);
+                item.appendChild(removeBtn);
                 fileList.appendChild(item);
             }
         });

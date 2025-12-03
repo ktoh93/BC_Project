@@ -158,30 +158,28 @@
 }
 
 .facility-table-header th {
-    background: var(--color-background);
-    color: var(--color-text-primary);
-    border-bottom: 2px solid var(--color-soft-gray-line);
-    padding: var(--spacing-sm);
+    background: #F5F7FA;
+    color: #1A2A43;
+    border-bottom: 2px solid #d6dce3;
+    padding: 12px 8px;
     text-align: center;
     font-weight: 600;
+    font-size: 15px;
 }
 
 .facility-table td {
-    border-bottom: 1px solid var(--color-soft-gray-line);
-    padding: var(--spacing-sm);
-    color: var(--color-text-secondary);
+    border-bottom: 1px solid #e5e9f0;
+    padding: 12px 10px;
+    color: #4c5c68;
 }
 
 .facility-table td:nth-child(1),
 .facility-table td:nth-child(2) {
     text-align: center;
-    color: var(--color-text-primary);
+    color: #1A2A43;
+    font-weight: 600;
 }
 
-.facility-table td:nth-child(3),
-.facility-table td:nth-child(4) {
-    text-align: left;
-}
 
 .facility-table tbody tr:nth-child(odd) {
     background: #FAFCFF;
@@ -251,31 +249,30 @@
 /* 테이블 컬럼 비율 */
 .facility-table th:nth-child(1),
 .facility-table td:nth-child(1) {
-    width: 80px;
+    width: 50px;
     text-align: center;
 }
 
 .facility-table th:nth-child(2),
 .facility-table td:nth-child(2) {
-    width: 60px;
+    width: 50px;
     text-align: center;
 }
 
-.facility-table th:nth-child(3),
 .facility-table td:nth-child(3) {
-    width: 300px;
-    text-align: left;
+    font-weight: 600;
+    color: #1A2A43;
 }
 
 .facility-table th:nth-child(4),
 .facility-table td:nth-child(4) {
-    width: 150px;
-    text-align: left;
+    width: 120px;
+    text-align: center;
 }
 
 .facility-table th:nth-child(5),
 .facility-table td:nth-child(5) {
-    width: 140px;
+    width: 180px;
     text-align: center;
 }
 
