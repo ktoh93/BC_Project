@@ -267,3 +267,19 @@
 .password-btn-box {
   justify-content: center;
 }
+
+.info-group-phone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.info-group-phone input {
+  flex: 1;
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #d5d9e0;
+}

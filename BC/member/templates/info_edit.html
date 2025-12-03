@@ -4,7 +4,6 @@
 <link rel="stylesheet" href="{% static 'css/mypage_base.css' %}" />
 <link rel="stylesheet" href="{% static 'css/mypage_info_edit.css' %}" />
 <style>
-/* 토스트 메시지 스타일 */
 .toast {
     position: fixed;
     top: 20px;
@@ -20,141 +19,62 @@
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     overflow: hidden;
 }
-
-.toast.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.toast-content {
-    display: flex;
-    align-items: center;
-    padding: 16px 20px;
-    gap: 12px;
-}
-
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast-content { display: flex; align-items: center; padding: 16px 20px; gap: 12px; }
 .toast-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    flex-shrink: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 14px; flex-shrink: 0;
 }
-
-.toast-message {
-    flex: 1;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #1A2A43;
-}
-
-/* 성공 토스트 */
-.toast-success {
-    border-left: 4px solid #2ecc71;
-}
-
-.toast-success .toast-icon {
-    background-color: #2ecc71;
-    color: white;
-}
-
-/* 에러 토스트 */
-.toast-error {
-    border-left: 4px solid #e74c3c;
-}
-
-.toast-error .toast-icon {
-    background-color: #e74c3c;
-    color: white;
-}
-
-/* 반응형 */
+.toast-message { flex: 1; font-size: 14px; line-height: 1.5; color: #1A2A43; }
+.toast-success { border-left: 4px solid #2ecc71; }
+.toast-success .toast-icon { background-color: #2ecc71; color: white; }
+.toast-error { border-left: 4px solid #e74c3c; }
+.toast-error .toast-icon { background-color: #e74c3c; color: white; }
 @media (max-width: 768px) {
-    .toast {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        min-width: auto;
-        max-width: none;
-        transform: translateY(-100px);
-    }
-    
-    .toast.show {
-        transform: translateY(0);
-    }
+    .toast { top: 10px; right: 10px; left: 10px; min-width: auto; max-width: none; transform: translateY(-100px);}
+    .toast.show { transform: translateY(0); }
 }
-
-/* 버튼 로딩 상태 */
-.btn-edit-complete:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+.btn-edit-complete:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
 {% endblock %}
 
 {% block script1 %}
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
-    // URL 변수 선언
     const MEMBER_EDIT_URL = '{% url "member:edit" %}';
     const MEMBER_INFO_URL = '{% url "member:info" %}';
 </script>
 <script src="{% static 'js/info_edit.js' %}"></script>
-<script>
-    // 로드 확인
-    console.log("info_edit.html 템플릿 로드됨");
-    window.addEventListener('load', function() {
-        const form = document.querySelector(".mypage-form");
-        console.log("페이지 로드 완료, 폼:", form);
-        if (form) {
-            console.log("폼 action:", form.action);
-            console.log("폼 method:", form.method);
-        }
-    });
-</script>
 {% endblock %}
 
-{% block title %}
-mypage base
-{% endblock %}
 {% block contents %}
-<!-- 회원가입 컨테이너 -->
 <div class="register-container">
   <div class="register-wrapper">
 
-    <!-- PC 브랜딩 -->
     <div class="register-brand">
       <h2>My Page</h2>
       <ul class="register-brand-features">
         <li><a href="{% url 'member:info' %}" class="{% if request.path == '/member/info/' or request.path == '/member/edit/' %}active{% endif %}">내 정보</a></li>
-        <li><a href="{% url 'member:myreservation' %}" class="{% if request.path == '/member/myreservation/' %}active{% endif %}">내 예약 내역</a></li>
-        <li><a href="{% url 'member:myrecruitment' %}" class="{% if request.path == '/member/myrecruitment/' %}active{% endif %}">내 모집글</a></li>
-        <li><a href="{% url 'member:myarticle' %}" class="{% if request.path == '/member/myarticle/' %}active{% endif %}">내 게시글</a></li>
-        <li><a href="{% url 'member:myjoin' %}" class="{% if request.path == '/member/myjoin/' %}active{% endif %}">내 참여 내역</a></li>
+        <li><a href="{% url 'member:myreservation' %}">내 예약 내역</a></li>
+        <li><a href="{% url 'member:myrecruitment' %}">내 모집글</a></li>
+        <li><a href="{% url 'member:myarticle' %}">내 게시글</a></li>
+        <li><a href="{% url 'member:myjoin' %}">내 참여 내역</a></li>
       </ul>
     </div>
 
-    <!-- 내용 담을 컨테이너 -->
-
-    <!-- 컨텐츠 내용 -->
     <main class="main">
-
     <h2>마이페이지 > 정보 수정</h2>
 
     <section class="mypage-profile">
-
         <form class="mypage-form" method="post" action="{% url 'member:edit' %}">
             {% csrf_token %}
 
-            <!-- 기본 정보 -->
             <div class="info-group">
                 <label>이름</label>
                 <input type="text" name="name" value="{{ name }}" readonly>
             </div>
+
             <div class="info-group">
                 <label>아이디</label>
                 <input type="text" name="user_id" value="{{ user_id }}" readonly>
@@ -170,78 +90,58 @@ mypage base
                 <input type="text" name="birthday" value="{{ birthday }}" readonly>
             </div>
 
+            <!-- 전화번호 3개 input -->
             <div class="info-group">
                 <label>전화번호</label>
-                <input type="text" name="phone" value="{{ phone_num }}">
+                    <div class="info-group-phone">
+                        <input type="text" id="phone1" maxlength="3" class="form-input"
+                            value="{{ phone_num|slice:':3' }}">-
+                        <input type="text" id="phone2" maxlength="4" class="form-input"
+                            value="{{ phone_num|slice:'4:8' }}">-
+                        <input type="text" id="phone3" maxlength="4" class="form-input"
+                            value="{{ phone_num|slice:'9:' }}">
+                    </div>
+                <input type="hidden" id="phone" name="phone" value="{{ phone_num }}">
             </div>
 
-<div class="info-group info-group-address">
-    <label>주소</label>
+            <!-- 주소 영역 (주인님 파일 그대로 유지) -->
+            <div class="info-group info-group-address">
+                <label>주소</label>
+                <div class="address-row">
+                    <div class="form-row" style="margin-bottom: 10px;">
+                        <input type="text" id="address" name="address" class="form-input"
+                           placeholder="주소 검색 버튼을 눌러주세요"
+                           value="{% if addr1 %}{{ addr1 }}{% if addr2 %} {{ addr2 }}{% endif %}{% endif %}"
+                           readonly/>
+                        <button type="button" id="addressSearchBtn" class="check-btn small-btn">
+                            주소 검색
+                        </button>
+                    </div>
 
-    <!-- ✅ 주소 전체를 하나의 컨테이너로 묶기 -->
-    <div class="address-row">
-        <div class="form-row" style="margin-bottom: 10px;">
-            <input
-                type="text"
-                id="address"
-                name="address"
-                class="form-input"
-                placeholder="주소 검색 버튼을 눌러주세요"
-                value="{% if addr1 %}{{ addr1 }}{% if addr2 %} {{ addr2 }}{% endif %}{% endif %}"
-                readonly
-            />
-            <button
-                type="button"
-                id="addressSearchBtn"
-                class="check-btn small-btn"
-            >
-                주소 검색
-            </button>
-        </div>
+                    <input type="text" id="address_detail" name="address_detail"
+                           class="form-input" placeholder="상세주소" value="{{ addr3 }}" style="margin-bottom:10px;">
 
-        <input
-            type="text"
-            id="address_detail"
-            name="address_detail"
-            class="form-input"
-            placeholder="상세주소"
-            value="{{ addr3 }}"
-            style="margin-bottom: 10px;"
-        >
+                    <input type="hidden" id="address_data" name="address_data" value="">
+                    <input type="hidden" id="addr1" name="addr1" value="{{ addr1 }}">
+                    <input type="hidden" id="addr2" name="addr2" value="{{ addr2 }}">
+                    <input type="hidden" id="addr3" name="addr3" value="{{ addr3 }}">
 
-        <!-- 파싱된 주소 저장용 hidden input -->
-        <input type="hidden" id="address_data" name="address_data" value="">
+                    <div class="address-display" style="margin-top:10px; padding:10px; background:#f5f5f5; border-radius:4px;">
+                        <div><strong>시/도:</strong> <span id="display_addr1">{{ addr1 }}</span></div>
+                        <div><strong>구:</strong> <span id="display_addr2">{{ addr2 }}</span></div>
+                        <div><strong>상세주소:</strong> <span id="display_addr3">{{ addr3 }}</span></div>
+                    </div>
+                </div>
+            </div>
 
-        <!-- 기존 파싱된 주소 표시 (읽기 전용) -->
-        <div class="address-display" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-            <div><strong>시/도:</strong> <span id="display_addr1">{{ addr1 }}</span></div>
-            <div><strong>구:</strong> <span id="display_addr2">{{ addr2 }}</span></div>
-            <div><strong>상세주소:</strong> <span id="display_addr3">{{ addr3 }}</span></div>
-        </div>
-    </div>
-</div>
-
-
-            <!-- 버튼 -->
             <div class="mypage-btn-box">
                 <button type="submit" class="btn-edit-complete">수정 완료</button>
             </div>
-
         </form>
-
     </section>
-
-
 
     </main>
 
-
-
-
-
-<!-- mypage내용 담을 container -->
-  </div> <!-- register-wrapper -->
-</div> <!-- register-container -->
-
-
+  </div>
+</div>
 {% endblock %}

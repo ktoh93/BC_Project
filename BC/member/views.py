@@ -50,6 +50,8 @@ def info(request):
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('/login/')
 
+PHONE_PATTERN = re.compile(r'^\d{3}-\d{4}-\d{4}$')
+
 def edit(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
@@ -66,7 +68,6 @@ def edit(request):
         print("받은 데이터:", dict(request.POST))
         print("=" * 50)
         
-        # 수정된 정보 저장
         try:
             user = Member.objects.get(user_id=login_id)
             
@@ -79,11 +80,36 @@ def edit(request):
             new_nickname = request.POST.get('nickname', user.nickname)
             new_phone = request.POST.get('phone', user.phone_num)
             new_addr1 = request.POST.get('addr1', user.addr1)
-            
+
             print(f"닉네임 변경: {old_nickname} -> {new_nickname}")
             print(f"전화번호 변경: {old_phone} -> {new_phone}")
             print(f"주소1 변경: {old_addr1} -> {new_addr1}")
+
+            # -----------------------------
+            # 전화번호 정규식 검증 (signup 동일)
+            # -----------------------------
+            if not PHONE_PATTERN.match(new_phone or ""):
+                error_msg = "전화번호는 010-0000-0000 형식으로 입력해주세요."
+
+                if is_ajax:
+                    return JsonResponse({'success': False, 'message': error_msg})
+                
+                messages.error(request, error_msg)
+                return redirect('member:edit')
+
+            # -----------------------------
+            # 전화번호 중복 검사 (signup 동일)
+            # -----------------------------
+            if Member.objects.filter(phone_num=new_phone).exclude(user_id=login_id).exists():
+                error_msg = "이미 등록된 전화번호입니다."
+
+                if is_ajax:
+                    return JsonResponse({'success': False, 'message': error_msg})
+
+                messages.error(request, error_msg)
+                return redirect('member:edit')
             
+            # 값 업데이트
             user.nickname = new_nickname
             user.phone_num = new_phone
             
@@ -102,32 +128,30 @@ def edit(request):
                     user.addr2 = addr2
                     user.addr3 = addr3
                 except (json.JSONDecodeError, Exception) as e:
-                    # 파싱 실패 시 기존 방식 사용
                     print(f"주소 파싱 오류: {e}")
                     user.addr1 = request.POST.get('addr1', user.addr1)
                     user.addr2 = request.POST.get('addr2', user.addr2)
                     user.addr3 = request.POST.get('addr3', user.addr3)
             else:
-                # 기존 방식 (레거시 지원)
                 user.addr1 = request.POST.get('addr1', user.addr1)
                 user.addr2 = request.POST.get('addr2', user.addr2)
                 user.addr3 = request.POST.get('addr3', user.addr3)
+
             if hasattr(user, 'email'):
                 user.email = request.POST.get('email', user.email)
             
             # DB에 저장
             user.save()
             print("DB 저장 완료")
-            
-            # 저장 확인을 위해 DB에서 다시 조회
+
             user.refresh_from_db()
             print(f"저장 후 DB 닉네임: {user.nickname}")
             print(f"저장 후 DB 전화번호: {user.phone_num}")
             print(f"저장 후 DB 주소1: {user.addr1}")
-            
-            # 세션 정보도 업데이트
+
+            # 세션 업데이트
             request.session['nickname'] = user.nickname
-            request.session.modified = True  # 세션 강제 저장
+            request.session.modified = True
             
             if is_ajax:
                 return JsonResponse({
@@ -144,6 +168,7 @@ def edit(request):
             else:
                 messages.success(request, "정보가 수정되었습니다.")
                 return redirect('member:info')
+
         except Member.DoesNotExist:
             if is_ajax:
                 return JsonResponse({
@@ -154,6 +179,7 @@ def edit(request):
                 messages.error(request, "회원 정보를 찾을 수 없습니다.")
                 return redirect('member:info')
         except Exception as e:
+            print("edit 오류:", e)
             if is_ajax:
                 return JsonResponse({
                     'success': False,
@@ -163,14 +189,13 @@ def edit(request):
                 messages.error(request, "수정 중 오류가 발생했습니다.")
                 return redirect('member:info')
     
-    # GET 요청 - 정보 조회
+    # GET 요청
     try:
         user = Member.objects.get(user_id=login_id)
     except Member.DoesNotExist:
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('member:info')
     
-    # 템플릿으로 전달될 데이터
     context = {
         "name": user.name,
         "user_id": user.user_id,
@@ -184,7 +209,6 @@ def edit(request):
     }
     
     return render(request, 'info_edit.html', context)
-
 def edit_password(request):
     # 로그인 체크
     login_id = request.session.get("user_id")
