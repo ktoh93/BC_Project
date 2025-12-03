@@ -158,7 +158,13 @@ def facility_list(request):
     if cp_nm:
         qs = qs.filter(cp_nm=cp_nm)
     if cpb_nm:
-        qs = qs.filter(cpb_nm=cpb_nm)
+        # '성남시 분당구'가 faci_road_addr에 포함되어 있다면 
+        
+        if not qs.filter(cpb_nm=cpb_nm).exists():
+            qs = qs.filter(faci_road_addr__icontains=cpb_nm)
+        else :
+            qs.filter(cpb_nm=cpb_nm)
+        
     if keyword:
         qs = qs.filter(faci_nm__icontains=keyword)
 
@@ -523,7 +529,7 @@ def facility_detail(request, fk):
             "reserve_message": reserve_message,
             "comments": comments,
         })
-
+ 
     except Exception as e:
         print("[facility_detail ERROR]", e)
         import traceback

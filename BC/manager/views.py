@@ -355,9 +355,55 @@ def facility_list(request):
 def facility_detail(request, id):
     facilityInfo = get_object_or_404(FacilityInfo, facility_id=id)
     facility = get_object_or_404(Facility,faci_cd=id )
+
+    # 요일 한국어 매핑 + 순서 정의
+    DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+    KOREAN_DAYS = {
+        "monday": "월요일",
+        "tuesday": "화요일",
+        "wednesday": "수요일",
+        "thursday": "목요일",
+        "friday": "금요일",
+        "saturday": "토요일",
+        "sunday": "일요일",
+    }
+
+    # reservation_time 정렬
+    reservation_list = []
+    rt = facilityInfo.reservation_time or {}
+
+    for day in DAY_ORDER:  # 👉 월요일부터 반복
+        info = rt.get(day, {})
+        reservation_list.append({
+            "day_kr": KOREAN_DAYS[day],
+            "active": info.get("active", False),
+            "open": info.get("open"),
+            "close": info.get("close"),
+            "interval": info.get("interval"),
+        })
+
+
+    comment_objs = Comment.objects.select_related("member_id").filter(
+        facility=id
+    ).order_by("reg_date")
+
+    comments = []
+    for c in comment_objs:
+        comments.append({
+            "comment_id": c.comment_id,
+            "comment": c.comment,
+            "author": c.member_id.nickname if hasattr(c.member_id, 'nickname') else "알 수 없음",
+            "is_admin": (c.member_id.member_id == 1 if c.member_id else False),
+            "reg_date": c.reg_date,
+            "is_deleted": c.delete_date is not None,
+        })
+
     context = {
         "facilityInfo": facilityInfo,
-        "facility" : facility
+        "facility" : facility,
+        "comments" : comments,
+        "reservation_list": reservation_list,
     }
     return render(request, "facility_detail.html", context)
 
@@ -419,7 +465,7 @@ def facility_modify(request, id):
     )
 
     messages.success(request, "시설 정보가 수정되었습니다.")
-    return redirect("facility_detail", id=id)
+    return redirect("facility_detail", id=info.facility_id)
 
 
 @csrf_exempt
