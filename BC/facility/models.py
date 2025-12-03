@@ -18,9 +18,9 @@ class FacilityInfo(models.Model):
     sigugun = models.CharField(max_length=200, null=True, blank=True)
     tel = models.CharField(max_length=50, null=True, blank=True)
     homepage = models.CharField(max_length=200, null=True, blank=True)
-
+    
     reg_date = models.DateTimeField(auto_now_add=True)
-
+    view_cnt = models.IntegerField(default=0)
     class Meta:
         db_table = "facility_info"
 

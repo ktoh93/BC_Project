@@ -24,178 +24,142 @@
 <!-- 서브 컨테이너 -->
 <div class="sub-container page-reservation reveal">
 
-    <div class="sub-content">
-        
-    <!-- 검색 섹션 -->
-        <section class="search-section">
-            <div class="search-controls">
+  <div class="sub-content">
+    <form method="GET" id="searchForm" action="{% url 'reservation_list' %}">
+      <!-- 검색 섹션 -->
+      <section class="search-section">
+        <div class="search-controls">
 
 
-                <!-- 시/도 선택 -->
-                <select id="sido" class="search-dropdown">
-                    <option value="">시/도 선택</option>
-                </select>
+          <!-- 시/도 선택 -->
+          <select id="sido" name="sido" class="search-dropdown">
+            <option value="">시/도 선택</option>
+          </select>
 
-                    <!-- 구/군 선택 -->
-                <select id="sigungu" class="search-dropdown">
-                    <option value="">구/군 선택</option>
-                </select>
+          <!-- 구/군 선택 -->
+          <select id="sigungu" name="sigungu" class="search-dropdown">
+            <option value="">구/군 선택</option>
+          </select>
 
-            </div>
-            <br>
-
-      <!-- 종목 선택 -->
-      <div class="filter-group">
-        <label class="filter-label">종목</label>
-        <div class="filter-options" id="sportOptions">
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="농구">
-            <span>농구</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="야구">
-            <span>야구</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="수영">
-            <span>수영</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="배드민턴">
-            <span>배드민턴</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="탁구">
-            <span>탁구</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="테니스">
-            <span>테니스</span>
-          </label>
-          <label class="filter-radio">
-            <input type="radio" name="sport" value="축구">
-            <span>축구</span>
-          </label>
         </div>
-      </div>
-       
+        <br>
 
-
-
-            <br>
-            <div class="search-input-group">
-                <input type="text" class="search-input" id="searchKeyword" placeholder="검색어를 입력하세요">
-                <button type="button" class="search-btn" id="searchBtn">
-                    <span>🔍</span> 검색
-                </button>
-            </div>
-        </section>
-
-        <section class="search-list-section">
-            
-            <div class="sort-page-container">
-                
-                <!-- 정렬 선택 -->
-                <select class="search-dropdown" id="sortSelect">
-                  <option value="title">제목순</option>
-                  <option value="views">조회수순</option>
-                    <option value="distance">거리순</option>
-                    <option value="rating">별점순</option>
-                </select>
-
-                <!-- <h3 class="section-title">모집글 리스트</h3> -->
-                <!-- 기존 페이지당 개수 선택 -->
-                <div class="page-selector">
-                    <select class="search-dropdown" id="perPageSelect">
-                        <option value="15">15개</option>
-                        <option value="30">30개</option>
-                        <option value="50">50개</option>
-                        <option value="100">100개</option>
-                    </select>
-                </div>
-            </div>
-            <hr class="dividing-line">
-           <div class="facility-list reservation-list" id="facilityList">
-                
-                <!-- 헤더 -->
-                <div class="facility-header">
-                  <span class="facility-title">시/도</span>
-                  <span class="facility-title">구/군</span>
-                  <span class="facility-title">시설명</span>
-                    <span class="facility-title">시설번호</span>
-                    <span class="facility-title">조회수</span>
-                </div>
-
-                
-                
-                <!-- 내용 -->
-                <ul>
-                    {% for item in page_obj %}
-                        <li class="facility-item">
-                            <!-- <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span> -->
-                            <span class="facility-title">{{ item.facility_addr1 }}</span>
-                            <span class="facility-title">{{ item.facility_addr2 }}</span>
-                            <span class="facility-title">{{ item.facility_name }}</span>
-                            <span class="facility-title">{{ item.facility_num }}</span>
-                            <span class="facility-meta">
-                            <span class="facility-views">{{ item.views }}</span>
-                            </span>
-                        </li>
-                    {% empty %}
-                        <li>등록된 시설이 없습니다.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-<!--
-DB 작성후 예시
-<ul>
-  {% for item in recruit_list %}
-    <li class="facility-item">
-      <span class="facility-order">{{ forloop.counter }}</span>
-      <span class="facility-title">{{ item.title }}</span>
-      <span class="facility-meta">
-        <span class="facility-date">{{ item.created_at|date:"Y-m-d" }}</span>
-        <span class="facility-views">조회수 {{ item.views }}</span>
-      </span>
-    </li>
-  {% endfor %}
-</ul>
--->
-
-        </section>
-
-
-
-
-        <div class="pagination">
-
-            <!-- 🔹 이전 블록 -->
-            {% if block_start > 1 %}
-                <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
-            {% else %}
-                <span class="page-btn arrow disabled">◀ 이전</span>
-            {% endif %}
-
-            <!-- 🔹 페이지 번호 5개씩 블록 -->
-            {% for num in block_range %}
-                {% if num == page_obj.number %}
-                    <span class="page-btn active">{{ num }}</span>
-                {% else %}
-                    <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
-                {% endif %}
+        <!-- 종목 선택 -->
+        <div class="filter-group">
+          <label class="filter-label">종목</label>
+          <div class="filter-options" id="sportOptions">
+            {% for s in sportsList %}
+            <label class="filter-radio">
+              <input type="radio" name="sport" value="{{ s.sName }}">
+              <span>{{ s.sName }}</span>
+            </label>
             {% endfor %}
 
-            <!-- 🔹 다음 블록 -->
-            {% if block_end < paginator.num_pages %}
-                <a href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
-            {% else %}
-                <span class="page-btn arrow disabled">다음 ▶</span>
-            {% endif %}
-
+          </div>
         </div>
 
 
+        <br>
+        <div class="search-input-group">
+          <input type="text" class="search-input" id="searchKeyword"  name="keyword" placeholder="검색어를 입력하세요">
+          <button type="button" class="search-btn" id="searchBtn">
+            <span>🔍</span> 검색
+          </button>
+        </div>
+      </section>
+    </form>
+
+    <section class="search-list-section">
+
+      <div class="sort-page-container">
+
+        <!-- 정렬 선택 -->
+        <select class="search-dropdown" id="sortSelect">
+          <option value="title">제목순</option>
+          <option value="views">조회수순</option>
+          <option value="distance">거리순</option>
+          <option value="rating">별점순</option>
+        </select>
+
+        <!-- <h3 class="section-title">모집글 리스트</h3> -->
+        <!-- 기존 페이지당 개수 선택 -->
+        <div class="page-selector">
+          <select class="search-dropdown" id="perPageSelect">
+            <option value="15">15개</option>
+            <option value="30">30개</option>
+            <option value="50">50개</option>
+            <option value="100">100개</option>
+          </select>
+        </div>
+      </div>
+      <hr class="dividing-line">
+      <div class="facility-list reservation-list" id="facilityList">
+
+        <!-- 헤더 -->
+        <div class="facility-header">
+          <span class="facility-sido">시/도</span>
+          <span class="facility-sigungu">구/군</span>
+          <span class="facility-title">시설명</span>
+          <span class="facility-views">조회수</span>
+        </div>
+
+
+
+        <!-- 내용 -->
+        <ul>
+          {% for item in page_obj %}
+          <li class="facility-item">
+            <!-- <span class="facility-order">{{ forloop.counter0|add:page_obj.start_index }}</span> -->
+            <span class="facility-sido">{{ item.sido }}</span>
+            <span class="facility-sigungu">
+               {{ item.sigungu }}
+            </span>
+            <span class="facility-title">
+              <a href="{% url 'reservation_detail' item.id %}">{{ item.name }}</a>
+            </span>
+            <span class="facility-views">{{ item.viewCnt }}</span>
+            </span>
+          </li>
+          {% empty %}
+          <li>등록된 시설이 없습니다.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </section>
+
+
+
+
+    <div class="pagination">
+
+      <!-- 🔹 이전 블록 -->
+      {% if block_start > 1 %}
+      <a href="?page={{ block_start|add:-1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">◀ 이전</a>
+      {% else %}
+      <span class="page-btn arrow disabled">◀ 이전</span>
+      {% endif %}
+
+      <!-- 🔹 페이지 번호 5개씩 블록 -->
+      {% for num in block_range %}
+      {% if num == page_obj.number %}
+      <span class="page-btn active">{{ num }}</span>
+      {% else %}
+      <a href="?page={{ num }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn">{{ num }}</a>
+      {% endif %}
+      {% endfor %}
+
+      <!-- 🔹 다음 블록 -->
+      {% if block_end < paginator.num_pages %} <a
+        href="?page={{ block_end|add:1 }}&per_page={{ per_page }}&sort={{ sort }}" class="page-btn arrow">다음 ▶</a>
+        {% else %}
+        <span class="page-btn arrow disabled">다음 ▶</span>
+        {% endif %}
+
     </div>
+
+
+  </div>
 </div>
 
 
