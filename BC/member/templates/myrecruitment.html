@@ -29,42 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const csrftoken = getCookie('csrftoken');
     const deleteCommunityUrl = '{% url "member:delete_my_community" %}';
-
-    /* 삭제 버튼 클릭 이벤트 */
-    document.querySelectorAll('.mypage-delete-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const communityId = this.getAttribute('data-community-id');
-            
-            if (!confirm('정말 삭제하시겠습니까?')) {
-                return;
-            }
-            
-            fetch(deleteCommunityUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({ community_id: parseInt(communityId) })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    alert('모집글이 삭제되었습니다.');
-                    location.reload();
-                } else {
-                    alert('삭제 중 오류가 발생했습니다: ' + data.msg);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('삭제 중 오류가 발생했습니다.');
-            });
-        });
-    });
 });
 </script>
 {% endblock %}
@@ -137,7 +101,6 @@ mypage base
           <!-- 조회수 필드명 수정 -->
           <span class="col-views">조회수 {{ post.view_cnt }}</span>
         </a>
-        <button type="button" class="mypage-delete-btn" data-community-id="{{ post.community_id }}">삭제</button>
       </div>
     {% empty %}
       <div class="mypage-board-empty">
@@ -146,10 +109,6 @@ mypage base
     {% endfor %}
   </div>
 
-  <!-- 하단 작성 버튼 -->
-  <div class="mypage-board-bottom">
-    <button type="button" class="mypage-write-btn">작성하기</button>
-  </div>
 
 </section>
 

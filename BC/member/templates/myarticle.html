@@ -30,41 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const csrftoken = getCookie('csrftoken');
     const deleteArticleUrl = '{% url "member:delete_my_article" %}';
 
-    /* 삭제 버튼 클릭 이벤트 */
-    document.querySelectorAll('.mypage-delete-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const articleId = this.getAttribute('data-article-id');
-            
-            if (!confirm('정말 삭제하시겠습니까?')) {
-                return;
-            }
-            
-            fetch(deleteArticleUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({ article_id: parseInt(articleId) })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    alert('게시글이 삭제되었습니다.');
-                    location.reload();
-                } else {
-                    alert('삭제 중 오류가 발생했습니다: ' + data.msg);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('삭제 중 오류가 발생했습니다.');
-            });
-        });
-    });
 });
 </script>
 {% endblock %}
@@ -142,7 +107,7 @@ mypage base
           <span class="col-date">{{ article.reg_date|date:"Y-m-d" }}</span>
           <span class="col-views">조회수 {{ article.view_cnt }}</span>
         </a>
-        <button type="button" class="mypage-delete-btn" data-article-id="{{ article.article_id }}">삭제</button>
+
       </div>
     {% empty %}
       <div class="mypage-board-empty">
@@ -151,10 +116,7 @@ mypage base
     {% endfor %}
   </div>
 
-  <!-- 하단 작성 버튼 -->
-  <div class="mypage-board-bottom">
-    <button type="button" class="mypage-write-btn">작성하기</button>
-  </div>
+
 
 </section>
 
