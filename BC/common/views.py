@@ -199,6 +199,7 @@ def login(request):
         request.session["user_id"] = user.user_id
         request.session["user_name"] = user.name
         request.session["nickname"] = user.nickname
+        request.session["is_kakao_user"] = False  # 일반 로그인
 
         # 관리자 체크 (member_id == 1인 경우)
         if user.member_id == 1:
@@ -234,10 +235,55 @@ def login(request):
 
 def logout(request):
     """
-    우리 서비스에서만 로그아웃 (카카오 글로벌 로그아웃 X)
+    로그아웃 처리
+    - 카카오 로그인 사용자: 세션 삭제 후 카카오 로그아웃 페이지로 이동
+    - 일반 로그인 사용자: 세션 삭제 후 메인 페이지로 이동
     """
+    # 로그인하지 않은 경우
+    if not request.session.get('user_id'):
+        return redirect('/')
+    
+    # 카카오 로그인 사용자 여부 확인
+    is_kakao_user = request.session.get('is_kakao_user', False)
+    if not is_kakao_user:
+        user_id = request.session.get('user_id', '')
+        is_kakao_user = user_id.startswith('kakao_') if user_id else False
+    
+    # 카카오 로그인 사용자인 경우: 세션 먼저 삭제 후 카카오 로그아웃 페이지로 이동
+    if is_kakao_user:
+        # 세션의 모든 키를 명시적으로 삭제
+        session_keys = list(request.session.keys())
+        for key in session_keys:
+            del request.session[key]
+        
+        # 세션 완전히 삭제
+        request.session.flush()
+        request.session.set_expiry(0)
+        
+        KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
+        if KAKAO_REST_API_KEY:
+            # 카카오 로그아웃 후 메인 페이지로 돌아옴 (세션은 이미 삭제됨)
+            kakao_logout_url = (
+                "https://kauth.kakao.com/oauth/logout"
+                f"?client_id={KAKAO_REST_API_KEY}"
+                f"&logout_redirect_uri={request.build_absolute_uri('/')}"
+            )
+            return redirect(kakao_logout_url)
+    
+    # 일반 로그인 사용자: 세션 삭제 후 메인 페이지로
+    # 세션의 모든 키를 명시적으로 삭제
+    session_keys = list(request.session.keys())
+    for key in session_keys:
+        del request.session[key]
+    
+    # 세션 완전히 삭제
     request.session.flush()
-    return redirect("/")
+    
+    # 세션 쿠키도 삭제하기 위해 만료 시간 설정
+    request.session.set_expiry(0)
+    
+    messages.success(request, "로그아웃되었습니다.")
+    return redirect('/')
 
 def kakao_login(request):
     """카카오 로그인 시작"""
@@ -251,24 +297,29 @@ def kakao_login(request):
     if next_url:
         request.session['kakao_next'] = next_url
     
-    # 환경변수 우선, 없으면 자동 생성
-    REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI') or request.build_absolute_uri('/login/kakao/callback/')
-    
-    # URL 인코딩 (안전하게 처리)
+    # Redirect URI 자동 생성
+    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
     encoded_redirect_uri = quote(REDIRECT_URI, safe='')
 
-    # 자동로그인 방지: 항상 카카오 로그인/계정 선택 화면을 띄우도록 요청
+    # 카카오 로그인 페이지로 리다이렉트 - 항상 로그인 화면 표시
     kakao_auth_url = (
         "https://kauth.kakao.com/oauth/authorize"
         f"?client_id={KAKAO_REST_API_KEY}"
         f"&redirect_uri={encoded_redirect_uri}"
         "&response_type=code"
-        "&prompt=login"
+        "&prompt=login"  # 항상 로그인 화면 표시 (자동 로그인 방지)
     )
     return redirect(kakao_auth_url)
 
 def kakao_callback(request):
     """카카오 로그인 콜백 처리"""
+    # 카카오에서 오류 반환한 경우 처리
+    error = request.GET.get('error')
+    error_description = request.GET.get('error_description')
+    if error:
+        messages.error(request, f"카카오 로그인에 실패했습니다: {error_description or error}")
+        return redirect('/login/')
+    
     code = request.GET.get('code')
     if not code:
         messages.error(request, "카카오 로그인에 실패했습니다.")
@@ -279,8 +330,8 @@ def kakao_callback(request):
         messages.error(request, "카카오 로그인 설정이 완료되지 않았습니다.")
         return redirect('/login/')
     
-    # 동일한 Redirect URI 사용 (중요!)
-    REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI') or request.build_absolute_uri('/login/kakao/callback/')
+    # Redirect URI 자동 생성 (환경변수는 무시하고 항상 자동 생성)
+    REDIRECT_URI = request.build_absolute_uri('/login/kakao/callback/')
     
     try:
         # 1. 토큰 받기
@@ -292,35 +343,67 @@ def kakao_callback(request):
             'code': code
         }
         
-        token_response = requests.post(token_url, data=token_data)
-        token_json = token_response.json()
+        token_response = requests.post(token_url, data=token_data, timeout=10)
+        
+        # HTTP 상태 코드 확인
+        if token_response.status_code != 200:
+            messages.error(request, f"카카오 로그인에 실패했습니다. (HTTP {token_response.status_code})")
+            return redirect('/login/')
+        
+        # JSON 파싱
+        try:
+            token_json = token_response.json()
+        except ValueError:
+            messages.error(request, "카카오 로그인 응답을 처리하는데 실패했습니다.")
+            return redirect('/login/')
         
         if 'error' in token_json:
-            messages.error(request, f"카카오 로그인에 실패했습니다: {token_json.get('error_description', '알 수 없는 오류')}")
+            error_desc = token_json.get('error_description', token_json.get('error', '알 수 없는 오류'))
+            messages.error(request, f"카카오 로그인에 실패했습니다: {error_desc}")
             return redirect('/login/')
         
         access_token = token_json.get('access_token')
+        if not access_token:
+            messages.error(request, "카카오 로그인에 실패했습니다: 토큰을 받을 수 없습니다.")
+            return redirect('/login/')
         
         # 2. 사용자 정보 가져오기
         user_info_url = "https://kapi.kakao.com/v2/user/me"
         headers = {'Authorization': f'Bearer {access_token}'}
-        user_response = requests.get(user_info_url, headers=headers)
-        user_info = user_response.json()
+        user_response = requests.get(user_info_url, headers=headers, timeout=10)
         
-        if 'error' in user_info:
-            messages.error(request, "사용자 정보를 가져오는데 실패했습니다.")
+        # HTTP 상태 코드 확인
+        if user_response.status_code != 200:
+            messages.error(request, f"사용자 정보를 가져오는데 실패했습니다. (HTTP {user_response.status_code})")
             return redirect('/login/')
         
-        # 3. 카카오 ID로 회원 찾기 또는 생성
-        kakao_id = str(user_info['id'])
+        # JSON 파싱
+        try:
+            user_info = user_response.json()
+        except ValueError:
+            messages.error(request, "사용자 정보를 처리하는데 실패했습니다.")
+            return redirect('/login/')
+        
+        if 'error' in user_info:
+            error_desc = user_info.get('error_description', user_info.get('error', '알 수 없는 오류'))
+            messages.error(request, f"사용자 정보를 가져오는데 실패했습니다: {error_desc}")
+            return redirect('/login/')
+        
+        # 3. 카카오 ID 추출
+        try:
+            kakao_id = str(user_info['id'])
+        except (KeyError, TypeError):
+            messages.error(request, "사용자 정보 형식이 올바르지 않습니다.")
+            return redirect('/login/')
+        
         kakao_account = user_info.get('kakao_account', {})
         profile = kakao_account.get('profile', {})
         nickname = profile.get('nickname', f'카카오사용자_{kakao_id[:6]}')
-        email = kakao_account.get('email', '')
         
         # 카카오 ID를 user_id로 사용 (kakao_ 접두사 추가)
         kakao_user_id = f'kakao_{kakao_id}'
         
+        # 4. 회원 찾기 또는 생성
         try:
             # 기존 회원 찾기
             user = Member.objects.get(user_id=kakao_user_id)
@@ -333,37 +416,53 @@ def kakao_callback(request):
                 nickname = f"{original_nickname}_{counter}"
                 counter += 1
             
-            # 필수 필드 기본값 설정
-            user = Member.objects.create(
-                user_id=kakao_user_id,
-                name=nickname,
-                nickname=nickname,
-                password=make_password('kakao_login_no_password'),  # 카카오 로그인은 비밀번호 불필요
-                birthday='19000101',  # 기본값
-                gender=0,  # 기본값
-                addr1='',  # 기본값
-                phone_num=f'010-0000-{kakao_id[-4:]}' if len(kakao_id) >= 4 else '010-0000-0000',  # 카카오 ID로 임시 전화번호 생성
-            )
-            messages.success(request, "카카오 로그인으로 회원가입이 완료되었습니다.")
+            try:
+                # 필수 필드 기본값 설정
+                user = Member.objects.create(
+                    user_id=kakao_user_id,
+                    name=nickname,
+                    nickname=nickname,
+                    password=make_password('kakao_login_no_password'),
+                    birthday='19000101',
+                    gender=0,
+                    addr1='',
+                    phone_num=f'010-0000-{kakao_id[-4:]}' if len(kakao_id) >= 4 else '010-0000-0000',
+                )
+                messages.success(request, "카카오 로그인으로 회원가입이 완료되었습니다.")
+            except Exception as e:
+                messages.error(request, "회원가입 중 오류가 발생했습니다.")
+                return redirect('/login/')
         
-        # 4. 세션에 로그인 정보 저장
-        request.session['user_id'] = user.user_id
-        request.session['user_name'] = user.name
-        request.session['nickname'] = user.nickname
+        # 5. 세션에 로그인 정보 저장
+        try:
+            request.session['user_id'] = user.user_id
+            request.session['user_name'] = user.name
+            request.session['nickname'] = user.nickname
+            request.session['is_kakao_user'] = True  # 카카오 로그인 여부 저장
+            
+            # 세션 만료 시간 설정 (브라우저 닫으면 만료)
+            request.session.set_expiry(0)
+        except Exception as e:
+            messages.error(request, "세션 저장 중 오류가 발생했습니다.")
+            return redirect('/login/')
         
-        # 관리자 체크
+        # 6. 관리자 체크 및 리다이렉트
         if user.member_id == 1:
             request.session['manager_id'] = user.member_id
             request.session['manager_name'] = user.name
             next_url = request.session.pop('kakao_next', None) or '/manager/dashboard/'
             return redirect(next_url)
         
-        # 이전 페이지로 리다이렉트
+        # 일반 사용자는 메인 페이지로
         next_url = request.session.pop('kakao_next', None) or '/'
         return redirect(next_url)
         
     except requests.RequestException as e:
-        messages.error(request, f"카카오 로그인 중 오류가 발생했습니다: {str(e)}")
+        messages.error(request, f"카카오 로그인 중 네트워크 오류가 발생했습니다.")
+        return redirect('/login/')
+    except Exception as e:
+        # 모든 예외 처리 - 무한 로딩 방지
+        messages.error(request, "카카오 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
         return redirect('/login/')
 # 회원 가입 부분 ----------------------------------------
 USERNAME_PATTERN = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
