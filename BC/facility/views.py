@@ -159,11 +159,11 @@ def facility_list(request):
         qs = qs.filter(cp_nm=cp_nm)
     if cpb_nm:
         # '성남시 분당구'가 faci_road_addr에 포함되어 있다면 
-        
+        print(qs.filter(cpb_nm=cpb_nm).exists())
         if not qs.filter(cpb_nm=cpb_nm).exists():
             qs = qs.filter(faci_road_addr__icontains=cpb_nm)
         else :
-            qs.filter(cpb_nm=cpb_nm)
+             qs = qs.filter(cpb_nm=cpb_nm)
         
     if keyword:
         qs = qs.filter(faci_nm__icontains=keyword)
