@@ -8,35 +8,81 @@
 
 {% block content %}
 <div class="facility-detail-container">
+    <section class="detail-top-wrapper">
 
-    <h1 class="facility-title">{{ facilityInfo.faci_nm }}</h1>
-
-    <div class="facility-info-box">
-        <p><strong>주소:</strong> {{ facilityInfo.address }}</p>
-
-        <p>
-            <strong>전화번호:</strong>
-            {% if facilityInfo.tel %}
-            {{ facilityInfo.tel }}
+        <!-- 왼쪽 80% 이미지 -->
+        <section class="detail-image-wrap">
+            {% if facilityInfo.photo %}
+            <img src="{{ facilityInfo.photo.url }}" alt="{{ facilityInfo.faci_nm }}">
             {% else %}
-            없음
+            <img src="{% static 'img/no_image.png' %}" alt="사진 없음">
             {% endif %}
-        </p>
-        <p><strong>홈페이지:</strong>
-            {% if facilityInfo.homepage %}
-            <a href="{{ facilityInfo.homepage }}" target="_blank">{{ facilityInfo.homepage }}</a>
-            {% else %}
-            없음
+        </section>
+
+        <!-- 오른쪽 20% 정보 -->
+        <section class="detail-info-wrap">
+            <h3>{{ facilityInfo.faci_nm }}</h3>
+
+            <p>
+            <section class="detail-info-row">
+                <b>주소 :</b> <span>{{ facilityInfo.address }}</span>
+            </section>
+
+            {% if facility.phone %}
+            <section class="detail-info-row">
+                <b>전화번호 :</b> <span>{{ facilityInfo.tel }}</span>
+            </section>
             {% endif %}
-        </p>
-    </div>
 
-    <div class="btn-area">
-        <a href="{% url 'facility_list' %}" class="btn-back">목록으로</a>
-    </div>
-    <div class="btn-area">
-        <a href="{% url 'facility_modify' facilityInfo.id  %}" class="btn-back">수정하기</a>
-    </div>
+            <section class="detail-info-row">
+                <b>운영상태 :</b> <span>{{ facility.faci_stat_nm }}</span>
+            </section>
 
+            <section class="detail-info-row">
+                <b>안전등급 :</b> <span>{{ facility.schk_tot_grd_nm }}</span>
+            </section>
+
+            <section class="detail-buttons">
+                <a href="{% url 'facility_list' %}" class="btn-reserve">목록으로</a>
+                <a href="{% url 'facility_modify' facilityInfo.id  %}" class="btn-modify">수정하기</a>
+            </section>
+            
+            </p>
+
+        </section>
+        <hr>
+
+        <!-- 댓글 섹션 -->
+        <section class="comment-section">
+            <h3 class="section-title">댓글</h3>
+
+            <!-- 댓글 리스트 -->
+            <ul class="comment-list">
+                {% for c in comments %}
+                <li class="comment-item">
+                    <div class="comment-meta">
+                        <span class="comment-writer">{{ c.writer_name }}</span>
+                        <span class="comment-date">{{ c.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    <p class="comment-content">{{ c.content|linebreaksbr }}</p>
+                </li>
+                {% empty %}
+                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+                {% endfor %}
+            </ul>
+
+            <!-- 댓글 입력 폼 -->
+            <!-- <form method="post" class="comment-form">
+                {% csrf_token %}
+                <label for="comment" class="form-label">댓글 쓰기</label>
+                <textarea id="comment" name="content" class="form-textarea" rows="3" required></textarea>
+
+                <div class="comment-btn-box">
+                    <button type="submit" class="btn-primary">등록</button>
+                </div>
+            </form> -->
+        </section>
+    </section>
 </div>
+
 {% endblock %}

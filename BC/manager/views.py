@@ -335,6 +335,7 @@ def facility_list(request):
             "name": item.faci_nm,
             "address": item.address,
             "row_no": start_index + idx + 1,
+            "facilityCd" : item.facility_id
         })
 
     context = {
@@ -352,10 +353,11 @@ def facility_list(request):
 
 # 시설상세보기 
 def facility_detail(request, id):
-    facilityInfo = get_object_or_404(FacilityInfo, id=id)
-
+    facilityInfo = get_object_or_404(FacilityInfo, facility_id=id)
+    facility = get_object_or_404(Facility,faci_cd=id )
     context = {
-        "facilityInfo": facilityInfo
+        "facilityInfo": facilityInfo,
+        "facility" : facility
     }
     return render(request, "facility_detail.html", context)
 

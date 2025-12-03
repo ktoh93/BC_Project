@@ -15,7 +15,14 @@ class Comment(models.Model):
     community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.DO_NOTHING)
     article_id = models.ForeignKey("board.Article", null=True, blank=True, on_delete=models.CASCADE)
     board_id = models.ForeignKey("board.Board", null=True, blank=True, on_delete=models.SET_NULL)
-
+    facility = models.ForeignKey(
+        "facility.Facility",
+        to_field="faci_cd",
+        db_column="facility",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
     class Meta:
         db_table = "comment"
 

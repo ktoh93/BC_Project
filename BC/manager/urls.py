@@ -20,8 +20,8 @@ urlpatterns = [
     
     # 시설관리
     path('facility_list/', views.facility_list, name='facility_list'),
-    path('facility/<int:id>/', views.facility_detail, name='facility_detail'),
-    path('facility/<int:id>/modify/', views.facility_modify, name='facility_modify'),
+    path('facility/<id>/', views.facility_detail, name='facility_detail'),
+    path('facility/<id>/modify/', views.facility_modify, name='facility_modify'),
     path('delete/', views.facility_delete, name='facility_delete'),
 
 
