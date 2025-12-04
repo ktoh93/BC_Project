@@ -43,61 +43,66 @@ from reservation.models import Sports
 def manager(request):
     """
     관리자 로그인 페이지
-    manager_yn == 1인 계정만 관리자로 인정
+    member_id == 1인 계정만 관리자로 인정
     """
-    if request.method == "POST":
-        admin_id = request.POST.get("admin_id", "").strip()
-        admin_pw = request.POST.get("admin_pw", "").strip()
+    admin = request.session.get("manager_id")
+    if not admin : 
+        if request.method == "POST":
+            admin_id = request.POST.get("admin_id", "").strip()
+            admin_pw = request.POST.get("admin_pw", "").strip()
         
-        # 입력값 검증
-        if not admin_id or not admin_pw:
-            return render(request, 'login_manager.html', {
-                'error': '아이디와 비밀번호를 입력해주세요.'
-            })
+            # 입력값 검증
+            if not admin_id or not admin_pw:
+                return render(request, 'login_manager.html', {
+                    'error': '아이디와 비밀번호를 입력해주세요.'
+                })
         
-        try:
-            from django.contrib.auth.hashers import check_password
-            from member.models import Member
-            
-            # user_id로 계정 조회
             try:
-                admin_user = Member.objects.get(user_id=admin_id)
-            except Member.DoesNotExist:
-                return render(request, 'login_manager.html', {
-                    'error': '존재하지 않는 아이디입니다.'
-                })
+                from django.contrib.auth.hashers import check_password
+                from member.models import Member
             
-            # 관리자 권한 확인 (manager_yn == 1만 관리자)
-            if admin_user.manager_yn != 1:
-                return render(request, 'login_manager.html', {
-                    'error': '관리자 권한이 없습니다.'
-                })
+                # user_id로 계정 조회
+                try:
+                    admin_user = Member.objects.get(user_id=admin_id)
+                except Member.DoesNotExist:
+                    return render(request, 'login_manager.html', {
+                        'error': '존재하지 않는 아이디입니다.'
+                    })
             
-            # 비밀번호 검증
-            if not check_password(admin_pw, admin_user.password):
-                return render(request, 'login_manager.html', {
-                    'error': '비밀번호가 올바르지 않습니다.'
-                })
+                # 관리자 권한 확인 (member_id == 1만 관리자)
+                if admin_user.member_id != 1:
+                    return render(request, 'login_manager.html', {
+                        'error': '관리자 권한이 없습니다.'
+                    })
             
-            # 로그인 성공 → 세션에 저장
+                # 비밀번호 검증
+                if not check_password(admin_pw, admin_user.password):
+                    return render(request, 'login_manager.html', {
+                        'error': '비밀번호가 올바르지 않습니다.'
+                    })
             
-            request.session['manager_id'] = admin_user.member_id
-            request.session['manager_name'] = admin_user.name
-            request.session["user_id"] = admin_user.user_id
-            request.session["user_name"] = admin_user.name
-            request.session["nickname"] = admin_user.nickname
+                # 로그인 성공 → 세션에 저장
+            
+                request.session['manager_id'] = admin_user.member_id
+                request.session['manager_name'] = admin_user.name
+                request.session["user_id"] = admin_user.user_id
+                request.session["user_name"] = admin_user.name
+                request.session["nickname"] = admin_user.nickname
 
-            return redirect('/manager/dashboard/')
+                return redirect('/manager/dashboard/')
             
-        except Exception as e:
-            import traceback
-            print(f"[ERROR] 관리자 로그인 오류: {str(e)}")
-            print(traceback.format_exc())
-            return render(request, 'login_manager.html', {
-                'error': '로그인 중 오류가 발생했습니다.'
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] 관리자 로그인 오류: {str(e)}")
+                print(traceback.format_exc())
+                return render(request, 'login_manager.html', {
+                    'error': '로그인 중 오류가 발생했습니다.'
             })
-    
-    return render(request, 'login_manager.html')
+            
+        return render(request, 'login_manager.html')
+    else:
+        return redirect('/manager/dashboard/')
+
 
 
 # 시설 추가
@@ -1361,6 +1366,88 @@ def recruitment_manager(request):
         "block_range": range(block_start, block_end + 1),
     }
     return render(request, 'recruitment_manager.html', context)
+
+# 모집글 상세페이지
+def recruitment_detail(request, id):
+    
+    # 로그인 체크
+    admin = request.session.get("manager_id")
+    if not admin:
+        messages.error(request, "로그인이 필요합니다.")
+        return render(request, 'login_manager.html')
+    
+    is_manager = True
+
+    # 모집글 조회
+    try:
+        recruit = Community.objects.get(
+            pk=id,
+            delete_date__isnull=True
+        )
+    except Community.DoesNotExist:
+        raise Http404("관리자에 의해 삭제된 모집글입니다.")
+
+    # 참여자 목록
+    joins_qs = JoinStat.objects.filter(community_id=recruit)
+    waiting_count= joins_qs.count()
+    # 승인된 인원만 count
+    approved_count = joins_qs.filter(join_status=1).count()
+    capacity = recruit.num_member or 0
+
+    # -------------------------
+    # 🔥 자동 마감 처리 로직 (핵심)
+    # -------------------------
+    end_status, created = EndStatus.objects.get_or_create(
+        community=recruit,
+        defaults={
+            "end_set_date": timezone.now().date(),
+            "end_stat": 0,
+        }
+    )
+
+    # 승인된 인원이 정원 이상이면 자동 마감
+    if approved_count >= capacity and capacity > 0:
+        if end_status.end_stat != 1:  
+            end_status.end_stat = 1
+            end_status.end_date = timezone.now().date()
+            end_status.save()
+
+    # -------------------------
+    # 최종 마감 여부
+    # -------------------------
+    is_closed = (end_status.end_stat == 1)
+
+
+
+    # 상세 참여 리스트 (owner/관리자만)
+    join_list = []
+    join_list = (
+        joins_qs
+        .select_related("member_id")
+        .order_by("join_status", "member_id__user_id")
+    )
+
+    comments = Comment.objects.filter(
+        community_id=recruit,
+        delete_date__isnull=True
+    ).order_by("reg_date")
+
+    context = {
+        "recruit": recruit,
+        "is_manager": is_manager,
+        "join_list": join_list,
+        "approved_count": approved_count,
+        "capacity": capacity,
+        "is_closed": is_closed,
+        "comments": comments,
+        "waiting_rejected_count":waiting_count,
+    }
+
+    return render(request, "recruitment_manager_detail.html", context)
+
+
+
+
 
 def event_manager(request):
     # DB에서 이벤트 조회 (category_type='event', 삭제된 것도 포함)

@@ -30,8 +30,11 @@ urlpatterns = [
 
     path('post_manager/', views.post_manager, name='post_manager'),
 
-    # 게시판 관리
+    # 모집글관리
     path('recruitment_manager/', views.recruitment_manager, name='recruitment_manager'),
+    path('recruitment_manager/detail/<int:id>/', views.recruitment_detail, name='recruitment_detail'),
+    
+    # 게시판 관리
     path('event_manager/', views.event_manager, name='event_manager'),
     path('board_manager/', views.board_manager, name='board_manager'),
     path('event_form/', views.event_form, name='event_form'),
