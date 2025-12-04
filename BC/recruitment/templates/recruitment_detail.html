@@ -34,7 +34,7 @@
         </div>
         {% endif %}
         <div class="detail-info-line">
-            <span>작성자: {{ recruit.member_id }}</span>
+            <span>작성자: {{ recruit.member_id.nickname }}</span>
             <span>{{ recruit.reg_date|date:"Y.m.d" }}</span>
             <span>조회수: {{ recruit.view_cnt }}</span>
         </div>
@@ -141,8 +141,9 @@
             {% if not is_deleted %}
                 {% if not is_closed %}
                     <form method="post"
-                          action="{% url 'recruitment:recruitment_close' recruit.community_id %}"
-                          class="detail-inline-form">
+                        action="{% url 'recruitment:recruitment_close' recruit.community_id %}"
+                        class="detail-inline-form"
+                        onsubmit="return confirm('정말 모집을 마감하시겠습니까?');">
                         {% csrf_token %}
                         <button type="submit" class="detail-btn btn-close">
                             모집 마감
@@ -160,11 +161,7 @@
                class="detail-btn btn-edit">수정하기</a>
             {% endif %}
         {% else %}
-            {% if is_deleted %}
-                <span class="detail-btn btn-join btn-join-closed">
-                    삭제된 게시글입니다
-                </span>
-            {% elif is_closed_or_full %}
+            {% if is_closed_or_full %}
                 <span class="detail-btn btn-join btn-join-closed">
                     모집 마감
                 </span>
@@ -207,7 +204,7 @@
         <ul class="join-list">
             {% for join in join_list %}
             <li class="join-item">
-                <span class="join-member">{{ join.member_id }}</span>
+                <span class="join-member">{{ join.member_id.nickname }}</span>
                 <span class="join-status
                     {% if join.join_status == 0 %} status-waiting
                     {% elif join.join_status == 1 %} status-approved
