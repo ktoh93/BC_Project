@@ -137,6 +137,7 @@ def reservation_detail(request, facility_id):
         "reservation_time_json": json.dumps(facility.reservation_time),
         "reserved_json": json.dumps(reserved_list)
     })
+
 @csrf_exempt
 def reservation_save(request):
     if request.method != "POST":
@@ -145,7 +146,7 @@ def reservation_save(request):
     data = json.loads(request.body)
 
     date = data.get("date")
-    slots = data.get("slots")  # ★ 여러 시간대
+    slots = data.get("slots")
     facility_code = data.get("facility_id")
 
     if not (date and slots and facility_code):
@@ -156,36 +157,26 @@ def reservation_save(request):
     except FacilityInfo.DoesNotExist:
         return JsonResponse({"result": "error", "msg": "시설을 찾을 수 없습니다."})
 
-    # 1) 예약 생성 (한번만)
+    # 예약 생성
     reservation_num = str(random.randint(10000000, 99999999))
     reservation = Reservation.objects.create(
         reservation_num=reservation_num,
         member=Member.objects.get(user_id=request.session["user_id"])
     )
 
-    # 2) 여러 TimeSlot 저장
+
     for slot in slots:
         start = slot["start"]
         end = slot["end"]
 
-        # 중복 체크
-        conflict = TimeSlot.objects.filter(
-            facility_id=facility,
-            date=date,
-            start_time=start,
-            end_time=end
-        ).exists()
 
-        if conflict:
-            return JsonResponse({"result": "error", "msg": f"{start}~{end} 은 이미 예약됨"})
-
-        # 저장
         TimeSlot.objects.create(
             facility_id=facility,
             date=date,
             start_time=start,
             end_time=end,
-            reservation_id=reservation
+            reservation_id=reservation,
+            delete_yn=0
         )
 
     return JsonResponse({"result": "ok"})
