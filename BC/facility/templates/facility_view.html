@@ -97,7 +97,7 @@
 
                 <section class="detail-buttons">
                     {% if can_reserve %}
-                    <a href="/reservation/{{ facility.id }}" class="btn-reserve">
+                    <a href="/reservation/{{ facility.id }}" class="btn-reserve" data-facility-id="{{ facility.id }}">
                         예약하기
                     </a>
                     {% endif %}
@@ -209,6 +209,47 @@
             map.setLevel(2);
         } else {
             console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
+        }
+
+        // 예약하기 버튼 클릭 시 로그인 체크
+        var btnReserve = document.querySelector('.btn-reserve');
+        if (btnReserve) {
+            btnReserve.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 로그인 상태 확인 (세션 체크)
+                // Django 템플릿에서 로그인 여부 확인
+                {% if not request.session.user_id %}
+                    // 비로그인 상태: Toast 표시 후 로그인 페이지로 이동
+                    showToast('로그인이 필요합니다.', 'error');
+                    setTimeout(function() {
+                        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                    }, 500);
+                {% else %}
+                    // 로그인 상태: 예약 페이지로 이동
+                    window.location.href = this.href;
+                {% endif %}
+            });
+        }
+
+        // 모집글가기 버튼 클릭 시 로그인 체크
+        var btnRecruit = document.querySelector('.btn-recruit');
+        if (btnRecruit) {
+            btnRecruit.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 로그인 상태 확인
+                {% if not request.session.user_id %}
+                    // 비로그인 상태: Toast 표시 후 로그인 페이지로 이동
+                    showToast('로그인이 필요합니다.', 'error');
+                    setTimeout(function() {
+                        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                    }, 500);
+                {% else %}
+                    // 로그인 상태: 모집글 페이지로 이동
+                    window.location.href = this.href;
+                {% endif %}
+            });
         }
 
     });

@@ -151,6 +151,8 @@ def check_login(request):
     
     # 일반 사용자 로그인 체크
     if 'user_id' not in request.session:
+        from django.contrib import messages
+        messages.error(request, "로그인이 필요합니다.")
         next_url = request.path
         if request.GET:
             next_url += '?' + request.GET.urlencode()

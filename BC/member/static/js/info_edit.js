@@ -190,28 +190,3 @@ function handle_edit_profile(form) {
         });
 }
 
-function showToast(message, type = "success") {
-    const existingToast = document.getElementById("toast");
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement("div");
-    toast.id = "toast";
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === "success" ? "✓" : "✕";
-
-    toast.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-icon">${icon}</span>
-            <span class="toast-message">${message}</span>
-        </div>
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => toast.classList.add("show"), 10);
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
-}
