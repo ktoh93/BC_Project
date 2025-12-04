@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 
 
-
+from common.utils import check_login   
 from facility.models import Facility
 from facility.models import FacilityInfo
 from member.models import Member
@@ -540,17 +540,18 @@ def facility_detail(request, fk):
     
 # 댓글 추가 기능
 def add_comment(request, fk):
-    # GET 으로 들어오면 그냥 상세로 돌려보냄
+    # 필수: 로그인 체크
+    from common.utils import check_login
+    res = check_login(request)
+    if res:
+        return res
+
+    # GET 차단
     if request.method != "POST":
         return redirect("detail", fk=fk)
 
-    # 0) 세션 로그인 확인
+    # 로그인된 사용자 가져오기
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
-
-    # 1) 로그인 회원
     try:
         member = Member.objects.get(user_id=user_id)
     except Member.DoesNotExist:
@@ -558,14 +559,13 @@ def add_comment(request, fk):
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("/login/")
 
-
-    # 3) 폼에서 넘어온 댓글 내용
+    # 댓글 내용
     content = request.POST.get("content", "").strip()
     if not content:
         messages.error(request, "댓글 내용을 입력해 주세요.")
         return redirect("detail", fk=fk)
 
-    # 4) 댓글 생성
+    # 댓글 생성
     Comment.objects.create(
         facility=Facility.objects.get(faci_cd=fk),
         member_id=member,
