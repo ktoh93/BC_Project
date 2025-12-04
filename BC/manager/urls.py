@@ -23,6 +23,7 @@ urlpatterns = [
     path('facility/<id>/', views.facility_detail, name='facility_detail'),
     path('facility/<id>/modify/', views.facility_modify, name='facility_modify'),
     path('delete/', views.facility_delete, name='facility_delete'),
+    path('reservations/', views.reservation_list_manager, name='reservation_list_manager'),
     path('facility_inspection_stats/', views.facility_inspection_stats, name='facility_inspection_stats'),
     path('facility_inspection_stats/yearly/', views.facility_inspection_yearly_detail, name='facility_inspection_yearly_detail'),
     path('facility_inspection_stats/grade/', views.facility_inspection_grade_detail, name='facility_inspection_grade_detail'),
@@ -61,4 +62,7 @@ urlpatterns = [
     # 삭제 API
     path('api/articles/delete/', views.delete_articles, name='delete_articles'),
     path('api/communities/delete/', views.delete_communities, name='delete_communities'),
+    
+    # 예약 취소 API
+    path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
 ]

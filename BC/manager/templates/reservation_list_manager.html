@@ -1,0 +1,583 @@
+{% extends 'manager_base.html' %}
+{% load static %}
+
+{% block title %}예약 목록 관리{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/facility_add_manager.css' %}">
+    <style>
+        .reservation-row.cancelled {
+            background-color: #fff5f5;
+            opacity: 0.7;
+        }
+        .reservation-row.cancelled td {
+            color: #999;
+        }
+        .btn-cancel-reservation {
+            transition: all 0.3s;
+        }
+        .btn-cancel-reservation:hover {
+            background: #c0392b !important;
+            transform: translateY(-2px);
+        }
+        
+        /* 팝업 모달 스타일 */
+        .reservation-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+        .reservation-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 35px 45px;
+            border-radius: 8px;
+            max-width: 650px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        .modal-row {
+            margin-bottom: 18px;
+            font-size: 17px;
+            color: #2c3e50;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eef0f3;
+            display: flex;
+            align-items: center;
+        }
+        .modal-row span {
+            font-weight: 600;
+            width: 140px;
+            color: #1a1a1a;
+        }
+        .modal-value {
+            flex: 1;
+        }
+        .time-line {
+            font-size: 17px;
+            line-height: 1.6;
+            padding: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #2c3e50;
+        }
+        .time-line.cancelled {
+            text-decoration: line-through;
+            color: #c0392b;
+        }
+        .slot-checkbox {
+            margin-left: 12px;
+            transform: scale(1.3);
+            display: none;
+            cursor: pointer;
+        }
+        .cancel-tag {
+            font-size: 14px;
+            color: #e74c3c;
+            margin-left: 6px;
+        }
+        .modal-buttons {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .modal-btn {
+            padding: 12px 28px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0 10px;
+            transition: 0.25s ease;
+            border-radius: 4px;
+        }
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-ok {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-cancel {
+            background: #e74c3c;
+            color: white;
+        }
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close-modal:hover {
+            color: #333;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="facility-box">
+        <h1 class="box-header">
+            {% if facility_info %}
+                {{ facility_info.faci_nm }} - 
+            {% endif %}
+            {% if reservation_type == 'today' %}
+                금일 활성 예약
+            {% else %}
+                누적 예약
+            {% endif %}
+        </h1>
+        
+        {% if facility_info %}
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'facility_list' %}" class="btn-back" style="display: inline-block; padding: 8px 16px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333;">← 시설 목록으로</a>
+        </div>
+        {% endif %}
+        
+        <!-- 검색 영역 -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <select id="searchTypeSelect" class="filter-select" style="width: 120px;">
+                <option value="reservation_num" {% if search_type == 'reservation_num' %}selected{% endif %}>예약번호</option>
+                <option value="member_id" {% if search_type == 'member_id' %}selected{% endif %}>회원 ID</option>
+                <option value="member_name" {% if search_type == 'member_name' %}selected{% endif %}>회원명</option>
+            </select>
+            <input type="text" id="searchKeywordInput" class="filter-select" placeholder="검색어를 입력하세요" value="{{ search_keyword }}" style="flex: 1; padding: 8px 12px;">
+            <button id="searchBtn" class="filter-select" style="padding: 8px 20px; background: #3b7cff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                검색
+            </button>
+            {% if search_keyword %}
+            <button id="clearSearchBtn" class="filter-select" style="padding: 8px 20px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                초기화
+            </button>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                {% if reservation_type == 'all' %}
+                <select id="statusSelect" class="filter-select">
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>예약완료</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>예약취소</option>
+                </select>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <select id="sortSelect" class="filter-select">
+                    <option value="reg_date" {% if sort_by == 'reg_date' %}selected{% endif %}>예약 발생 시간 순</option>
+                    <option value="timeslot" {% if sort_by == 'timeslot' %}selected{% endif %}>시설 예약 시간 순</option>
+                </select>
+                
+                <select id="perPageSelect" class="filter-select">
+                    <option value="15">15개</option>
+                    <option value="30">30개</option>
+                    <option value="50">50개</option>
+                    <option value="100">100개</option>
+                </select>
+            </div>
+        </div>
+        
+        <script id="reservationData" type="application/json">{{ reservation_json|safe }}</script>
+        
+        <table class="facility-table">
+            <thead class="facility-table-header">
+                <tr>
+                    <th style="width: 50px;">번호</th>
+                    <th style="width: 120px;">예약번호</th>
+                    <th style="width: 120px;">종목</th>
+                    <th>이용 시간</th>
+                    <th style="width: 120px;">회원 ID</th>
+                    <th style="width: 120px;">회원명</th>
+                    <th style="width: 180px;">예약 일자</th>
+                    {% if reservation_type == 'all' and status == 'cancelled' %}
+                    <th style="width: 180px;">취소 일자</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="reservationList"></tbody>
+        </table>
+
+        <!-- 페이징 -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a class="page-btn arrow"
+                   href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&facility_id={{ facility_id }}&type={{ reservation_type }}&sort={{ sort_by }}{% if reservation_type == 'all' %}&status={{ status }}{% endif %}{% if search_keyword %}&search_type={{ search_type }}&search_keyword={{ search_keyword }}{% endif %}">◀ 이전</a>
+            {% else %}
+                <span class="page-btn arrow disabled">◀ 이전</span>
+            {% endif %}
+
+            {% for num in block_range %}
+                {% if num == page_obj.number %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% else %}
+                    <a class="page-btn"
+                       href="?page={{ num }}&per_page={{ per_page }}&facility_id={{ facility_id }}&type={{ reservation_type }}&sort={{ sort_by }}{% if reservation_type == 'all' %}&status={{ status }}{% endif %}{% if search_keyword %}&search_type={{ search_type }}&search_keyword={{ search_keyword }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a class="page-btn arrow"
+                   href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&facility_id={{ facility_id }}&type={{ reservation_type }}&sort={{ sort_by }}{% if reservation_type == 'all' %}&status={{ status }}{% endif %}{% if search_keyword %}&search_type={{ search_type }}&search_keyword={{ search_keyword }}{% endif %}">다음 ▶</a>
+            {% else %}
+                <span class="page-btn arrow disabled">다음 ▶</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- 예약 상세 팝업 모달 -->
+    <div id="reservationModal" class="reservation-modal">
+        <div class="modal-content" style="position: relative;">
+            <span class="close-modal" onclick="closeReservationModal()">&times;</span>
+            <div class="modal-header">예약 상세 정보</div>
+            
+            <div class="modal-row">
+                <span>시설명:</span>
+                <div class="modal-value" id="modal-facility-name"></div>
+            </div>
+            <div class="modal-row">
+                <span>주소:</span>
+                <div class="modal-value" id="modal-facility-address"></div>
+            </div>
+            <div class="modal-row">
+                <span>연락처:</span>
+                <div class="modal-value" id="modal-facility-tel"></div>
+            </div>
+            <div class="modal-row">
+                <span>예약번호:</span>
+                <div class="modal-value" id="modal-reservation-num"></div>
+            </div>
+            <div class="modal-row">
+                <span>예약한 날짜:</span>
+                <div class="modal-value" id="modal-reg-date"></div>
+            </div>
+            <div class="modal-row">
+                <span>이용 시간:</span>
+                <div class="modal-value" id="modal-time-slots"></div>
+            </div>
+            
+            <!-- 기본 버튼 -->
+            <div class="modal-buttons" id="modal-default-buttons">
+                <button class="modal-btn btn-ok" onclick="closeReservationModal()">확인</button>
+                <button class="modal-btn btn-cancel" onclick="startCancelMode()" id="startCancelBtn">예약 취소</button>
+            </div>
+            
+            <!-- 취소 모드 버튼 -->
+            <div class="modal-buttons" id="modal-cancel-buttons" style="display:none;">
+                <button class="modal-btn btn-ok" onclick="cancelSelectedSlots()">선택 취소 확정</button>
+                <button class="modal-btn btn-cancel" onclick="cancelCancelMode()">취소</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/paging.js' %}"></script>
+<script>
+// 전역 함수들 (onclick에서 접근 가능하도록 DOMContentLoaded 밖에 정의)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function openReservationModal(data) {
+    document.getElementById('modal-facility-name').textContent = data.facility_name || '미정';
+    document.getElementById('modal-facility-address').textContent = data.facility_address || '미정';
+    document.getElementById('modal-facility-tel').textContent = data.facility_tel || '미정';
+    document.getElementById('modal-reservation-num').textContent = data.reservation_num || '';
+    document.getElementById('modal-reg-date').textContent = data.reg_date || '';
+    
+    // 시간대 렌더링
+    const timeSlotsContainer = document.getElementById('modal-time-slots');
+    timeSlotsContainer.innerHTML = '';
+    
+    if (data.slot_list && data.slot_list.length > 0) {
+        data.slot_list.forEach(slot => {
+            const timeLine = document.createElement('div');
+            timeLine.className = 'time-line' + (slot.is_cancelled ? ' cancelled' : '');
+            timeLine.innerHTML = `
+                ${slot.date} | ${slot.start} ~ ${slot.end}
+                ${slot.is_cancelled ? '<span class="cancel-tag">(취소됨)</span>' : 
+                  '<input type="checkbox" class="slot-checkbox" data-date="' + slot.date + '" data-start="' + slot.start + '" data-end="' + slot.end + '" style="display:none; margin-left:10px;">'}
+            `;
+            timeSlotsContainer.appendChild(timeLine);
+        });
+    } else {
+        timeSlotsContainer.textContent = '미정';
+    }
+    
+    // 모달에 예약 데이터 저장
+    document.getElementById('reservationModal').setAttribute('data-reservation-num', data.reservation_num);
+    document.getElementById('reservationModal').setAttribute('data-reservation-data', JSON.stringify(data));
+    
+    // 취소 모드 초기화
+    cancelCancelMode();
+    
+    // 전체 취소 여부 확인
+    const allCancelled = data.slot_list && data.slot_list.every(slot => slot.is_cancelled);
+    const startCancelBtn = document.getElementById('startCancelBtn');
+    if (startCancelBtn) {
+        startCancelBtn.style.display = allCancelled ? 'none' : 'inline-block';
+    }
+    
+    document.getElementById('reservationModal').classList.add('show');
+}
+
+function closeReservationModal() {
+    document.getElementById('reservationModal').classList.remove('show');
+    cancelCancelMode();
+}
+
+function startCancelMode() {
+    document.querySelectorAll('.slot-checkbox').forEach(cb => {
+        cb.style.display = 'inline-block';
+    });
+    document.getElementById('modal-default-buttons').style.display = 'none';
+    document.getElementById('modal-cancel-buttons').style.display = 'block';
+}
+
+function cancelCancelMode() {
+    document.querySelectorAll('.slot-checkbox').forEach(cb => {
+        cb.checked = false;
+        cb.style.display = 'none';
+    });
+    document.getElementById('modal-default-buttons').style.display = 'block';
+    document.getElementById('modal-cancel-buttons').style.display = 'none';
+}
+
+function cancelSelectedSlots() {
+    const selected = Array.from(document.querySelectorAll('.slot-checkbox:checked'))
+        .map(el => ({
+            date: el.dataset.date,
+            start: el.dataset.start,
+            end: el.dataset.end
+        }));
+    
+    if (selected.length === 0) {
+        alert('취소할 시간을 선택하세요.');
+        return;
+    }
+    
+    if (!confirm('선택한 시간대를 취소하시겠습니까?')) return;
+    
+    const reservationNum = document.getElementById('reservationModal').getAttribute('data-reservation-num');
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(`/manager/api/reservations/cancel-timeslot/${reservationNum}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ slots: selected })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.result === 'ok') {
+            alert(data.msg);
+            location.reload();
+        } else {
+            alert(data.msg || '취소 실패');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('서버 오류 발생');
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const perPageEl = document.getElementById("perPageSelect");
+    const sortEl = document.getElementById("sortSelect");
+    const statusEl = document.getElementById("statusSelect");
+    
+    // 상태 필터 설정 (누적 예약일 때만)
+    if (statusEl) {
+        const nowStatus = params.get("status") || "active";
+        statusEl.value = nowStatus;
+        statusEl.addEventListener("change", function () {
+            params.set("status", this.value);
+            params.set("page", 1);
+            window.location.search = params.toString();
+        });
+    }
+    
+    // 정렬 설정
+    if (sortEl) {
+        const nowSort = params.get("sort") || "reg_date";
+        sortEl.value = nowSort;
+        sortEl.addEventListener("change", function () {
+            params.set("sort", this.value);
+            params.set("page", 1);
+            window.location.search = params.toString();
+        });
+    }
+    
+    // per page 설정
+    if (perPageEl) {
+        const nowPer = params.get("per_page") || "15";
+        perPageEl.value = nowPer;
+        perPageEl.addEventListener("change", function () {
+            params.set("per_page", this.value);
+            params.set("page", 1);
+            window.location.search = params.toString();
+        });
+    }
+    
+    // 예약 목록 렌더링
+    function renderReservationList(data) {
+        const box = document.getElementById("reservationList");
+        box.innerHTML = "";
+
+        const isAllType = "{{ reservation_type }}" === "all";
+        const isCancelledStatus = "{{ status }}" === "cancelled";
+        
+        // colspan 계산
+        let colspan = 7; // 기본: 번호, 예약번호, 종목, 이용시간, 회원ID, 회원명, 예약일자
+        if (isAllType && isCancelledStatus) {
+            colspan = 8; // 취소일자 추가
+        }
+
+        if (!data || data.length === 0) {
+            box.innerHTML = `<tr><td colspan="${colspan}">등록된 예약이 없습니다.</td></tr>`;
+            return;
+        }
+
+        box.innerHTML = data.map(item => {
+            const statusClass = item.delete_yn == 1 ? 'cancelled' : 'active';
+            const cancelDateCell = (isAllType && isCancelledStatus) ? `<td>${item.delete_date || '-'}</td>` : '';
+            
+            // 예약번호에 클릭 이벤트 추가 (상세 보기)
+            const reservationNumCell = `<td><a href="#" class="reservation-detail-link" data-reservation-data='${JSON.stringify(item)}' style="color: #3b7cff; text-decoration: none; cursor: pointer;">${item.reservation_num || ''}</a></td>`;
+            
+            return `
+            <tr class="reservation-row ${statusClass}">
+                <td>${item.row_no}</td>
+                ${reservationNumCell}
+                <td>${item.sport_type || '미정'}</td>
+                <td>${item.time_info || '미정'}</td>
+                <td>${item.member_id || ''}</td>
+                <td>${item.member_name || '알 수 없음'}</td>
+                <td>${item.reg_date || ''}</td>
+                ${cancelDateCell}
+            </tr>
+        `;
+        }).join("");
+        
+        // 예약 상세 보기 클릭 이벤트
+        document.querySelectorAll('.reservation-detail-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const data = JSON.parse(this.getAttribute('data-reservation-data'));
+                openReservationModal(data);
+            });
+        });
+    }
+
+    // JSON 파싱
+    try {
+        const list = JSON.parse(document.getElementById("reservationData").textContent.trim());
+        renderReservationList(list);
+    } catch (e) {
+        console.error("JSON 오류:", e);
+    }
+    
+    // 검색 기능
+    const searchBtn = document.getElementById('searchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchKeywordInput = document.getElementById('searchKeywordInput');
+    const searchTypeSelect = document.getElementById('searchTypeSelect');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            performSearch();
+        });
+    }
+    
+    if (searchKeywordInput) {
+        searchKeywordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+    
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            const params = new URLSearchParams(window.location.search);
+            params.delete('search_type');
+            params.delete('search_keyword');
+            params.set('page', 1);
+            window.location.search = params.toString();
+        });
+    }
+    
+    function performSearch() {
+        const params = new URLSearchParams(window.location.search);
+        const searchType = searchTypeSelect.value;
+        const searchKeyword = searchKeywordInput.value.trim();
+        
+        if (searchKeyword) {
+            params.set('search_type', searchType);
+            params.set('search_keyword', searchKeyword);
+        } else {
+            params.delete('search_type');
+            params.delete('search_keyword');
+        }
+        params.set('page', 1);
+        window.location.search = params.toString();
+    }
+    
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        const modal = document.getElementById('reservationModal');
+        if (event.target === modal) {
+            closeReservationModal();
+        }
+    }
+});
+</script>
+{% endblock %}
+

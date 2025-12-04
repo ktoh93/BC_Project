@@ -154,6 +154,31 @@
 }
 
 /*****************************************
+    예약 건수 링크 (클릭 가능한 숫자)
+*****************************************/
+.reservation-count-link {
+    color: #2F5C9C;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.reservation-count-link:hover {
+    color: #1a4a7a;
+    background: #E4EEFF;
+    text-decoration: underline;
+}
+
+.reservation-count-link:active {
+    color: #0d2f4f;
+    background: #D0E4FF;
+}
+
+/*****************************************
     체크박스
 *****************************************/
 .facility-check,

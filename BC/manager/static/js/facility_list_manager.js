@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
         box.innerHTML = "";
 
         if (!data || data.length === 0) {
-            box.innerHTML = `<tr><td colspan="4">검색 결과가 없습니다.</td></tr>`;
+            box.innerHTML = `<tr><td colspan="6">검색 결과가 없습니다.</td></tr>`;
             return;
         }
 
@@ -109,6 +109,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td><input type="checkbox" value="${item.id}"></td>
                 <td><a href="/manager/facility/${item.facilityCd}/">${item.name}</a></td>
                 <td>${item.address}</td>
+                <td>
+                    <a href="/manager/reservations/?facility_id=${item.facilityCd}&type=today" 
+                       class="reservation-count-link" 
+                       title="금일 활성 예약 상세보기">
+                        ${item.today_count || 0}건
+                    </a>
+                </td>
+                <td>
+                    <a href="/manager/reservations/?facility_id=${item.facilityCd}&type=all" 
+                       class="reservation-count-link" 
+                       title="누적 예약 상세보기">
+                        ${item.total_count || 0}건
+                    </a>
+                </td>
             </tr>
         `).join("");
     }

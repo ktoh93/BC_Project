@@ -21,7 +21,7 @@ from django.http import FileResponse, Http404
 # models import 
 from member.models import Member
 from recruitment.models import Community, EndStatus, Rating, JoinStat
-from reservation.models import Reservation
+from reservation.models import Reservation, TimeSlot
 from board.models import Article, Board, Category
 from common.models import Comment, AddInfo
 from manager.models import HeroImg
@@ -33,6 +33,7 @@ from django.shortcuts import render, get_object_or_404
 
 # 제거예정
 from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
 
 # 시설
 from facility.models import Facility, FacilityInfo
@@ -337,14 +338,34 @@ def facility_list(request):
 
     start_index = (page_obj.number - 1) * per_page
     facility_page = []
+    
+    # 오늘 날짜
+    today = timezone.now().date()
 
     for idx, item in enumerate(page_obj.object_list):
+        # 금일 활성 예약: 오늘 날짜 기준으로 예약이 발생한 건 수 (Reservation의 reg_date가 오늘)
+        # TimeSlot을 통해 해당 시설의 예약을 찾고, Reservation의 reg_date가 오늘인 것
+        today_reservations = Reservation.objects.filter(
+            timeslot__facility_id=item,
+            reg_date__date=today,
+            delete_yn=0
+        ).distinct().count()
+        
+        # 누적 예약: 오늘까지 누적된 예약 건 수, 취소된 건 제외 (delete_yn=0)
+        total_reservations = Reservation.objects.filter(
+            timeslot__facility_id=item,
+            reg_date__date__lte=today,
+            delete_yn=0
+        ).distinct().count()
+        
         facility_page.append({
             "id": item.id,
             "name": item.faci_nm,
             "address": item.address,
             "row_no": start_index + idx + 1,
-            "facilityCd" : item.facility_id
+            "facilityCd": item.facility_id,
+            "today_count": today_reservations,
+            "total_count": total_reservations
         })
 
     context = {
@@ -358,6 +379,198 @@ def facility_list(request):
     }
 
     return render(request, "facility_list_manager.html", context)
+
+
+def reservation_list_manager(request):
+    """
+    관리자용 예약 목록 페이지
+    - facility_id: 시설 ID (선택)
+    - type: 'today' (금일 활성 예약) 또는 'all' (누적 예약)
+    """
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('/manager/')
+    
+    # 필터 파라미터
+    facility_id = request.GET.get("facility_id", "")
+    reservation_type = request.GET.get("type", "all")  # 'today' or 'all'
+    status = request.GET.get("status", "active")  # 'active' (예약완료) or 'cancelled' (예약취소)
+    sort_by = request.GET.get("sort", "reg_date")  # 'reg_date' or 'timeslot'
+    search_type = request.GET.get("search_type", "reservation_num")  # 'reservation_num', 'member_id', 'member_name'
+    search_keyword = request.GET.get("search_keyword", "")
+    per_page = int(request.GET.get("per_page", 15))
+    page = int(request.GET.get("page", 1))
+    
+    # 오늘 날짜
+    today = timezone.now().date()
+    
+    # 예약 조회 (TimeSlot을 통해 시설과 연결)
+    queryset = Reservation.objects.filter(
+        timeslot__isnull=False
+    ).select_related('member').distinct()
+    
+    # 상태 필터 (누적 예약일 때만 적용, 금일 활성 예약은 항상 예약완료만)
+    if reservation_type == 'all':
+        if status == 'cancelled':
+            queryset = queryset.filter(delete_yn=1)  # 취소된 예약만
+        else:
+            queryset = queryset.filter(delete_yn=0)  # 예약완료만 (기본값)
+    else:
+        # 금일 활성 예약은 항상 예약완료만
+        queryset = queryset.filter(delete_yn=0)
+    
+    # 시설 필터
+    if facility_id:
+        try:
+            facility = FacilityInfo.objects.get(facility_id=facility_id)
+            queryset = queryset.filter(timeslot__facility_id=facility)
+        except FacilityInfo.DoesNotExist:
+            messages.error(request, "시설을 찾을 수 없습니다.")
+            return redirect('/manager/facility_list/')
+    
+    # 타입 필터 (금일 활성 예약)
+    if reservation_type == 'today':
+        queryset = queryset.filter(reg_date__date=today)
+    
+    # 누적 예약 (type='all')은 reg_date__date__lte=today 조건 추가
+    else:
+        queryset = queryset.filter(reg_date__date__lte=today)
+    
+    # 검색 필터
+    if search_keyword:
+        if search_type == 'reservation_num':
+            queryset = queryset.filter(reservation_num__icontains=search_keyword)
+        elif search_type == 'member_id':
+            queryset = queryset.filter(member__user_id__icontains=search_keyword)
+        elif search_type == 'member_name':
+            queryset = queryset.filter(member__nickname__icontains=search_keyword)
+    
+    # 정렬
+    if sort_by == 'timeslot':
+        # 시설 예약 시간 순 (TimeSlot의 date, start_time 기준)
+        queryset = queryset.order_by('timeslot__date', 'timeslot__start_time')
+    else:
+        # 예약 발생 시간 순 (reg_date 기준, default)
+        queryset = queryset.order_by('-reg_date')
+    
+    # 페이징
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page)
+    
+    # 페이지 블록
+    block_size = 10
+    current_block = (page - 1) // block_size
+    block_start = current_block * block_size + 1
+    block_end = block_start + block_size - 1
+    if block_end > paginator.num_pages:
+        block_end = paginator.num_pages
+    block_range = range(block_start, block_end + 1)
+    
+    # 데이터 변환
+    start_index = (page_obj.number - 1) * per_page
+    reservation_page = []
+    
+    for idx, reservation in enumerate(page_obj.object_list):
+        # 시설 정보 가져오기 (TimeSlot을 통해) - 취소된 예약도 포함
+        timeslots = TimeSlot.objects.filter(
+            reservation_id=reservation
+        ).select_related('facility_id').first()
+        
+        facility_name = timeslots.facility_id.faci_nm if timeslots and timeslots.facility_id else "미정"
+        facility_id_val = timeslots.facility_id.facility_id if timeslots and timeslots.facility_id else ""
+        
+        # 종목 정보 가져오기 (Facility 모델에서)
+        sport_type = "미정"
+        if timeslots and timeslots.facility_id and timeslots.facility_id.facility_id:
+            try:
+                facility = Facility.objects.filter(faci_cd=timeslots.facility_id.facility_id).first()
+                if facility and facility.ftype_nm:
+                    sport_type = facility.ftype_nm
+            except:
+                pass
+        
+        # 이용 시간 정보 (모든 TimeSlot의 시간을 합쳐서 표시) - 취소된 예약도 포함
+        time_slots = TimeSlot.objects.filter(
+            reservation_id=reservation
+        ).order_by('date', 'start_time')
+        
+        time_info_list = []
+        slot_list_for_json = []  # 팝업에서 사용할 상세 시간 정보
+        earliest_date = None
+        
+        for ts in time_slots:
+            date_str = ts.date.strftime('%Y-%m-%d') if ts.date else ""
+            time_str = f"{ts.start_time}~{ts.end_time}" if ts.start_time and ts.end_time else ""
+            if date_str and time_str:
+                time_info_list.append(f"{date_str} {time_str}")
+            
+            # 가장 빠른 예약 날짜 확인 (체크박스 활성화 여부 판단용)
+            if not earliest_date and ts.date:
+                earliest_date = ts.date
+            
+            # 팝업용 상세 정보
+            slot_list_for_json.append({
+                "date": date_str,
+                "start": ts.start_time,
+                "end": ts.end_time,
+                "is_cancelled": (ts.delete_yn == 1),
+                "t_id": ts.t_id
+            })
+        
+        time_info = ", ".join(time_info_list) if time_info_list else "미정"
+        
+        # 오늘 날짜와 비교 (체크박스 활성화 여부)
+        is_past = False
+        if earliest_date and earliest_date < today:
+            is_past = True
+        
+        # 회원 정보
+        member_name = reservation.member.nickname if reservation.member else "알 수 없음"
+        member_id = reservation.member.user_id if reservation.member else ""
+        
+        reservation_page.append({
+            "id": reservation.reservation_id,
+            "reservation_num": reservation.reservation_num,
+            "member_name": member_name,
+            "member_id": member_id,
+            "facility_name": facility_name,
+            "facility_id": facility_id_val,
+            "facility_address": timeslots.facility_id.address if timeslots and timeslots.facility_id else "",
+            "facility_tel": timeslots.facility_id.tel if timeslots and timeslots.facility_id else "",
+            "sport_type": sport_type,
+            "time_info": time_info,
+            "slot_list": slot_list_for_json,  # 팝업에서 사용할 상세 시간 정보
+            "reg_date": reservation.reg_date.strftime('%Y-%m-%d %H:%M') if reservation.reg_date else "",
+            "delete_date": reservation.delete_date.strftime('%Y-%m-%d %H:%M') if reservation.delete_date else "",
+            "delete_yn": reservation.delete_yn,  # 예약 상태 (0: 예약완료, 1: 취소)
+            "is_past": is_past,  # 예약 날짜가 지났는지 여부
+            "row_no": start_index + idx + 1,
+        })
+    
+    # 시설 정보 (필터용)
+    facility_info = None
+    if facility_id:
+        try:
+            facility_info = FacilityInfo.objects.get(facility_id=facility_id)
+        except FacilityInfo.DoesNotExist:
+            pass
+    
+    context = {
+        "page_obj": page_obj,
+        "per_page": per_page,
+        "facility_id": facility_id,
+        "reservation_type": reservation_type,
+        "status": status,
+        "sort_by": sort_by,
+        "search_type": search_type,
+        "search_keyword": search_keyword,
+        "facility_info": facility_info,
+        "reservation_json": json.dumps(reservation_page, ensure_ascii=False),
+        "block_range": block_range,
+    }
+    
+    return render(request, "reservation_list_manager.html", context)
 
 
 # 시설상세보기 
@@ -2482,6 +2695,44 @@ def banner_download(request, img_id):
         filename=os.path.basename(file_path),
     )
 
+
+
+# 관리자용 예약 취소 API
+@csrf_exempt
+def manager_cancel_timeslot(request, reservation_num):
+    """관리자가 예약의 특정 시간대를 취소하는 API"""
+    if not is_manager(request):
+        return JsonResponse({"result": "error", "msg": "관리자 권한이 필요합니다."})
+    
+    if request.method != "POST":
+        return JsonResponse({"result": "error", "msg": "잘못된 요청"})
+    
+    try:
+        data = json.loads(request.body)
+        slots = data.get("slots", [])
+        
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+        
+        for s in slots:
+            TimeSlot.objects.filter(
+                reservation_id=reservation,
+                date=s["date"],
+                start_time=s["start"],
+                end_time=s["end"]
+            ).update(delete_yn=1)
+        
+        # 남은 슬롯이 모두 delete_yn = 1이면 예약 전체 취소
+        if not TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0).exists():
+            reservation.delete_yn = 1
+            reservation.delete_date = datetime.now()
+            reservation.save()
+        
+        return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
+    
+    except Reservation.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
+    except Exception as e:
+        return JsonResponse({"result": "error", "msg": f"취소 실패: {str(e)}"})
 
 
 # manager deatil ----
