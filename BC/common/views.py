@@ -207,7 +207,7 @@ def login(request):
             request.session["manager_name"] = user.name
             # 로그인 유지 선택 시 세션 만료 시간 변경
             if remember:
-                request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
+                request.session.set_expiry(60 * 60)  # 1시간 유지
             else:
                 request.session.set_expiry(0)  # 브라우저 닫으면 만료
             
@@ -219,7 +219,7 @@ def login(request):
         # 일반 사용자
         # 로그인 유지 선택 시 세션 만료 시간 변경
         if remember:
-            request.session.set_expiry(60 * 60 * 24 * 7)  # 7일 유지
+            request.session.set_expiry(60 * 60)  # 1시간 유지
         else:
             request.session.set_expiry(0)  # 브라우저 닫으면 만료
 

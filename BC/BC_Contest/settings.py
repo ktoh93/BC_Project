@@ -150,7 +150,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # 브라우저 닫으면 세션 만료
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 기본 7일 (remember 체크 시에만 사용)
+SESSION_COOKIE_AGE = 60 * 60  # 기본 1시간 (remember 체크 시에만 사용)
 
 try:
     from .settings_local import *
