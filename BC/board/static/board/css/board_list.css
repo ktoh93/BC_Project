@@ -66,23 +66,23 @@
 
 /* 이벤트 페이지 전용 hero */
 .event-hero {
-    background-image: url('/static/img/event_hero.png');
+    background-image: url('/static/board/img/event_hero.png');
 }
 
 /* 공지사항 페이지 전용 hero */
 .notice-hero {
-    background-image: url('/static/img/notice_hero.png');
+    background-image: url('/static/board/img/notice_hero.png');
 }
 
 /* post 페이지 전용 hero */
 .post-hero {
-    background-image: url('/static/img/post_hero.png');
+    background-image: url('/static/board/img/post_hero.png');
 }
 
 /* FAQ 페이지 전용 hero */
 .faq-hero {
     /* 이미지를 그 위에 표시 */
-    background-image: url('/static/img/aidrip.png');
+    background-image: url('/static/board/img/aidrip.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;

@@ -2886,3 +2886,39 @@ def board_detail(request, pk):
         "files": files,
         "images": images,
     })
+
+@csrf_exempt
+def manager_cancel_timeslot(request, reservation_num):
+    """관리자가 예약의 특정 시간대를 취소하는 API"""
+    if not is_manager(request):
+        return JsonResponse({"result": "error", "msg": "관리자 권한이 필요합니다."})
+    
+    if request.method != "POST":
+        return JsonResponse({"result": "error", "msg": "잘못된 요청"})
+    
+    try:
+        data = json.loads(request.body)
+        slots = data.get("slots", [])
+        
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+        
+        for s in slots:
+            TimeSlot.objects.filter(
+                reservation_id=reservation,
+                date=s["date"],
+                start_time=s["start"],
+                end_time=s["end"]
+            ).update(delete_yn=1)
+        
+        # 남은 슬롯이 모두 delete_yn = 1이면 예약 전체 취소
+        if not TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0).exists():
+            reservation.delete_yn = 1
+            reservation.delete_date = datetime.now()
+            reservation.save()
+        
+        return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
+    
+    except Reservation.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
+    except Exception as e:
+        return JsonResponse({"result": "error", "msg": f"취소 실패: {str(e)}"})

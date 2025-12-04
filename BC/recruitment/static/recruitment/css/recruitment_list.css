@@ -43,7 +43,7 @@
 
 /* 모집할래 페이지 전용 hero */
 .recruitment-hero {
-    background-image: url('/static/img/recruitment_hero.png');
+    background-image: url('/static/board/img/recruitment_hero.png');
 }
 
 /* Hero 이미지 모바일 반응형 */

@@ -58,7 +58,7 @@
 }
 
 .reservation-hero {
-    background-image: url('/static/img/reservation_hero.png');
+    background-image: url('/static/board/img/reservation_hero.png');
 }
 
 @media (max-width: 768px) {
