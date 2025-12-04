@@ -14,7 +14,7 @@
 
     <input type="hidden" id="is-authenticated" value="{% if request.session.user_id %}1{% else %}0{% endif %}">
     <input type="hidden" id="facility-id" value="{{ facility.facility_id }}">
-
+    <input type="hidden" id="rs-possible" value="{{ facility.rs_posible }}">
     <!-- 기본 정보 -->
     <div class="facility-top">
         <div class="facility-photo">
@@ -39,30 +39,45 @@
 
     <div class="divider"></div>
 
-    <div class="reservation-section">
-        <div class="calendar-box">
-            <div id="calendar"></div>
+    {% if facility.rs_posible == 1 %}
+        <!-- 기존 예약 UI 전체 시작 -->
+        <div class="reservation-section">
+            <div class="calendar-box">
+                <div id="calendar"></div>
+            </div>
+
+            <div class="time-slot-box">
+                <div class="time-slot-title">시간 선택</div>
+                <div class="slot-grid" id="time-slot-grid"></div>
+            </div>
         </div>
 
-        <div class="time-slot-box">
-            <div class="time-slot-title">시간 선택</div>
-            <div class="slot-grid" id="time-slot-grid"></div>
+        <div class="result-box">
+            <div>선택된 날짜: <strong id="selected-date">-</strong></div>
+            <div>선택된 시간: <strong id="selected-time">-</strong></div>
+
+            <div class="total-price">
+                총 결제금액: <span id="total-price">0원</span>
+            </div>
         </div>
-    </div>
 
-    <div class="result-box">
-        <div>선택된 날짜: <strong id="selected-date">-</strong></div>
-        <div>선택된 시간: <strong id="selected-time">-</strong></div>
-
-        <div class="total-price">
-            총 결제금액: <span id="total-price">0원</span>
+        <div class="reservation-buttons">
+            <button class="btn-reserve" id="reserve-button">예약하기</button>
+            <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
         </div>
-    </div>
+        <!-- 기존 예약 UI 전체 끝 -->
 
-    <div class="reservation-buttons">
-        <button class="btn-reserve" id="reserve-button">예약하기</button>
-        <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
-    </div>
+    {% else %}
+        <div style="padding: 3rem; text-align: center; font-size: 1.6rem; color: #b30000; font-weight: 700;">
+            예약이 불가능한 시설입니다.
+        </div>
+        <div class="reservation-buttons">
+            <a href="{% url 'reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+        </div>
+    {% endif %}
+
+
+
 </div>
 
 <script id="reservation-json" type="application/json">

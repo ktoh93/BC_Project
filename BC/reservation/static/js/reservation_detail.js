@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return; 
     }
 
+
+    const rsPossible = document.getElementById("rs-possible").value;
+    if (rsPossible !== "1") {
+        return;
+    }
     /* ---------------------------
         1) 데이터 로드
     ---------------------------- */
