@@ -24,22 +24,14 @@ import os
 import uuid
 from django.conf import settings
 
-
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-# from common.utils import get_recruitment_dummy_list
-
-    # articles = Article.objects.filter(delete_date__isnull=True).order_by('-article_id')
-    # return render(request, 'board/list.html', {'articles': articles})
-
-
-
-
 from django.db.models import Q
 from django.core.paginator import Paginator
 
+from common.utils import check_login
 
 
 def recruitment_list(request):
+    
     search_type = request.GET.get("search_type", "all")
     keyword = request.GET.get("keyword", "").strip()
     sido = request.GET.get("sido", "")
@@ -135,12 +127,13 @@ def recruitment_list(request):
 # recruitment/views.py
 
 def write(request):
-    # 0) 세션에 로그인 정보 있는지 확인
+    
+    res = check_login(request)
+    if res:
+        return res
+      
     user_id = request.session.get("user_id")
 
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
 
     # 1) 세션의 user_id 로 Member 객체 가져오기
     try:
@@ -308,10 +301,12 @@ def write(request):
 
 def update(request, pk):
     # 0) 세션 로그인 확인
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
 
     # 1) 세션의 user_id 로 Member 가져오기
     try:
@@ -458,10 +453,12 @@ def update(request, pk):
 
 def detail(request, pk):
     # 로그인 체크
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
 
     login_member = Member.objects.filter(user_id=user_id).first()
 
@@ -593,6 +590,11 @@ def detail(request, pk):
 
 
 def delete(request, pk):
+    
+    res = check_login(request)
+    if res:
+        return res
+        
 
     # 1) 세션 user_id 로 Member 조회
     try:
@@ -628,11 +630,15 @@ def delete(request, pk):
 
 
 def join(request, pk):
+
     # 0) 로그인 체크
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/member/login/")
+
 
     # 1) 세션의 user_id 로 Member 찾기
     try:
@@ -682,11 +688,15 @@ def join(request, pk):
 @require_POST           # GET말고 POST만 받음
 @transaction.atomic     # DB 저장시 꼬이지 않게
 def update_join_status(request, pk, join_id):
+
     # 0) 로그인 체크
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/member/login/")
+
 
     # 1) 로그인 유저
     try:
@@ -739,10 +749,13 @@ def add_comment(request, pk):
         return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 0) 세션 로그인 확인
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
+
 
     # 1) 로그인 회원
     try:
@@ -783,10 +796,12 @@ def add_comment(request, pk):
 
 def close_recruitment(request, pk):
     # 로그인 체크
+    
+    res = check_login(request)
+    if res:
+        return res
+    
     user_id = request.session.get("user_id")
-    if not user_id:
-        messages.error(request, "로그인이 필요합니다.")
-        return redirect("/login/")
 
     # 글 가져오기 (삭제된 글은 마감 안 하도록)
     try:
@@ -826,6 +841,11 @@ def close_recruitment(request, pk):
 from django.http import JsonResponse
 
 def get_facility_region(request):
+    
+    res = check_login(request)
+    if res:
+        return res
+
     reservation_id = request.GET.get("reservation_id")
 
     slot = (
