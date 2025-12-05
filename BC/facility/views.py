@@ -370,14 +370,8 @@ def facility_detail(request, fk):
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     try:
-        # ------------------------------------------------------
-        # 항상 files 초기화 (facility_info 없어도 사용 가능하도록)
-        # ------------------------------------------------------
         files = []
 
-        # ======================================================
-        # 1) FacilityInfo / Facility 조회
-        # ======================================================
         facility_info = FacilityInfo.objects.filter(facility_id=fk).first()
         facility = Facility.objects.filter(faci_cd=fk).first()
 
@@ -386,9 +380,6 @@ def facility_detail(request, fk):
                 "error": "시설 정보를 찾을 수 없습니다."
             })
 
-        # ======================================================
-        # 2) 기본 구조
-        # ======================================================
         r_data = {
             "id": fk,
             "name": "",
@@ -405,16 +396,11 @@ def facility_detail(request, fk):
             "image_url": "/media/default.png",
         }
 
-        # 버튼 표시 여부
         can_reserve = False
         can_recruit = False
         reserve_message = "해당 시설에 문의해주세요"
 
-        # ======================================================
-        # 3) FacilityInfo 있는 경우 (관리자 데이터 우선)
-        # ======================================================
         if facility_info:
-
             r_data["name"] = facility_info.faci_nm or (facility.faci_nm if facility else "")
             r_data["address"] = facility_info.address or (facility.faci_road_addr or facility.faci_addr if facility else "")
             r_data["sido"] = facility_info.sido or (facility.cp_nm if facility else "")
@@ -422,19 +408,15 @@ def facility_detail(request, fk):
             r_data["phone"] = facility_info.tel or (facility.faci_tel_no if facility else "")
             r_data["homepage"] = facility_info.homepage or (facility.faci_homepage if facility else "")
 
-            # 이미지
             if facility_info.photo:
                 r_data["image_url"] = facility_info.photo.url
 
-            # 예약 가능
             if facility_info.reservation_time:
                 can_reserve = True
                 reserve_message = "가능"
 
-            # 모집 가능
             can_recruit = True
 
-            # Facility 원본에서 부족한 값 보완
             if facility:
                 r_data["fcob_nm"] = facility.fcob_nm or ""
                 r_data["faci_stat_nm"] = facility.faci_stat_nm or ""
@@ -442,7 +424,6 @@ def facility_detail(request, fk):
                 r_data["lat"] = facility.faci_lat
                 r_data["lng"] = facility.faci_lot
 
-            # 첨부파일 조회
             add_info_objs = AddInfo.objects.filter(facility_id=facility_info.id)
 
             for add_info in add_info_objs:
@@ -456,13 +437,9 @@ def facility_detail(request, fk):
                     'is_image': is_image,
                 }
 
-                # 이미지 제외 → files에만 넣기
                 if not is_image:
                     files.append(file_data)
 
-        # ======================================================
-        # 4) FacilityInfo 없는 경우 (Facility 원본 + 네이버 이미지)
-        # ======================================================
         else:
             r_data.update({
                 "id": facility.faci_cd,
@@ -479,19 +456,13 @@ def facility_detail(request, fk):
                 "lng": facility.faci_lot,
             })
 
-            # 네이버 이미지 자동 검색
             img_url = get_naver_image(r_data["name"])
             if img_url:
                 r_data["image_url"] = img_url
 
-            # recruitment / reservation 버튼 숨김
             can_reserve = False
             can_recruit = False
 
-        # ======================================================
-        # 5) 좌표 보완 (카카오 지오코딩)
-        # ======================================================
-        #if not r_data["lat"] or not r_data["lng"]:
         try:
             geo_fixed = kakao_for_map([r_data])[0]
             r_data["lat"] = geo_fixed["lat"]
@@ -499,9 +470,6 @@ def facility_detail(request, fk):
         except:
             print("카카오 지오코딩 실패 → 좌표 없음")
 
-        # ======================================================
-        # 6) 댓글 조회
-        # ======================================================
         comment_objs = Comment.objects.select_related("member_id").filter(
             facility=fk
         ).order_by("reg_date")
@@ -517,19 +485,18 @@ def facility_detail(request, fk):
                 "is_deleted": c.delete_date is not None,
             })
 
-        # ======================================================
-        # 7) 페이지 렌더링
-        # ======================================================
         return render(request, "facility/facility_view.html", {
             "facility": r_data,
-            "files": files,   # ← 여기 항상 files 있음
+            "files": files,
             "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
             "can_reserve": can_reserve,
             "can_recruit": can_recruit,
             "reserve_message": reserve_message,
             "comments": comments,
+            "facility_id": fk,
+            "comment_fk": fk,   # 댓글 URL에서 반드시 이 변수 사용
         })
- 
+
     except Exception as e:
         print("[facility_detail ERROR]", e)
         import traceback
@@ -537,20 +504,18 @@ def facility_detail(request, fk):
         return render(request, "facility/facility_view.html", {
             "error": f"상세 정보를 불러오는 중 오류가 발생했습니다: {str(e)}"
         })
+
     
 # 댓글 추가 기능
 def add_comment(request, fk):
-    # 필수: 로그인 체크
     from common.utils import check_login
     res = check_login(request)
     if res:
         return res
 
-    # GET 차단
     if request.method != "POST":
-        return redirect("detail", fk=fk)
+        return redirect("facility:detail", fk=fk)
 
-    # 로그인된 사용자 가져오기
     user_id = request.session.get("user_id")
     try:
         member = Member.objects.get(user_id=user_id)
@@ -559,13 +524,11 @@ def add_comment(request, fk):
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("/login/")
 
-    # 댓글 내용
     content = request.POST.get("content", "").strip()
     if not content:
         messages.error(request, "댓글 내용을 입력해 주세요.")
-        return redirect("detail", fk=fk)
+        return redirect("facility:detail", fk=fk)
 
-    # 댓글 생성
     Comment.objects.create(
         facility=Facility.objects.get(faci_cd=fk),
         member_id=member,
@@ -573,8 +536,7 @@ def add_comment(request, fk):
     )
 
     messages.success(request, "댓글이 등록되었습니다.")
-    return redirect("detail", fk=fk)
-
+    return redirect("facility:detail", fk=fk)
 
 
 
