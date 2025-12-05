@@ -532,7 +532,7 @@ def notice_detail(request, article_id):
                 delete_date__isnull=True
             )
         print(f"[DEBUG] notice_detail: 게시글 조회 성공 - title={article_obj.title}")
-        
+         
         # 조회수 증가 (삭제되지 않은 게시글만)
         if not article_obj.delete_date:
             article_obj.view_cnt += 1
@@ -597,6 +597,7 @@ def notice_detail(request, article_id):
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
             'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
+            'board_id' : article_obj.board_id_id,
         }
         
         context = {
@@ -726,6 +727,7 @@ def event_detail(request, article_id):
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
             'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
+            'board_id': article_obj.board_id_id,
         }
         
         context = {
@@ -734,6 +736,7 @@ def event_detail(request, article_id):
             'board_type': 'event',
             'is_manager': is_manager_user,
             'is_deleted': is_deleted,
+
         }
         
         return render(request, 'board/board_detail.html', context)
@@ -849,6 +852,7 @@ def post_detail(request, article_id):
             'images': images,  # 이미지 파일들
             'files': files,     # 일반 파일들 (PDF 등)
             'delete_date': article_obj.delete_date.strftime('%Y-%m-%d %H:%M') if article_obj.delete_date else None,
+
         }
         
         context = {

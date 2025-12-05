@@ -80,51 +80,15 @@
 
             {% if is_manager and not is_deleted %}
                 {% if board_type == 'notice' %}
-                    <a href="/manager/board_edit/{{ article.article_id }}/" class="btn btn-edit">수정하기</a>
+                    <a href="{% url 'manager:board_list' article.board_id %}" class="btn btn-edit">수정하기</a>
                 {% elif board_type == 'event' %}
-                    <a href="/manager/event_edit/{{ article.article_id }}/" class="btn btn-edit">수정하기</a>
+                    <a href="{% url 'manager:board_list' article.board_id %}" class="btn btn-edit">수정하기</a>
                 {% endif %}
             {% endif %}
+
         </div>
 
         <hr class="article-divider">
-
-        <!-- 댓글 섹션 -->
-        <!-- <section class="comment-section">
-            <h3 class="section-title">댓글 ({{ comments|length }})</h3>
-
-            <ul class="comment-list">
-                {% for comment in comments %}
-                <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
-                    <div class="comment-header">
-                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% endif %}">
-                            {{ comment.author }}{% if comment.is_admin %} 👑{% endif %}
-                        </span>
-                        <span class="comment-separator">|</span>
-                        <span class="comment-content">{{ comment.comment|linebreaksbr }}</span>
-                        <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
-                        {% if is_manager and not comment.is_deleted %}
-                        <button type="button" class="comment-delete-btn" data-comment-id="{{ comment.comment_id }}">삭제</button>
-                        {% endif %}
-                    </div>
-                </li>
-                {% empty %}
-                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
-                {% endfor %}
-            </ul>
-
-            <form method="post" action="/board/{{ board_type }}/{{ article.article_id }}/comment/" class="comment-form">
-                {% csrf_token %}
-                <label for="comment" class="form-label">댓글 쓰기</label>
-                <textarea id="comment" name="content" class="form-textarea" rows="3" placeholder="댓글을 입력하세요" required></textarea>
-                <div class="comment-btn-box">
-                    <button type="submit" class="btn btn-submit">등록</button>
-                </div>
-            </form>
-        </section> -->
-
-
-
 
 
 
