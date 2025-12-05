@@ -29,11 +29,11 @@
 
             <div class="btn-row">
                 <!-- 강제 다운로드 경로 -->
-                <a href="{% url 'banner_download' banner.img_id %}">
+                <a href="{% url 'manager:banner_download' banner.img_id %}">
                     <button type="button" class="btn btn-submit">파일 다운로드</button>
                 </a>
 
-                <a href="{% url 'banner_edit' banner.img_id %}">
+                <a href="{% url 'manager:banner_edit' banner.img_id %}">
                     <button type="button" class="btn btn-submit">수정하기</button>
                 </a>
 

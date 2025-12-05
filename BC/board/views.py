@@ -1004,7 +1004,7 @@ def delete_comment(request):
         # Soft delete: delete_date 설정
         from datetime import datetime
         comment.delete_date = datetime.now()
-        comment.comment = '관리자에 의해 삭제된 댓글입니다.'
+        #comment.comment = '관리자에 의해 삭제된 댓글입니다.'
         comment.save()
         
         return JsonResponse({

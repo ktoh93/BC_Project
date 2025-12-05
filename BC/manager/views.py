@@ -72,7 +72,7 @@ def manager(request):
                     })
             
                 # 관리자 권한 확인 (member_id == 1만 관리자)
-                if admin_user.member_id != 1:
+                if admin_user.manager_yn != 1:
                     return render(request, 'manager/login_manager.html', {
                         'error': '관리자 권한이 없습니다.'
                     })
@@ -88,7 +88,7 @@ def manager(request):
                 request.session['manager_id'] = admin_user.member_id
                 request.session['manager_name'] = admin_user.name
 
-                return redirect('/manager/dashboard/')
+                return redirect('manager:dashboard')
             
             except Exception as e:
                 print(f"[ERROR] 관리자 로그인 오류: {str(e)}")
@@ -99,12 +99,16 @@ def manager(request):
             
         return render(request, 'manager/login_manager.html')
     else:
-        return redirect('/manager/dashboard/')
+        return redirect('manager:dashboard')
 
 
 
 # 시설 추가
 def facility(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     #DATA_API_KEY = os.getenv("DATA_API_KEY")
 
     cp_nm = request.GET.get("sido", "") 
@@ -300,7 +304,10 @@ def facility_register(request):
 
 # 시설관리
 def facility_list(request):
-
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     # 필터 파라미터
     sido = request.GET.get("sido", "")
     sigungu = request.GET.get("sigungu", "")
@@ -388,7 +395,7 @@ def reservation_list_manager(request):
     # 관리자 권한 확인
     if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
-        return redirect('/manager/')
+        return redirect('manager:manager_login')
     
     # 필터 파라미터
     facility_id = request.GET.get("facility_id", "")
@@ -425,7 +432,7 @@ def reservation_list_manager(request):
             queryset = queryset.filter(timeslot__facility_id=facility)
         except FacilityInfo.DoesNotExist:
             messages.error(request, "시설을 찾을 수 없습니다.")
-            return redirect('/manager/facility_list/')
+            return redirect('manager:facility_list')
     
     # 타입 필터 (금일 활성 예약)
     if reservation_type == 'today':
@@ -573,6 +580,10 @@ def reservation_list_manager(request):
 
 # 시설상세보기 
 def facility_detail(request, id):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     facilityInfo = get_object_or_404(FacilityInfo, facility_id=id)
     facility = get_object_or_404(Facility,faci_cd=id )
 
@@ -686,7 +697,7 @@ def facility_modify(request, id):
     )
 
     messages.success(request, "시설 정보가 수정되었습니다.")
-    return redirect("facility_detail", id=info.facility_id)
+    return redirect("manager:facility_detail", id=info.facility_id)
 
 
 @csrf_exempt
@@ -734,6 +745,10 @@ def facility_delete(request):
         return JsonResponse({"status": "error", "msg": str(e)})
 
 def dashboard(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     """
     관리자 대시보드
     DB가 없어도 동작하도록 모든 DB 쿼리에 예외 처리 포함
@@ -1146,6 +1161,10 @@ def dashboard(request):
 
 
 def facility_inspection_stats(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     """
     시설 안전점검 통계 페이지
     """
@@ -1251,6 +1270,10 @@ def facility_inspection_stats(request):
 
 
 def facility_inspection_yearly_detail(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     """
     연도별 안전점검 추세 상세 페이지
     연도, 지역, 종목을 교차 선택하여 통계 확인 가능
@@ -1374,6 +1397,10 @@ def facility_inspection_yearly_detail(request):
 
 
 def facility_inspection_grade_detail(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     """
     등급별 분포 상세 페이지 (시설 목록 표시)
     """
@@ -1493,38 +1520,23 @@ def facility_inspection_grade_detail(request):
     return render(request, 'manager/facility_inspection_grade_detail.html', context)
 
 
-# 종목관리
-def sport_add(request):
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
-
-    try:
-        data = json.loads(request.body)
-        name = data.get("name", "").strip()
-
-        if not name:
-            return JsonResponse({"status": "error", "msg": "종목명이 비어있음"})
-
-        # 중복 체크
-        if Sports.objects.filter(s_name=name).exists():
-            return JsonResponse({"status": "error", "msg": "이미 존재하는 종목"})
-
-        sp = Sports(s_name=name)
-        sp.save()
-
-        return JsonResponse({"status": "ok", "id": sp.sports_id, "name": sp.s_name})
-
-    except Exception as e:
-        return JsonResponse({"status": "error", "msg": str(e)})
-    
-
-
-
-# 예약관리
+# 모집글관리
 def recruitment_manager(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     # DB에서 모집글 조회 (삭제된 것도 포함)
     try:
-        queryset = Community.objects.select_related('member_id').all().order_by('-reg_date')
+        queryset = Community.objects.select_related('member_id') \
+        .order_by(
+            Case(
+                When(delete_date__isnull=True, then=Value(0)),  # 삭제 안된 글 → 우선
+                default=Value(1),                               # 삭제된 글 → 뒤로
+                output_field=IntegerField()
+            ),
+            '-reg_date'  # 그 안에서 최신순
+        )
     except Exception:
         queryset = []
     
@@ -1574,14 +1586,10 @@ def recruitment_manager(request):
 
 # 모집글 상세페이지
 def recruitment_detail(request, id):
-    
-    # 로그인 체크
-    admin = request.session.get("manager_id")
-    if not admin:
-        messages.error(request, "로그인이 필요합니다.")
-        return render(request, 'manager/login_manager.html')
-    
-    is_manager = True
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
 
     # 모집글 조회
     try:
@@ -1631,10 +1639,26 @@ def recruitment_detail(request, id):
         .order_by("join_status", "member_id__user_id")
     )
 
-    comments = Comment.objects.filter(
-        community_id=recruit,
-        delete_date__isnull=True
-    ).order_by("reg_date")
+    comment_objs = Comment.objects.select_related('member_id').filter(
+            community_id=recruit
+        ).order_by('reg_date')
+        
+    comments = []
+    for comment_obj in comment_objs:
+        comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+        comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
+        is_deleted = comment_obj.delete_date is not None
+        comment = "관리자에 의해 삭제된 댓글입니다." if comment_obj.delete_date else comment_obj.comment
+        
+        comments.append({
+            'comment_id': comment_obj.comment_id,
+            'comment': comment,
+            'author': comment_author,
+            'is_admin': comment_is_admin,
+            'reg_date': comment_obj.reg_date,
+            'is_deleted': is_deleted,
+            
+        })
 
     context = {
         "recruit": recruit,
@@ -1744,6 +1768,11 @@ def delete_communities(request):
 
 # 배너 관리----------------------------------
 def banner_manager(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
+    
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
 
@@ -1776,11 +1805,20 @@ def banner_manager(request):
     return render(request, "manager/banner_manager.html", context)
 
 def banner_detail(request, img_id):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     banner = get_object_or_404(HeroImg, img_id=img_id, delete_date__isnull=True)
     return render(request, "manager/banner_detail.html", {"banner": banner})
 
 
 def banner_form(request):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
+    
     if request.method == "POST":
         upload_file = request.FILES.get("file")
         title = request.POST.get("title", "").strip()
@@ -1847,7 +1885,7 @@ def banner_form(request):
             end_date=end_date,
         )
 
-        return redirect("banner_manager")
+        return redirect("manager:banner_manager")
 
     # GET
     return render(request, "manager/banner_form.html")
@@ -1906,7 +1944,7 @@ def banner_edit(request, img_id):
         # 새 파일도 없고 삭제 플래그도 없는 경우는 그대로 유지
 
         banner.save()
-        return redirect("banner_manager")
+        return redirect("manager:banner_manager")
 
     return render(request, "manager/banner_edit.html", {"banner": banner})
 
@@ -1940,6 +1978,10 @@ def banner_download(request, img_id):
 
 # 게시판 list
 def board_list(request, id):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     try:
         boardName = Board.objects.filter(board_id=id).values_list('board_name', flat=True).first()
         queryset = Article.objects.select_related('member_id', 'board_id') \
@@ -2005,6 +2047,10 @@ def board_list(request, id):
 
 # 게시글 등록 & 수정
 def board_write(request, id, pk=None):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     if pk:
         article = get_object_or_404(Article, board_id=id, article_id=pk)
         start_date_str = ""
@@ -2098,7 +2144,7 @@ def create_article(request, board_id):
     handle_file_uploads(request, article)
 
     messages.success(request, "등록되었습니다.")
-    return redirect(f'/manager/board_detail/{article.article_id}/')
+    return redirect('manager:board_detail', pk=article.article_id)
 
 # 게시글 수정
 def update_article(request, article, board_id, pk):
@@ -2139,15 +2185,19 @@ def update_article(request, article, board_id, pk):
     handle_file_uploads(request, article)
 
     messages.success(request, "수정되었습니다.")
-    return redirect(f'/manager/board_detail/{pk}/')
+    return redirect('manager:board_detail',pk=pk)
 
 
 
 # 게시글 상세페이지
 def board_detail(request, pk):
+    # 관리자 권한 확인
+    if not is_manager(request):
+        messages.error(request, "관리자 권한이 필요합니다.")
+        return redirect('manager:manager_login')
     article = get_object_or_404(Article, article_id=pk)
     memberNm = get_object_or_404(Member, member_id = article.member_id_id ).nickname
-    print("맴버이름 : ", memberNm)
+
     board_type = article.board_id.board_name  # notice / event / post
 
     # 파일 로딩
@@ -2165,47 +2215,32 @@ def board_detail(request, pk):
             images.append(info)
         else:
             files.append(info)
-
+    comment_objs = Comment.objects.select_related('member_id').filter(
+        article_id = pk
+    ).order_by('reg_date')
+        
+    comments = []
+    for comment_obj in comment_objs:
+        comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+        comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
+        is_deleted = comment_obj.delete_date is not None
+        comment = "관리자에 의해 삭제된 댓글입니다." if comment_obj.delete_date else comment_obj.comment
+        
+        comments.append({
+            'comment_id': comment_obj.comment_id,
+            'comment': comment,
+            'author': comment_author,
+            'is_admin': comment_is_admin,
+            'reg_date': comment_obj.reg_date,
+            'is_deleted': is_deleted,
+            
+        })
     return render(request, "manager/board_manager_detail.html", {
         "article": article,
         "author" : memberNm,
         "board_type": board_type,
         "files": files,
         "images": images,
+        "comments" : comments
     })
 
-@csrf_exempt
-def manager_cancel_timeslot(request, reservation_num):
-    """관리자가 예약의 특정 시간대를 취소하는 API"""
-    if not is_manager(request):
-        return JsonResponse({"result": "error", "msg": "관리자 권한이 필요합니다."})
-    
-    if request.method != "POST":
-        return JsonResponse({"result": "error", "msg": "잘못된 요청"})
-    
-    try:
-        data = json.loads(request.body)
-        slots = data.get("slots", [])
-        
-        reservation = Reservation.objects.get(reservation_num=reservation_num)
-        
-        for s in slots:
-            TimeSlot.objects.filter(
-                reservation_id=reservation,
-                date=s["date"],
-                start_time=s["start"],
-                end_time=s["end"]
-            ).update(delete_yn=1)
-        
-        # 남은 슬롯이 모두 delete_yn = 1이면 예약 전체 취소
-        if not TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0).exists():
-            reservation.delete_yn = 1
-            reservation.delete_date = datetime.now()
-            reservation.save()
-        
-        return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다."})
-    
-    except Reservation.DoesNotExist:
-        return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."})
-    except Exception as e:
-        return JsonResponse({"result": "error", "msg": f"취소 실패: {str(e)}"})

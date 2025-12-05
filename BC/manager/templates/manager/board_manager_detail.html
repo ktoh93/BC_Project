@@ -48,14 +48,48 @@
             </div>
         </div>
         {% endif %}
+        <!-- 댓글 섹션 -->
+        <section class="comment-section">
+            <h3 class="section-title">댓글 ({{ comments|length }})</h3>
 
+            <ul class="comment-list">
+                {% for comment in comments %}
+                 <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
+                    <div class="comment-meta">
+                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% elif comment.is_author %}author-badge{% endif %}">
+                            {{ comment.author }}{% if comment.is_admin %} 👑{% elif comment.is_author %} (작성자) {% endif %}
+                        </span>
+                        <span class="comment-date">
+                            {{ comment.reg_date|date:"Y-m-d H:i" }}
+                        </span>
+
+                        {% if not comment.is_deleted %}
+                        <button type="button"
+                                class="comment-delete-btn"
+                                data-comment-id="{{ comment.comment_id }}">
+                            삭제
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
+                </li>
+                {% empty %}
+                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+                {% endfor %}
+            </ul>
+
+        </section>
 
 
         <div class="detail-actions">
-            <a href="{% url 'board_edit' article.board_id_id article.article_id %}" class="btn btn-edit">수정</a>
-            <a href="{% url 'board_list' article.board_id_id %}" class="btn btn-list">목록</a>
+            <a href="{% url 'manager:board_edit' article.board_id_id article.article_id %}" class="btn btn-edit">수정</a>
+            <a href="{% url 'manager:board_list' article.board_id_id %}" class="btn btn-list">목록</a>
         </div>
     </div>
 </div>
 
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'manager/js/comment_delete.js' %}"></script>
 {% endblock %}

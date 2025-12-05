@@ -38,7 +38,7 @@
                 <td>{{ b.row_no }}</td>
                 <td><input type="checkbox" name="delete_ids" value="{{ b.img_id }}"></td>
                 <td>
-                    <a href="{% url 'banner_detail' b.img_id %}" class="detail-link">
+                    <a href="{% url 'manager:banner_detail' b.img_id %}" class="detail-link">
                         {{ b.title }}
                     </a>
                 </td>
@@ -83,7 +83,7 @@
     </div>
 
     <!-- 버튼 영역 (다른 관리 페이지와 동일한 구조) -->
-    <a href="{% url 'banner_form' %}">
+    <a href="{% url 'manager:banner_form' %}">
         <button class="register-btn" type="button">이미지 등록</button>
     </a>
     <button class="delete-btn" type="button" onclick="deleteBanners()">선택 삭제</button>
@@ -94,19 +94,4 @@
 {% block extra_js %}
 <script src="{% static 'manager/js/banner_manager.js' %}"></script>
 <script src="{% static 'manager/js/paging.js' %}"></script>
-<script>
-// 페이지당 항목 수 변경 처리 (다른 관리 페이지와 동일)
-document.addEventListener("DOMContentLoaded", function () {
-    const perPageSelect = document.getElementById("perPageSelect");
-    if (perPageSelect) {
-        perPageSelect.addEventListener("change", function() {
-            const perPage = this.value;
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('per_page', perPage);
-            urlParams.set('page', '1'); // 페이지는 1로 초기화
-            window.location.href = '?' + urlParams.toString();
-        });
-    }
-});
-</script>
 {% endblock %}

@@ -613,11 +613,32 @@ def detail(request, pk):
         )
 
     # 댓글
-    comments = (
-        Comment.objects
-        .filter(community_id=recruit)
-        .order_by("reg_date")
-    )
+    # comments = (
+    #     Comment.objects
+    #     .filter(community_id=recruit)
+    #     .order_by("reg_date")
+    # )
+
+    comment_objs = Comment.objects.select_related('member_id').filter(
+            community_id=recruit
+        ).order_by('reg_date')
+        
+    comments = []
+    for comment_obj in comment_objs:
+        comment_author = comment_obj.member_id.nickname if comment_obj.member_id and hasattr(comment_obj.member_id, 'nickname') else '알 수 없음'
+        comment_is_admin = comment_obj.member_id.manager_yn == 1 if comment_obj.member_id else False
+        is_deleted = comment_obj.delete_date is not None
+        comment = "관리자에 의해 삭제된 댓글입니다." if comment_obj.delete_date else comment_obj.comment
+        
+        comments.append({
+            'comment_id': comment_obj.comment_id,
+            'comment': comment,
+            'author': comment_author,
+            'is_admin': comment_is_admin,
+            'reg_date': comment_obj.reg_date,
+            'is_deleted': is_deleted,
+            
+        })
 
     # -----------------------------------
     # ✅ 이 모집글의 reservation_id 기준 타임슬롯

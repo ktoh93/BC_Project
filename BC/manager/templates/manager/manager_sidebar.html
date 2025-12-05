@@ -1,30 +1,31 @@
 {% load static %}
 <aside class="admin-sidebar">
-    <div class="sidebar-title">관리자님<br>어서오십시오</div>
+    <div class="sidebar-title">관리자님<span></span><br>어서오십시오</div>
+    {# <a href="{% url 'common:logout' %}">로그아웃</a href>#}
     <ul class="sidebar-menu">
 
         <!-- 1Depth: 시설 -->
         <li class="menu-title">시설</li>
         <ul class="submenu">
-            <li><a href="{% url 'facility_add' %}">시설 추가</a></li>
-            <li><a href="{% url 'facility_list' %}">시설 관리</a></li>
+            <li><a href="{% url 'manager:facility_add' %}">시설 추가</a></li>
+            <li><a href="{% url 'manager:facility_list' %}">시설 관리</a></li>
         </ul>
 
         <!-- 1Depth: 웹관리 -->
         <li class="menu-title">웹관리</li>
         <ul class="submenu">
-            <li><a href="{%url 'recruitment_manager'%}">모집글관리</a></li>
-            <li><a href="{%url 'board_list' 2%}">공지사항 관리</a></li>
-            <li><a href="{%url 'board_list' 3%}">이벤트 관리</a></li>
-            <li><a href="{%url 'board_list' 4%}">자유게시판 관리</a></li>
-            <li><a href="{%url 'banner_manager'%}">배너관리</a></li>
+            <li><a href="{%url 'manager:recruitment_manager'%}">모집글관리</a></li>
+            <li><a href="{%url 'manager:board_list' 2%}">공지사항 관리</a></li>
+            <li><a href="{%url 'manager:board_list' 3%}">이벤트 관리</a></li>
+            <li><a href="{%url 'manager:board_list' 4%}">자유게시판 관리</a></li>
+            <li><a href="{%url 'manager:banner_manager'%}">배너관리</a></li>
         </ul>
 
         <!-- 1Depth: 통계 -->
         <li class="menu-title">통계</li>
         <ul class="submenu">
-            <li><a href="{% url 'dashboard' %}">대시보드</a></li>
-            <li><a href="{% url 'facility_inspection_stats' %}">안전통계</a></li>
+            <li><a href="{% url 'manager:dashboard' %}">대시보드</a></li>
+            <li><a href="{% url 'manager:facility_inspection_stats' %}">안전통계</a></li>
         </ul>
         
         <!-- 메인페이지 가기 -->
