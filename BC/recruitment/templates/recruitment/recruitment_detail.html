@@ -297,22 +297,37 @@
                             {{ comment.member_id.nickname }}{% if comment.member_id.manager_yn %}👑{% elif comment.member_id == recruit.member_id %}(작성자){% endif %}
                         </span>
                         <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
-            {% if is_owner or is_manager %}
-                {% if comment.member_id == request.user.member or is_manager %}
-                <form method="post"
-                      action="{% url 'recruitment:delete_comment' recruit.pk comment.pk %}"
-                      style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="comment-delete-btn">삭제</button>
-                </form>
-                {% endif %}
+
+            {% if is_manager and comment.delete_date__isnull %}
+            <form method="post"
+                  action="{% url 'recruitment:delete_comment' recruit.community_id comment.comment_id %}"
+                  style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="comment-delete-btn">삭제</button>
+            </form>
             {% endif %}
+
                     </div>
-                    <p class="comment-content">{% if comment.delete_date %}관리자에 의해 삭제된 댓글입니다.{%else%}{{ comment.comment|linebreaksbr }}{%endif%}</p>
+            
+            
+            {% if comment.delete_date %}
+                <p class="comment-content-delete">
+                    (관리자에 의해 삭제된 댓글입니다.)
+                    {% if is_manager %}
+                        <br>{{ comment.comment|linebreaksbr }}
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="comment-content">
+                    {{ comment.comment|linebreaksbr }}
+                </p>
+            {% endif %}
+
+            
                 </li>
-                {% empty %}
-                <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
-                {% endfor %}
+            {% empty %}
+            <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
+            {% endfor %}
             </ul>
 
 

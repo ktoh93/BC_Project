@@ -668,3 +668,9 @@
         font-size: 0.85rem;
     }
 }
+
+.comment-content-delete {
+    color: #777;             /* 연회색 글씨 */
+    font-style: italic;      /* 이탤릭체 */
+    padding: 6px 0;
+}
