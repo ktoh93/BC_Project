@@ -141,7 +141,7 @@
                 
                 <!-- 7. 버튼 -->
                 <div class="btn-row">
-                    <button type="button" class="btn btn-submit">작성</button>
+                    <button type="button" class="btn btn-submit">수정</button>
                     <button type="button" class="btn btn-list">목록</button>
                 </div>
 
@@ -150,5 +150,28 @@
 
     </div>
 </div>
+
+{% endblock %}
+
+{% block script3 %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fileInput = document.querySelector('input[type="file"]');
+    if (!fileInput) return;
+
+    fileInput.addEventListener("change", function() {
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        const files = this.files;
+
+        for (let f of files) {
+            if (f.size > maxSize) {
+                alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
+                this.value = "";  // 선택한 파일 전체 초기화
+                return;
+            }
+        }
+    });
+});
+</script>
 
 {% endblock %}
