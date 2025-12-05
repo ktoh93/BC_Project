@@ -6,6 +6,7 @@ app_name = 'member'
 urlpatterns = [
     path('info/', views.info, name='info'),
     path('edit/', views.edit, name='edit'),
+    path('withdraw/', views.withdraw, name='withdraw'),
     path('password/', views.edit_password, name='password'),
     path('myreservation/', views.myreservation, name='myreservation'),
     path('myrecruitment/', views.myrecruitment, name='myrecruitment'),

@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const btn_edit = document.querySelector(".btn-edit");
     const btn_password = document.querySelector(".btn-password");
+    const btn_withdraw = document.querySelector(".btn-withdraw");
 
 
     // 1) 정보 수정 클릭
@@ -15,7 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // console.log("비밀번호 변경 클릭됨");
         handle_password_change();
     });
-
+    
+    // 2) 회원탈퇴 클릭
+    btn_withdraw.addEventListener("click", function() {
+        // console.log("비밀번호 변경 클릭됨");
+        handle_withdraw();
+    });
 
 
 });
@@ -28,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function handle_edit_profile() {
     // 예시: 수정 페이지로 이동
     window.location.href = typeof MEMBER_EDIT_URL !== 'undefined' ? MEMBER_EDIT_URL : "/member/edit/";
-
+    
     // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
     // alert("정보 수정 기능 준비중");
 }
@@ -40,4 +46,12 @@ function handle_password_change() {
     
     // 모달 열기/폼 보여주기 등 수정 가능
     // alert("비밀번호 변경 기능 준비중");
+}
+
+function handle_withdraw(){
+    const ok = confirm('정말 회원 탈퇴를 진행하시겠습니까?')
+    if (ok){
+            document.getElementById("withdrawForm").submit();
+    }
+    
 }

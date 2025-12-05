@@ -182,7 +182,11 @@ def login(request):
         next_url = request.POST.get("next") or request.GET.get("next", "")  # 이전 페이지 URL
 
         try:
-            user = Member.objects.get(user_id=user_id)
+            user = Member.objects.get(
+                user_id=user_id,
+                delete_yn=0,
+                delete_date__isnull = True
+                )
 
         except Member.DoesNotExist:
             messages.error(request, "존재하지 않는 아이디입니다.")
