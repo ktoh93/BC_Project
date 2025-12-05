@@ -13,6 +13,7 @@
 {{ facility|json_script:"facility-data" }}
 
 <script>
+    // Django에서 json_script로 넘긴 데이터 파싱
     const facilityData = JSON.parse(document.getElementById("facility-data").textContent);
 </script>
 {% endblock %}
@@ -148,46 +149,45 @@
 </div>
 
 {% endblock %}
+
 {% block script3 %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
 
-        var container = document.getElementById("map");
-        var map = new kakao.maps.Map(container, {
-            center: new kakao.maps.LatLng(37.5665, 126.9780),
-            level: 7,
-            draggable: false,                    // 드래그 금지
-            scrollwheel: false,                  // 휠 확대/축소 금지
-            disableDoubleClickZoom: true,        // 더블클릭 확대 금지
-            keyboardShortcuts: false             // 키보드 이동 금지
+    const container = document.getElementById("map");
+
+    const map = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(37.5665, 126.9780),
+        level: 3,                     // 🔍 지도 더 확대 (값이 낮을수록 확대)
+        draggable: false,             // 드래그 불가
+        scrollwheel: false,           // 휠 확대/축소 금지
+        disableDoubleClickZoom: true, // 더블클릭 확대 금지
+        keyboardShortcuts: false      // 키보드 이동 금지
+    });
+
+    const lat = parseFloat(facilityData.lat);
+    const lng = parseFloat(facilityData.lng);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+        const pos = new kakao.maps.LatLng(lat, lng);
+
+        const marker = new kakao.maps.Marker({
+            map: map,
+            position: pos
         });
 
+        const infowindow = new kakao.maps.InfoWindow({
+            content: `<div style="padding:5px;font-size:14px;">${facilityData.name}</div>`
+        });
 
-        var lat = parseFloat(facility.lat);
-        var lng = parseFloat(facility.lng);
+        infowindow.open(map, marker);
 
-        // 좌표가 있는 경우만 지도 이동
-        if (!isNaN(lat) && !isNaN(lng)) {
-            var pos = new kakao.maps.LatLng(lat, lng);
+        map.setCenter(pos);
+        map.setLevel(2);  // 🔍 더 확대하고 싶다면 1까지 가능 (1 = 매우 확대)
+    } else {
+        console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
+    }
 
-            var marker = new kakao.maps.Marker({
-                map: map,
-                position: pos
-            });
-
-            // 인포윈도우
-            var infowindow = new kakao.maps.InfoWindow({
-                content: `<div style="padding:5px;font-size:14px;">${facility.name}</div>`
-            });
-
-            infowindow.open(map, marker);
-
-            map.setCenter(pos);
-            map.setLevel(2);
-        } else {
-            console.warn("좌표 없음 → 기본 지도 위치로 표시됨.");
-        }
-
-    });
+});
 </script>
 {% endblock %}
