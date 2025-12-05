@@ -588,3 +588,83 @@
 
     display: inline-block;
 }
+
+/* ============================
+   첨부파일 영역
+============================ */
+.attachment-section {
+    margin-top: 24px;
+    padding: 20px 22px;
+    border-radius: 12px;
+    background-color: #f8fafc; /* 살짝 밝은 배경 */
+    border: 1px solid #e2e8f0;
+}
+
+.attachment-section .section-title {
+    margin-bottom: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.attachment-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+
+.attachment-item {
+    flex: 1 1 100%;
+}
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: #111827;
+    box-sizing: border-box;
+    transition:
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.1s ease;
+}
+
+.attachment-link:hover {
+    background-color: #eff6ff;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+}
+
+.attachment-icon {
+    margin-right: 8px;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.attachment-name {
+    display: inline-block;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 반응형 - 모바일에서 파일명 너무 길지 않게 */
+@media (max-width: 768px) {
+    .attachment-section {
+        padding: 16px 14px;
+    }
+
+    .attachment-name {
+        max-width: 180px;
+        font-size: 0.85rem;
+    }
+}

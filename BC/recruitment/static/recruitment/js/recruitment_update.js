@@ -25,21 +25,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
     
     //  3) 파일 2MB 이상 등록 방지
-    const fileInput = document.querySelector('input[type="file"]');
-    if (!fileInput) return;
+    // const fileInput = document.querySelector('input[type="file"]');
+    // if (!fileInput) return;
 
-    fileInput.addEventListener("change", function() {
-        const maxSize = 2 * 1024 * 1024; // 2MB
-        const files = this.files;
+    // fileInput.addEventListener("change", function() {
+    //     const maxSize = 2 * 1024 * 1024; // 2MB
+    //     const files = this.files;
 
-        for (let f of files) {
-            if (f.size > maxSize) {
-                alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
-                this.value = "";  // 선택한 파일 전체 초기화
-                return;
+    //     for (let f of files) {
+    //         if (f.size > maxSize) {
+    //             alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
+    //             this.value = "";  // 선택한 파일 전체 초기화
+    //             return;
+    //         }
+    //     }
+    // });
+
+    //  3) 파일 2MB 이상 + 누적 선택
+    const updateFileInput = document.getElementById('updateFileInput');
+    const updateFileList  = document.getElementById('updateFileList');
+    let updatedFiles = [];
+
+    if (updateFileInput && updateFileList) {
+        updateFileInput.addEventListener('change', function (e) {
+            const maxSize  = 2 * 1024 * 1024;
+            const newFiles = Array.from(e.target.files);
+
+            let merged = [...updatedFiles];
+
+            for (const f of newFiles) {
+                if (f.size > maxSize) {
+                    alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
+                    updateFileInput.value = "";
+                    return;
+                }
+                merged.push(f);
             }
+
+            const dt = new DataTransfer();
+            merged.forEach(f => dt.items.add(f));
+            updateFileInput.files = dt.files;
+            updatedFiles          = Array.from(dt.files);
+
+            renderUpdateFileList();
+        });
+
+        function renderUpdateFileList() {
+            updateFileList.innerHTML = '';
+
+            updatedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-item-name">${file.name}</span>
+                    <button type="button" class="file-item-remove" data-index="${index}">✕</button>
+                `;
+                updateFileList.appendChild(item);
+
+                item.querySelector('.file-item-remove')
+                    .addEventListener('click', () => {
+                        const dt = new DataTransfer();
+                        const remain = Array
+                            .from(updateFileInput.files)
+                            .filter((_, i) => i !== index);
+
+                        remain.forEach(f => dt.items.add(f));
+                        updateFileInput.files = dt.files;
+                        updatedFiles          = Array.from(dt.files);
+                        renderUpdateFileList();
+                    });
+            });
         }
-    });
+    }
+
+
+    
 });
 
 // 목록 이동

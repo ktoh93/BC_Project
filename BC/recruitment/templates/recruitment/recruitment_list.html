@@ -186,48 +186,24 @@
 
             <!-- 🔹 이전 블록 -->
             {% if block_start > 1 %}
-                <a href="?page={{ num }}
-                    &per_page={{ per_page }}
-                    &sort={{ sort }}
-                    &search_type={{ search_type }}
-                    &keyword={{ keyword|urlencode }}
-                    &sido={{ sido|urlencode }}
-                    &sigungu={{ sigungu|urlencode }}
-                    &status={{ status }}
-                    &facility={{ facility|urlencode }}" class="page-btn arrow">◀ 이전</a>
-            {% else %}
-                <span class="page-btn arrow disabled">◀ 이전</span>
-            {% endif %}
-            
-            <!-- 🔹 페이지 번호 5개씩 블록 -->
-            {% for num in block_range %}
-                {% if num == page_obj.number %}
-                    <span class="page-btn active">{{ num }}</span>
+                <a href="?page={{num}}&per_page={{per_page}}&sort={{sort}}&search_type={{search_type }}&keyword={{ keyword|urlencode }}&sido={{ sido|urlencode }}&sigungu={{ sigungu|urlencode }}&status={{ status }}&facility={{ facility|urlencode }}" class="page-btn arrow">◀ 이전</a>
                 {% else %}
-                    <a href="?page={{ num }}
-                        &per_page={{ per_page }}
-                        &sort={{ sort }}
-                        &search_type={{ search_type }}
-                        &keyword={{ keyword|urlencode }}
-                        &sido={{ sido|urlencode }}
-                        &sigungu={{ sigungu|urlencode }}
-                        &status={{ status }}
-                        &facility={{ facility|urlencode }}" class="page-btn">{{ num }}</a>
+                <span class="page-btn arrow disabled">◀ 이전</span>
                 {% endif %}
-            {% endfor %}
-
-            <!-- 🔹 다음 블록 -->
-            {% if block_end < paginator.num_pages %}
-                <a href="?page={{ num }}
-                    &per_page={{ per_page }}
-                    &sort={{ sort }}
-                    &search_type={{ search_type }}
-                    &keyword={{ keyword|urlencode }}
-                    &sido={{ sido|urlencode }}
-                    &sigungu={{ sigungu|urlencode }}
-                    &status={{ status }}
-                    &facility={{ facility|urlencode }}" class="page-btn arrow">다음 ▶</a>
-            {% else %}
+                
+                <!-- 🔹 페이지 번호 5개씩 블록 -->
+                {% for num in block_range %}
+                {% if num == page_obj.number %}
+                <span class="page-btn active">{{ num }}</span>
+                {% else %}
+                <a href="?page={{num}}&per_page={{per_page}}&sort={{sort}}&search_type={{search_type }}&keyword={{ keyword|urlencode }}&sido={{ sido|urlencode }}&sigungu={{ sigungu|urlencode }}&status={{ status }}&facility={{ facility|urlencode }}" class="page-btn arrow">{{ num }}</a>
+                {% endif %}
+                {% endfor %}
+                
+                <!-- 🔹 다음 블록 -->
+                {% if block_end < paginator.num_pages %}
+                <a href="?page={{num}}&per_page={{per_page}}&sort={{sort}}&search_type={{search_type }}&keyword={{ keyword|urlencode }}&sido={{ sido|urlencode }}&sigungu={{ sigungu|urlencode }}&status={{ status }}&facility={{ facility|urlencode }}" class="page-btn arrow">{{ num }}</a>
+              {% else %}
                 <span class="page-btn arrow disabled">다음 ▶</span>
             {% endif %}
 

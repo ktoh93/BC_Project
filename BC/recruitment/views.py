@@ -300,13 +300,199 @@ def write(request):
 
 
 
-def update(request, pk):
-    # 0) 세션 로그인 확인
+# def update(request, pk):
+#     # 0) 세션 로그인 확인
     
+#     res = check_login(request)
+#     if res:
+#         return res
+    
+#     user_id = request.session.get("user_id")
+
+#     # 1) 세션의 user_id 로 Member 가져오기
+#     try:
+#         member = Member.objects.get(user_id=user_id)
+#     except Member.DoesNotExist:
+#         request.session.flush()
+#         messages.error(request, "다시 로그인 해주세요.")
+#         return redirect("/login/")
+
+#     # 2) 수정할 모집글 가져오기
+#     try:
+#         community = Community.objects.get(
+#             pk=pk,
+#             delete_date__isnull=True,
+#         )
+#     except Community.DoesNotExist:
+#         messages.error(request, "삭제되었거나 존재하지 않는 모집글입니다.")
+#         return redirect("recruitment:recruitment_list")
+
+#     # 3) 작성자 본인인지 체크
+#     if community.member_id != member:
+#         messages.error(request, "본인이 작성한 글만 수정할 수 있습니다.")
+#         return redirect("recruitment:recruitment_detail", pk=pk)
+
+#     # 🔹 이 글에 지금 연결돼 있는 예약 PK (없으면 None)
+#     current_reservation_id = community.reservation_id_id
+
+
+#     used_reservation_ids = (
+#         Community.objects
+#             .filter(
+#                 member_id=member,
+#                 delete_date__isnull=True,
+#             )
+#             .exclude(reservation_id__isnull=True)
+#             .exclude(reservation_id=current_reservation_id)   # 🔥 여기 중요!!
+#             .values_list("reservation_id", flat=True)
+#     )
+
+
+#     # 🔹 현재 지역에 맞는 나의 타임슬롯 중
+#     #    delete_yn=0 + 이미 사용된 reservation_id는 제외
+#     my_slots = (
+#         TimeSlot.objects
+#             .filter(
+#                 reservation_id__member=member,
+#                 reservation_id__delete_date__isnull=True,
+#                 delete_yn=0,
+#                 facility_id__sido=community.region,
+#                 facility_id__sigugun=community.region2,
+#             )
+#             .exclude(reservation_id_id__in=used_reservation_ids)  # 🔥 여기서 걸러짐
+#             .select_related("reservation_id", "facility_id")
+#             .order_by("reservation_id", "date", "start_time")
+#     )
+#     # 🔹 예약 목록도 동일 로직 적용
+#     reservation_ids = {slot.reservation_id_id for slot in my_slots}
+
+#     my_reservations = (
+#         Reservation.objects
+#             .filter(
+#                 member=member,
+#                 delete_date__isnull=True,
+#                 pk__in=reservation_ids,
+#             )
+#             .order_by("-reg_date")
+#     )
+
+#     # write()와 동일한 grouped 구조 만들기
+#     grouped_slots = OrderedDict()
+#     for slot in my_slots:
+#         rid = slot.reservation_id_id
+
+#         if rid not in grouped_slots:
+#             grouped_slots[rid] = {
+#                 "reservation": slot.reservation_id,
+#                 "facility": slot.facility_id,
+#                 "times": []
+#             }
+
+#         grouped_slots[rid]["times"].append({
+#             "t_id": slot.t_id,
+#             "date": slot.date,
+#             "start_time": slot.start_time,
+#             "end_time": slot.end_time,
+#         })
+
+#     my_reservation_slots = list(grouped_slots.values())
+
+#     # 4) POST: 실제 수정 처리
+#     if request.method == "POST":
+#         contents = request.POST.get("content")
+#         community.contents = contents
+#         community.update_date = timezone.now()
+
+#         # ✅ 예약 선택값
+#         reservation_id = (request.POST.get("reservation_choice") or "").strip()
+
+#         # 기본은 기존 값 유지
+#         facility_name = community.facility
+
+#         if reservation_id:
+#             slot = (
+#                 TimeSlot.objects
+#                 .select_related("facility_id", "reservation_id")
+#                 .filter(
+#                     reservation_id_id=reservation_id,
+#                     reservation_id__member=member,
+#                     reservation_id__delete_date__isnull=True,
+#                     delete_yn=0,
+#                 )
+#                 .first()
+#             )
+#             if slot:
+#                 facility = slot.facility_id
+#                 facility_name = facility.faci_nm
+#                 # 지역도 그 예약 기준으로 맞추고 싶으면
+#                 community.region = facility.sido
+#                 community.region2 = facility.sigugun
+#                 # 🔥 예약도 변경
+#                 community.reservation_id = slot.reservation_id
+
+
+#         files = request.FILES.getlist("files")
+
+#         for f in files:
+#             original_name = f.name                      # 원본 파일명
+#             ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
+#             encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
+
+#             # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
+#             save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
+#             save_path = os.path.join(save_dir, encoded_name)
+#             full_path = os.path.join(settings.MEDIA_ROOT, save_path)
+
+#             # 디렉터리 없으면 생성
+#             os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+#             # 파일 실제 저장
+#             with open(full_path, "wb+") as dest:
+#                 for chunk in f.chunks():
+#                     dest.write(chunk)
+
+#             # add_info 테이블에 메타데이터 저장
+#             AddInfo.objects.update(
+#                 community_id = community,     # FK 는 인스턴스로 넘기는 게 정석
+#                 path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
+#                 file_name    = original_name,
+#                 encoded_name = encoded_name,
+#                 # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
+#             )
+
+#         community.facility = facility_name
+#         community.save()
+
+#         return redirect("recruitment:recruitment_detail", pk=community.pk)
+
+#     # 5) GET: 수정 폼 화면
+#     context = {
+#         "community": community,
+#         "recruit": community,
+#         "my_reservations": my_reservations,
+#         "my_reservation_slots": my_reservation_slots,
+#         "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
+#     }
+#     return render(request, "recruitment/recruitment_update.html", context)
+
+
+
+def update(request, pk):
+    """
+    모집글 수정
+    - 작성자 본인만 수정 가능
+    - 예약 선택: 내 예약 중, 같은 지역 + delete_yn=0 + 다른 모집글에서 이미 쓴 예약은 제외
+    - 첨부파일:
+      * 기존 파일 목록 표시
+      * 체크한 파일만 실제 삭제(DB + 파일)
+      * 새로 업로드한 파일은 AddInfo 로 추가
+    """
+
+    # 0) 로그인 체크
     res = check_login(request)
     if res:
         return res
-    
+
     user_id = request.session.get("user_id")
 
     # 1) 세션의 user_id 로 Member 가져오기
@@ -317,7 +503,7 @@ def update(request, pk):
         messages.error(request, "다시 로그인 해주세요.")
         return redirect("/login/")
 
-    # 2) 수정할 모집글 가져오기
+    # 2) 수정할 모집글 가져오기 (soft delete 된 글 제외)
     try:
         community = Community.objects.get(
             pk=pk,
@@ -333,50 +519,61 @@ def update(request, pk):
         return redirect("recruitment:recruitment_detail", pk=pk)
 
     # 🔹 이 글에 지금 연결돼 있는 예약 PK (없으면 None)
-    current_reservation_id = community.reservation_id_id
+    current_reservation_id = community.reservation_id_id  # FK: reservation_id 기준
 
-
+    # ----------------------------------------
+    # 🔹 이미 다른 모집글에서 사용 중인 예약 PK 목록
+    #    - 내 글들 중 (soft delete X)
+    #    - reservation_id 가 있는 글들만
+    #    - 지금 수정 중인 글은 제외
+    # ----------------------------------------
     used_reservation_ids = (
         Community.objects
-            .filter(
-                member_id=member,
-                delete_date__isnull=True,
-            )
-            .exclude(reservation_id__isnull=True)
-            .exclude(reservation_id=current_reservation_id)   # 🔥 여기 중요!!
-            .values_list("reservation_id", flat=True)
+        .filter(
+            member_id=member,
+            delete_date__isnull=True,
+        )
+        .exclude(reservation_id__isnull=True)
+        .exclude(reservation_id_id=current_reservation_id)
+        .values_list("reservation_id_id", flat=True)
     )
 
-
+    # ----------------------------------------
     # 🔹 현재 지역에 맞는 나의 타임슬롯 중
-    #    delete_yn=0 + 이미 사용된 reservation_id는 제외
+    #    - delete_yn = 0
+    #    - 예약(Reservation) soft delete X
+    #    - 이미 다른 모집글에서 사용된 reservation_id 는 제외
+    # ----------------------------------------
     my_slots = (
         TimeSlot.objects
-            .filter(
-                reservation_id__member=member,
-                reservation_id__delete_date__isnull=True,
-                delete_yn=0,
-                facility_id__sido=community.region,
-                facility_id__sigugun=community.region2,
-            )
-            .exclude(reservation_id_id__in=used_reservation_ids)  # 🔥 여기서 걸러짐
-            .select_related("reservation_id", "facility_id")
-            .order_by("reservation_id", "date", "start_time")
+        .filter(
+            reservation_id__member=member,
+            reservation_id__delete_date__isnull=True,
+            delete_yn=0,
+            facility_id__sido=community.region,
+            facility_id__sigugun=community.region2,
+        )
+        .exclude(reservation_id_id__in=used_reservation_ids)
+        .select_related("reservation_id", "facility_id")
+        .order_by("reservation_id", "date", "start_time")
     )
-    # 🔹 예약 목록도 동일 로직 적용
+
+    # 🔹 이 타임슬롯들에 해당하는 예약 목록
     reservation_ids = {slot.reservation_id_id for slot in my_slots}
 
     my_reservations = (
         Reservation.objects
-            .filter(
-                member=member,
-                delete_date__isnull=True,
-                pk__in=reservation_ids,
-            )
-            .order_by("-reg_date")
+        .filter(
+            member=member,
+            delete_date__isnull=True,
+            pk__in=reservation_ids,
+        )
+        .order_by("-reg_date")
     )
 
-    # write()와 동일한 grouped 구조 만들기
+    # ----------------------------------------
+    # 🔹 write()와 동일한 grouped 구조 만들기
+    # ----------------------------------------
     grouped_slots = OrderedDict()
     for slot in my_slots:
         rid = slot.reservation_id_id
@@ -385,7 +582,7 @@ def update(request, pk):
             grouped_slots[rid] = {
                 "reservation": slot.reservation_id,
                 "facility": slot.facility_id,
-                "times": []
+                "times": [],
             }
 
         grouped_slots[rid]["times"].append({
@@ -397,13 +594,45 @@ def update(request, pk):
 
     my_reservation_slots = list(grouped_slots.values())
 
+    # ----------------------------------------
+    # 🔹 이 모집글의 기존 첨부파일 목록 (모두)
+    #    - delete_date 없으니까 그냥 community 기준으로만 필터
+    # ----------------------------------------
+    existing_files = AddInfo.objects.filter(
+        community_id=community,
+    )
+
     # 4) POST: 실제 수정 처리
     if request.method == "POST":
-        contents = request.POST.get("content")
+        # ✅ 내용 수정
+        contents = request.POST.get("content", "").strip()
         community.contents = contents
         community.update_date = timezone.now()
 
-        # ✅ 예약 선택값
+        # ✅ 1) 삭제할 첨부파일 체크 처리 (실제 삭제)
+        delete_ids = request.POST.getlist("delete_files")  # 체크박스 name="delete_files"
+
+        if delete_ids:
+            to_delete_qs = AddInfo.objects.filter(
+                community_id=community,
+                pk__in=delete_ids,
+            )
+
+            # 파일까지 같이 삭제
+            for info in to_delete_qs:
+                if info.path:  # path 에 상대 경로 저장되어 있다고 가정
+                    file_path = os.path.join(settings.MEDIA_ROOT, info.path)
+                    if os.path.exists(file_path):
+                        try:
+                            os.remove(file_path)
+                        except OSError:
+                            # 파일 없거나 권한 문제면 그냥 무시
+                            pass
+
+            # DB row 삭제
+            to_delete_qs.delete()
+
+        # ✅ 2) 예약 선택값 처리
         reservation_id = (request.POST.get("reservation_choice") or "").strip()
 
         # 기본은 기존 값 유지
@@ -424,12 +653,44 @@ def update(request, pk):
             if slot:
                 facility = slot.facility_id
                 facility_name = facility.faci_nm
-                # 지역도 그 예약 기준으로 맞추고 싶으면
+
+                # 예약 기준으로 지역 동기화
                 community.region = facility.sido
                 community.region2 = facility.sigugun
-                # 🔥 예약도 변경
+
+                # 예약 FK 변경
                 community.reservation_id = slot.reservation_id
 
+        # ✅ 3) 새 첨부파일 업로드 처리
+        files = request.FILES.getlist("files")  # <input type="file" name="files" multiple>
+
+        for f in files:
+            if not f:
+                continue
+
+            original_name = f.name
+            ext = os.path.splitext(original_name)[1]
+            encoded_name = f"{uuid.uuid4().hex}{ext}"
+
+            # 저장 경로 (MEDIA_ROOT 기준)
+            save_dir = "upload/recruit"
+            save_path = os.path.join(save_dir, encoded_name)
+            full_path = os.path.join(settings.MEDIA_ROOT, save_path)
+
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+            with open(full_path, "wb+") as dest:
+                for chunk in f.chunks():
+                    dest.write(chunk)
+
+            AddInfo.objects.create(
+                community_id=community,   # FK 인스턴스
+                path=save_path,
+                file_name=original_name,
+                encoded_name=encoded_name,
+            )
+
+        # ✅ 시설 이름 최종 반영 + 저장
         community.facility = facility_name
         community.save()
 
@@ -438,12 +699,16 @@ def update(request, pk):
     # 5) GET: 수정 폼 화면
     context = {
         "community": community,
-        "recruit": community,
+        "recruit": community,                 # 템플릿에서 recruit 로 쓰고 있으면 유지
         "my_reservations": my_reservations,
         "my_reservation_slots": my_reservation_slots,
-        "current_reservation_id": current_reservation_id,  # 🔥 템플릿에서 사용할 값
+        "current_reservation_id": current_reservation_id,
+        "existing_files": existing_files,     # ✅ 기존 첨부파일 목록
     }
     return render(request, "recruitment/recruitment_update.html", context)
+
+
+
 
 
 # recruitment/views.py
@@ -569,9 +834,13 @@ def detail(request, pk):
 
             # detail 템플릿에서 쓰기 쉽게 리스트 형태로 전달
             reservation_slots = [grouped]
-
+    add_info_list = AddInfo.objects.filter(
+        community_id=recruit,
+        # delete_date__isnull=True
+    )
     context = {
         "recruit": recruit,
+        "add_info": add_info_list,
         "is_owner": is_owner,
         "is_manager": is_manager_user,
         "join_list": join_list,

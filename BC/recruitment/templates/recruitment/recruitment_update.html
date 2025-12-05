@@ -27,9 +27,11 @@
 
         <!-- 작성 폼 (CSS 유지 위해 div 대신 form만 적용) -->
         <form id="recruit_form"
-              class="recruitmnent-write-form"
-              method="post"
-              action="{% url 'recruitment:recruitment_update' recruit.community_id %}">
+            class="recruitmnent-write-form"
+            method="post"
+            action="{% url 'recruitment:recruitment_update' recruit.community_id %}"
+            enctype="multipart/form-data">
+
             {% csrf_token %}
 
             <div class="form-wrapper">
@@ -127,16 +129,44 @@
                 
                 
                 <!-- 첨부파일 -->
-                <div class="form-group full-row">
-                <label class="form-label">첨부파일</label>
-                <div class="file-upload-wrapper">
-                    <input type="file" name="files" id="fileInput" class="file-input" multiple>
-                    <label for="fileInput" class="file-upload-btn">
-                    <span>📎 파일 선택</span>
-                    </label>
-                    <div class="file-list" id="fileList"></div>
-                </div>
-                </div>
+                <!-- 내용 입력 영역 등등 -->
+
+                {% if existing_files %}
+                <section class="attachment-section">
+                    <h3 class="section-title">현재 첨부파일</h3>
+                    <ul class="attachment-list">
+                    {% for f in existing_files %}
+                        <li class="attachment-item">
+                        <a href="{{ MEDIA_URL }}{{ f.path }}" target="_blank" class="attachment-link">
+                            📎 {{ f.file_name }}
+                        </a>
+                        <label class="attachment-delete">
+                            <input type="checkbox" name="delete_files" value="{{ f.pk }}">
+                            삭제
+                        </label>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+                <section class="attachment-upload-section">
+                    <label class="form-label">새 첨부파일 추가</label>
+
+                    <div class="file-upload-wrapper">
+                        <input type="file"
+                            name="files"
+                            id="updateFileInput"
+                            class="file-input"
+                            multiple>
+
+                        <label for="updateFileInput" class="file-upload-btn">
+                            <span>📎 파일 선택</span>
+                        </label>
+
+                        <div class="file-list" id="updateFileList"></div>
+                    </div>
+                </section>
 
                 
                 <!-- 7. 버튼 -->
@@ -153,25 +183,3 @@
 
 {% endblock %}
 
-{% block script3 %}
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const fileInput = document.querySelector('input[type="file"]');
-    if (!fileInput) return;
-
-    fileInput.addEventListener("change", function() {
-        const maxSize = 2 * 1024 * 1024; // 2MB
-        const files = this.files;
-
-        for (let f of files) {
-            if (f.size > maxSize) {
-                alert(`"${f.name}" 은(는) 2MB를 초과하여 업로드할 수 없습니다.`);
-                this.value = "";  // 선택한 파일 전체 초기화
-                return;
-            }
-        }
-    });
-});
-</script>
-
-{% endblock %}

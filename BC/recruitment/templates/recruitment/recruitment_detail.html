@@ -109,26 +109,24 @@
     </section>
 
     <!-- 첨부파일 섹션 -->
-    <section class="attach-section">
+        {% if add_info %}
+        <section class="detail-section attachment-section">
         <h3 class="section-title">첨부파일</h3>
 
-        {# 파일 필드명에 맞게 recruit.file 부분만 바꿔 쓰시면 됩니다 #}
-        {% if recruit.file %}
-            <div class="attach-box">
-                <a href="{{ recruit.file.url }}" class="attach-link" download>
-                    <span class="attach-icon">📎</span>
-                    <span class="attach-name">
-                        {{ recruit.file.name }}
-                    </span>
-                    <span class="attach-size">
-                        {{ recruit.file.size|filesizeformat }}
-                    </span>
+        <ul class="attachment-list">
+            {% for f in add_info %}
+            <li class="attachment-item">
+                <a href="{{ f.path }}" class="attachment-link" download>
+                <span class="attachment-icon">📎</span>
+                <span class="attachment-name">
+                    {{ f.file_name }}
+                </span>
                 </a>
-            </div>
-        {% else %}
-            <p class="attach-empty">첨부된 파일이 없습니다.</p>
+            </li>
+            {% endfor %}
+        </ul>
+        </section>
         {% endif %}
-    </section>
 
 
 

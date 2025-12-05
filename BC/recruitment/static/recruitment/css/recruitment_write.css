@@ -230,3 +230,102 @@
 .file-item-remove:hover {
     color: var(--color-deep-blue);
 }
+
+
+/* ============================
+   첨부파일 섹션 (수정 페이지)
+============================ */
+.attachment-section {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.attachment-section .section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.attachment-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.attachment-item:last-child {
+    border-bottom: none;
+}
+
+.attachment-link {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #1f2937;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+}
+
+.attachment-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #ef4444;
+    white-space: nowrap;
+}
+
+.attachment-delete input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+/* 새 첨부 업로드 영역 */
+.attachment-upload-section {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.attachment-upload-section .form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.attachment-upload-section input[type="file"] {
+    font-size: 0.85rem;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .attachment-section {
+        padding: 14px 12px;
+    }
+
+    .attachment-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .attachment-delete {
+        margin-top: 4px;
+    }
+}
