@@ -259,34 +259,35 @@ def write(request):
             reservation_id=reservation_obj,
         )
 
-    files = request.FILES.getlist("files")
+        files = request.FILES.getlist("files")
 
-    for f in files:
-        original_name = f.name                      # 원본 파일명
-        ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
-        encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
+        for f in files:
+            original_name = f.name                      # 원본 파일명
+            ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
+            encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
 
-        # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
-        save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
-        save_path = os.path.join(save_dir, encoded_name)
-        full_path = os.path.join(settings.MEDIA_ROOT, save_path)
+            # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
+            save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
+            save_path = os.path.join(save_dir, encoded_name)
+            full_path = os.path.join(settings.MEDIA_ROOT, save_path)
 
-        # 디렉터리 없으면 생성
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            # 디렉터리 없으면 생성
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
-        # 파일 실제 저장
-        with open(full_path, "wb+") as dest:
-            for chunk in f.chunks():
-                dest.write(chunk)
+            # 파일 실제 저장
+            with open(full_path, "wb+") as dest:
+                for chunk in f.chunks():
+                    dest.write(chunk)
 
-        # add_info 테이블에 메타데이터 저장
-        AddInfo.objects.create(
-            community_id = recruit,     # FK 는 인스턴스로 넘기는 게 정석
-            path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
-            file_name    = original_name,
-            encoded_name = encoded_name,
-            # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
-        )
+            # add_info 테이블에 메타데이터 저장
+            AddInfo.objects.create(
+                community_id = recruit,     # FK 는 인스턴스로 넘기는 게 정석
+                path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
+                file_name    = original_name,
+                encoded_name = encoded_name,
+                # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
+            )
+        return redirect("recruitment:recruitment_detail", pk=recruit.pk)
 
     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
     context = {

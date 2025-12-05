@@ -212,28 +212,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 });
 
-function handle_submit() {
-    // 예시: 수정 페이지로 이동
-    window.location.href = "/recruitment/detail/2";
 
-    // 또는 모달 열기, 입력 필드 활성화 등 여기 넣으면 됨
-    // alert("정보 수정 기능 준비중");
-}
 function handle_list() {
     // 예시: 수정 페이지로 이동
     window.location.href = "/recruitment";
