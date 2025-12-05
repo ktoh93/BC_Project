@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sidoEl.appendChild(opt);
     });
 
-    const nowSido = params.get("sido") || "서울특별시";
+    const nowSido = params.get("sido") || "";
     const nowSigungu = params.get("sigungu") || "";
 
     if (nowSido) sidoEl.value = nowSido;
