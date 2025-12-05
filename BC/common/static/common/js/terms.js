@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     else{
         alert("약관에 동의 하셨습니다.");
-        window.location.href = "/signup";
+        window.location.href = "{% url 'common:signup'%}";
 
     }
        
