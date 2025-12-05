@@ -26,7 +26,7 @@
                 <div class="admin-error">{{ error }}</div>
             {% endif %}
 
-            <form method="POST" action="{% url 'manager_login' %}">
+            <form method="POST" action="{% url 'manager:manager_login' %}">
                 {% csrf_token %}
                 <input type="text" name="admin_id" placeholder="ID" autofocus>
                 <input type="password" name="admin_pw" placeholder="PASSWORD">

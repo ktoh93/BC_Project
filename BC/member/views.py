@@ -843,3 +843,28 @@ def delete_my_community(request):
         print(f"[ERROR] delete_my_community 오류: {str(e)}")
         print(traceback.format_exc())
         return JsonResponse({"status": "error", "msg": str(e)})
+
+
+
+
+# 회원탈퇴
+def withdraw(request):
+    # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+
+    login_id = request.session.get("user_id")
+    
+
+    try:
+        # DB에서 최신 회원 정보 가져오기 (캐시 무시)
+        user = Member.objects.get(user_id=login_id)
+        user.delete_yn =1
+        user.delete_date = timezone.now()
+        user.save()
+        request.session.flush()
+        return redirect('/')
+    except Member.DoesNotExist:
+        messages.error(request, "회원 정보를 찾을 수 없습니다.")
+        return redirect('/login/')

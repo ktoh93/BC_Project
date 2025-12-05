@@ -86,10 +86,21 @@ mypage base
 
             <!-- 버튼 -->
             <div class="mypage-btn-box">
-                <button type="button" class="btn-edit">정보 수정</button>
-                <button type="button" class="btn-password">비밀번호 변경</button>
+                <div class="btn-left">
+                    <button type="button" class="btn-edit">정보 수정</button>
+                    <button type="button" class="btn-password">비밀번호 변경</button>
+                </div>
+
+                <button type="button" class="btn-withdraw">회원 탈퇴</button>
             </div>
 
+        </form>
+        <!-- 🔥 여기 추가 -->
+        <form id="withdrawForm"
+              method="post"
+              action="{% url 'member:withdraw' %}"
+              style="display:none;">
+            {% csrf_token %}
         </form>
 
     </section>

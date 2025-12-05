@@ -145,3 +145,60 @@
 .btn-list:hover {
     background: #b5b5b5;
 }
+.comment-section {
+    margin-top: 32px;
+}
+
+.comment-section .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+.comment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.comment-writer {
+    font-weight: 600;
+    color: #111827;
+}
+
+.comment-date {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.comment-content {
+    color: #111827;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.comment-empty {
+    text-align: center;
+    padding: 18px 0;
+    color: #6b7280;
+    font-size: 14px;
+}

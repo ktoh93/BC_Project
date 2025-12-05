@@ -4,7 +4,7 @@
 {% block title %} {{ recruit.title }} 상세페이지 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'common/css/recruitment_detail.css' %}">
+<link rel="stylesheet" href="{% static 'manager/css/recruitment_detail.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -93,7 +93,7 @@
             {% endif %}
 
             <!-- 목록 버튼 -->
-            <a href="{% url 'recruitment_manager' %}" class="detail-btn btn-list">목록으로</a>
+            <a href="{% url 'manager:recruitment_manager' %}" class="detail-btn btn-list">목록으로</a>
 
         </div>
 
@@ -118,14 +118,24 @@
 
             <ul class="comment-list">
                 {% for comment in comments %}
-                <li class="comment-item">
+                 <li class="comment-item {% if comment.is_deleted %}comment-deleted{% endif %}">
                     <div class="comment-meta">
-                        <span class="comment-writer">
-                            {{ comment.member_id.nickname }}
-                            {% if is_owner %}😁😁😁😁😁😁{% endif %}
+                        <span class="comment-writer {% if comment.is_admin %}admin-badge{% elif comment.is_author %}author-badge{% endif %}">
+                            {{ comment.author }}{% if comment.is_admin %} 👑{% elif comment.is_author %} (작성자) {% endif %}
                         </span>
-                        <span class="comment-date">{{ comment.reg_date|date:"Y-m-d H:i" }}</span>
+                        <span class="comment-date">
+                            {{ comment.reg_date|date:"Y-m-d H:i" }}
+                        </span>
+
+                        {% if not comment.is_deleted %}
+                        <button type="button"
+                                class="comment-delete-btn"
+                                data-comment-id="{{ comment.comment_id }}">
+                            삭제
+                        </button>
+                        {% endif %}
                     </div>
+
                     <p class="comment-content">{{ comment.comment|linebreaksbr }}</p>
                 </li>
                 {% empty %}
@@ -142,4 +152,6 @@
 
 {% block extra_js %}
 <script src="{% static 'manager/js/paging.js' %}"></script>
+<script src="{% static 'manager/js/comment_delete.js' %}"></script>
+
 {% endblock %}

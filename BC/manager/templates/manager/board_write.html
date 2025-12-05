@@ -30,9 +30,9 @@
         <div class="form-wrapper">
            <form method="post"
                 action="{% if is_edit %}
-                            {% url 'board_edit' article.board_id_id article.article_id %}
+                            {% url 'manager:board_edit' article.board_id_id article.article_id %}
                         {% else %}
-                            {% url 'board_write' boardId %}
+                            {% url 'manager:board_write' boardId %}
                         {% endif %}"
                 enctype="multipart/form-data">
 

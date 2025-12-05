@@ -76,8 +76,8 @@
 
 
             <section class="detail-buttons">
-                <a href="{% url 'facility_list' %}" class="btn-reserve">목록으로</a>
-                <a href="{% url 'facility_modify' facilityInfo.id %}" class="btn-modify">수정하기</a>
+                <a href="{% url 'manager:facility_list' %}" class="btn-reserve">목록으로</a>
+                <a href="{% url 'manager:facility_modify' facilityInfo.id %}" class="btn-modify">수정하기</a>
             </section>
 
         </section>
