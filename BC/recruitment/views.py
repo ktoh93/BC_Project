@@ -44,7 +44,7 @@ def recruitment_list(request):
     qs = (
         Community.objects
         .filter(delete_date__isnull=True)
-        .select_related("endstatus")
+        .select_related("endstatus")  # JOIN ? 
         .annotate(
             current_member=Count("joinstat"),
             comment_count = Count('comment', distinct=True),
@@ -126,7 +126,7 @@ def recruitment_list(request):
     return render(request, "recruitment/recruitment_list.html", context)
 
 
-# recruitment/views.py
+
 
 def write(request):
     
@@ -297,10 +297,6 @@ def write(request):
         "my_reservation_slots": my_reservation_slots,
     }
     return render(request, "recruitment/recruitment_write.html", context)
-
-
-
-
 
 
 
@@ -536,10 +532,6 @@ def update(request, pk):
 
 
 
-
-
-
-
 def detail(request, pk):
     # 로그인 체크
     
@@ -559,12 +551,12 @@ def detail(request, pk):
     # 모집글 조회 (삭제되지 않은 것만)
     try:
         recruit = Community.objects.get(pk=pk, delete_date__isnull=True)
+        Community.objects.filter(pk=pk, delete_date__isnull=True).update(view_cnt=F("view_cnt")+1)  
+        # 존재하면 조회수 증가 / .save() 대신 F로 update하는건 동시 접속 많아질 경우 db 접속이 꼬일 수 있기 때문
     except Community.DoesNotExist:
         raise Http404("존재하지 않는 모집글입니다.")
 
-    # 조회수 증가
-    recruit.view_cnt += 1
-    recruit.save()
+
 
     # 참여자 목록
     joins_qs = JoinStat.objects.filter(community_id=recruit)
@@ -612,12 +604,6 @@ def detail(request, pk):
             .order_by("join_status", "member_id__user_id")
         )
 
-    # 댓글
-    # comments = (
-    #     Comment.objects
-    #     .filter(community_id=recruit)
-    #     .order_by("reg_date")
-    # )
  
     comments = []
     # 댓글: 그냥 Comment queryset 으로 넘김
@@ -690,14 +676,13 @@ def detail(request, pk):
     return render(request, "recruitment/recruitment_detail.html", context)
 
 
-
+# 현재 관리자만 사용
 def delete(request, pk):
     
     res = check_login(request)
     if res:
         return res
         
-
     # 1) 세션 user_id 로 Member 조회
     try:
         user_id = request.session.get("user_id")
@@ -726,22 +711,14 @@ def delete(request, pk):
     return redirect("recruitment:recruitment_list")
 
 
-
-
-
-
-
 def join(request, pk):
-
     # 0) 로그인 체크
-    
     res = check_login(request)
     if res:
         return res
     
     user_id = request.session.get("user_id")
-
-
+    
     # 1) 세션의 user_id 로 Member 찾기
     try:
         member = Member.objects.get(user_id=user_id)
@@ -786,17 +763,14 @@ def join(request, pk):
 
 
 
-
 @require_POST           # GET말고 POST만 받음
 @transaction.atomic     # DB 저장시 꼬이지 않게
 def update_join_status(request, pk, join_id):
 
-    # 0) 로그인 체크
-    
+    # 0) 로그인 체크    
     res = check_login(request)
     if res:
         return res
-    
     user_id = request.session.get("user_id")
 
 
@@ -839,8 +813,6 @@ def update_join_status(request, pk, join_id):
 
     messages.success(request, "참여 상태를 변경했습니다.")
     return redirect("recruitment:recruitment_detail", pk=pk)
-
-
 
 
 
@@ -929,7 +901,7 @@ def delete_comment(request, pk, comment_id):
     # soft delete
     comment.delete_date = timezone.now()
     # 보여주기 싫으면 주석 유지, 문구 보이게 하고 싶으면 주석 해제
-    # comment.comment = "관리자에 의해 삭제된 댓글입니다."
+    # comment.comment = "관리자에 의해 삭제된 댓글입니다." #  이렇게 되면 comment 값 자체가 변동됨.
     comment.save()
 
     messages.success(request, "댓글을 삭제했습니다.")
@@ -938,7 +910,6 @@ def delete_comment(request, pk, comment_id):
 
 
 # 모집 마감 여부 체크
-
 def close_recruitment(request, pk):
     # 로그인 체크
     
@@ -984,7 +955,6 @@ def close_recruitment(request, pk):
 # 시설 선택 시 지역구 자동 셀렉되게
 
 from django.http import JsonResponse
-
 def get_facility_region(request):
     
     res = check_login(request)

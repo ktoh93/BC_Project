@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         box.innerHTML = data.map(item => `
             <tr ${item.delete_date ? 'style="opacity: 0.6; background-color: #f5f5f5;"' : ''}>
                 <td>${item.row_no}</td>
-                <td>${item.delete_date ? '' : `<input type="checkbox" value="${item.id}">`}</td>
+                <td><input type="checkbox" value="${item.id}"></td>
                 <td><a href="detail/${item.id}/" style="color: inherit; text-decoration: none;">${item.title}</a></td>
                 <td>${item.author}</td>
                 <td>${item.delete_date || '-'}</td>
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch('/manager/api/communities/delete/', {
+        fetch('/manager/communities/delete/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,6 +80,83 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => {
             console.error('Error:', error);
             alert('삭제 중 오류가 발생했습니다.');
+        });
+    });
+
+
+    /* 영구 삭제 버튼 클릭 이벤트 */
+    document.querySelector('.hard-delete-btn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('#facilityList input[type="checkbox"]:checked');
+        const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        if (ids.length === 0) {
+            alert('영구 삭제할 항목을 선택해주세요.');
+            return;
+        }
+
+        if (!confirm(`선택한 ${ids.length}개의 모집글을 영구 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        fetch('/manager/communities/harddelete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ ids: ids })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                alert(`${data.deleted}개의 모집글이 영구 삭제되었습니다.`);
+                location.reload();
+            } else {
+                alert('영구 삭제 중 오류가 발생했습니다: ' + data.msg);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('영구 삭제 중 오류가 발생했습니다.');
+        });
+    });
+
+
+
+    /* 복구 버튼 클릭 이벤트 */
+    document.querySelector('.restore-btn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('#facilityList input[type="checkbox"]:checked');
+        const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        if (ids.length === 0) {
+            alert('복구할 항목을 선택해주세요.');
+            return;
+        }
+
+        if (!confirm(`선택한 ${ids.length}개의 모집글을 복구하시겠습니까?`)) {
+            return;
+        }
+
+        fetch('/manager/communities/restore/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ ids: ids })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                alert(`${data.restore}개의 모집글이 복구되었습니다.`);
+                location.reload();
+            } else {
+                alert('복구 중 오류가 발생했습니다: ' + data.msg);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('복구 중 오류가 발생했습니다.');
         });
     });
 });

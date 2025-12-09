@@ -12,16 +12,16 @@ class Comment(models.Model):
     delete_date = models.DateTimeField(null=True, blank=True)
 
     member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
-    community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.DO_NOTHING)
+    community_id = models.ForeignKey("recruitment.Community", null=True, blank=True, on_delete=models.CASCADE)
     article_id = models.ForeignKey("board.Article", null=True, blank=True, on_delete=models.CASCADE)
-    board_id = models.ForeignKey("board.Board", null=True, blank=True, on_delete=models.SET_NULL)
+    board_id = models.ForeignKey("board.Board", null=True, blank=True, on_delete=models.CASCADE)
     facility = models.ForeignKey(
         "facility.Facility",
         to_field="faci_cd",
         db_column="facility",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.CASCADE
     )
     class Meta:
         db_table = "comment"

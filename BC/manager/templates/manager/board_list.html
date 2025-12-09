@@ -61,11 +61,18 @@
             <span class="page-btn arrow disabled">다음 ▶</span>
         {% endif %}
     </div>
+    
+    <div class="action-buttons">
+        <button class="hard-delete-btn">영구삭제</button>
+        <button class="restore-btn">복구</button>
+        <button class="delete-btn">삭제</button>
+    </div>
+
     <a href="{% url 'manager:board_write' boardId %}">
         <button class="register-btn">작성하기</button>
     </a>
 
-    <button class="delete-btn">삭제</button>
+ 
 </div>
 {% endblock %}
 

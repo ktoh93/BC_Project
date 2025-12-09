@@ -51,8 +51,14 @@ urlpatterns = [
     path("banner_download/<int:img_id>/", views.banner_download, name="banner_download"),
 
     # 삭제 API
-    path('api/articles/delete/', views.delete_articles, name='delete_articles'),
-    path('api/communities/delete/', views.delete_communities, name='delete_communities'),
+    path('articles/delete/', views.delete_articles, name='delete_articles'),
+    path('communities/delete/', views.delete_communities, name='delete_communities'),
+    # 영구 삭제
+    path('articles/harddelete/', views.hard_delete_articles, name='harddelete_articles'),
+    path('communities/harddelete/', views.hard_delete_communities, name='harddelete_communities'),
+    # 복구
+    path('articles/restore/', views.restore_articles, name='restore_articles'),
+    path('communities/restore/', views.restore_communities, name='restore_communities'),
 
     # 첨부파일 다운로드
     path('download/file/<int:file_id>/', views.facility_file_download, name='download'),

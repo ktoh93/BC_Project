@@ -152,39 +152,68 @@
     cursor: default;
 }
 
+
 /*****************************************
-    등록/삭제 버튼
+    액션 버튼 묶음 (영구삭제 / 복구 / 삭제)
 *****************************************/
-.register-btn,
-.delete-btn {
+.action-buttons {
     position: absolute;
     bottom: 20px;
-    padding: 10px 22px;
-    background: #2F5C9C;
-    color: white;
+    right: 140px;  /* 작성하기 왼쪽에 전체 버튼 묶음 배치 */
+    display: flex;
+    gap: 8px;
+}
+
+.hard-delete-btn,
+.restore-btn,
+.delete-btn {
+    padding: 10px 18px;
     border-radius: 7px;
     border: none;
     font-size: 15px;
     cursor: pointer;
     white-space: nowrap;
-    min-width: 80px;
-    text-align: center;
+    min-width: 70px;
+    color: white;
 }
 
-.register-btn {
-    right: 20px;
-    background: #2F5C9C;
+/* 개별 색상 */
+.hard-delete-btn {
+    background: #8A1915;
+}
+.hard-delete-btn:hover {
+    background: #6E0F0C;
 }
 
-.register-btn:hover {
-    background: #3E6FB3;
+.restore-btn {
+    background: #5B8F3B;
+}
+.restore-btn:hover {
+    background: #47772E;
 }
 
 .delete-btn {
-    right: 140px; /* register-btn 바로 왼쪽 */
     background: #d9534f;
 }
-
 .delete-btn:hover {
     background: #b52b27;
+}
+
+/*****************************************
+    작성하기 버튼 (단독 위치)
+*****************************************/
+.register-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 22px;
+    background: #2F5C9C;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 15px;
+}
+.register-btn:hover {
+    background: #3E6FB3;
 }

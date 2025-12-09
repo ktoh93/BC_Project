@@ -1748,6 +1748,103 @@ def delete_articles(request):
         return JsonResponse({"status": "error", "msg": str(e)})
 
 @csrf_exempt
+def hard_delete_articles(request):
+    """게시글 일괄 영구 삭제 (Article)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        article_ids = data.get("ids", [])
+        #board_type = data.get("board_type", "")  # 'notice', 'event', 'post'
+        
+        if not article_ids:
+            return JsonResponse({"status": "error", "msg": "영구 삭제할 항목 없음"})
+        
+        # 게시판 확인
+        # try:
+        #     board = get_board_by_name(board_type)
+        # except Exception:
+        #     return JsonResponse({"status": "error", "msg": f"잘못된 게시판 타입: {board_type}"})
+        
+        # 게시글 조회 및 삭제 처리
+        articles = Article.objects.filter(
+            article_id__in=article_ids
+            #,board_id=board
+        )
+        
+        deleted_count, _ = articles.delete()
+
+        return JsonResponse({
+            "status": "ok",
+            "deleted": deleted_count,
+            "total": len(article_ids)
+        })
+    
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] hard_delete_articles 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+@csrf_exempt
+def restore_articles(request):
+    """게시글 일괄 복구 (Article)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        article_ids = data.get("ids", [])
+        #board_type = data.get("board_type", "")  # 'notice', 'event', 'post'
+        
+        if not article_ids:
+            return JsonResponse({"status": "error", "msg": "복구할 항목 없음"})
+        
+        # 게시판 확인
+        # try:
+        #     board = get_board_by_name(board_type)
+        # except Exception:
+        #     return JsonResponse({"status": "error", "msg": f"잘못된 게시판 타입: {board_type}"})
+        
+        # 게시글 조회 및 복구 처리
+        articles = Article.objects.filter(
+            article_id__in=article_ids
+            #,board_id=board
+        )
+        
+        restore_count = 0
+        # now = datetime.now()  # 한국 시간으로 저장
+        
+        for article in articles:
+            if article.delete_date:  # 이미 삭제된 경우만
+                article.delete_date = None
+                article.save(update_fields=['delete_date'])
+                restore_count += 1
+        
+        return JsonResponse({
+            "status": "ok",
+            "restore": restore_count,
+            "total": len(article_ids)
+        })
+    
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] delete_articles 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+
+
+@csrf_exempt
 def delete_communities(request):
     """모집글 일괄 삭제 API (Community)"""
     if request.method != "POST":
@@ -1784,6 +1881,84 @@ def delete_communities(request):
     
     except Exception as e:
         print(f"[ERROR] delete_communities 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+@csrf_exempt
+def hard_delete_communities(request):
+    """모집글 일괄 삭제 API (Community)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        community_ids = data.get("ids", [])
+        
+        if not community_ids:
+            return JsonResponse({"status": "error", "msg": "삭제할 항목 없음"})
+        
+        # 모집글 조회 및 삭제 처리
+        communities = Community.objects.filter(community_id__in=community_ids)
+        
+        deleted_count = 0
+        
+        for community in communities:
+            community.delete()
+            deleted_count += 1
+        
+        return JsonResponse({
+            "status": "ok",
+            "deleted": deleted_count,
+            "total": len(community_ids)
+        })
+    
+    except Exception as e:
+        print(f"[ERROR] delete_communities 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "msg": str(e)})
+
+
+@csrf_exempt
+def restore_communities(request):
+    """모집글 일괄 복구 (Community)"""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "msg": "POST만 가능"}, status=405)
+    
+    # 관리자 체크
+    if not request.session.get('manager_id'):
+        return JsonResponse({"status": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        community_ids = data.get("ids", [])
+        
+        if not community_ids:
+            return JsonResponse({"status": "error", "msg": "복구할 항목 없음"})
+        
+        # 삭제된 모집글 조회 및 복구 처리
+        communities = Community.objects.filter(community_id__in=community_ids)
+        
+        restore_count = 0
+        # now = datetime.now()  # 한국 시간으로 저장
+        
+        for community in communities:
+            if community.delete_date:  # 이미 삭제된 경우만
+                community.delete_date = None
+                community.save(update_fields=['delete_date'])
+                restore_count += 1
+        
+        return JsonResponse({
+            "status": "ok",
+            "restore": restore_count,
+            "total": len(community_ids)
+        })
+    
+    except Exception as e:
+        print(f"[ERROR] restore_communities 오류: {str(e)}")
         print(traceback.format_exc())
         return JsonResponse({"status": "error", "msg": str(e)})
 
