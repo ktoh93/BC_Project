@@ -450,7 +450,18 @@ def kakao_callback(request):
             messages.error(request, "세션 저장 중 오류가 발생했습니다.")
             return redirect('/login/')
         
-        # 6. 관리자 체크 및 리다이렉트
+        # 6. 주소 정보 체크 (addr1이 비어있으면 정보 수정 페이지로)
+        if not user.addr1 or user.addr1.strip() == '':
+            # 원래 가려던 페이지 저장
+            next_url = request.session.pop('kakao_next', None) or '/'
+            request.session['profile_complete_next'] = next_url
+            request.session['show_profile_complete_modal'] = True  # 팝업 표시 플래그
+            
+            # 정보 수정 페이지로 리다이렉트
+            messages.info(request, "추가 정보를 입력해주세요.")
+            return redirect('member:edit')
+        
+        # 7. 관리자 체크 및 리다이렉트
         if user.manager_yn == 1:
             request.session['manager_id'] = user.member_id
             request.session['manager_name'] = user.name

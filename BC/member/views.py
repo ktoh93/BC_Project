@@ -174,6 +174,12 @@ def edit(request):
                 })
             else:
                 messages.success(request, "정보가 수정되었습니다.")
+                
+                # 카카오 로그인 후 정보 수정 완료 시 원래 페이지로 리다이렉트
+                profile_complete_next = request.session.pop('profile_complete_next', None)
+                if profile_complete_next:
+                    return redirect(profile_complete_next)
+                
                 return redirect('member:info')
 
         except Member.DoesNotExist:
@@ -203,16 +209,21 @@ def edit(request):
         messages.error(request, "회원 정보를 찾을 수 없습니다.")
         return redirect('member:info')
     
+    # 팝업 표시 플래그 확인
+    show_modal = request.session.pop('show_profile_complete_modal', False)
+    
     context = {
         "name": user.name,
         "user_id": user.user_id,
         "nickname": user.nickname,
         "birthday": user.birthday,
+        "gender": user.gender,
         "email": user.email if hasattr(user, "email") else "",
         "phone_num": user.phone_num,
-        "addr1": user.addr1,
-        "addr2": user.addr2,
-        "addr3": user.addr3 if hasattr(user, "addr3") else "",
+        "addr1": user.addr1 or '',
+        "addr2": user.addr2 or '',
+        "addr3": user.addr3 if hasattr(user, "addr3") else '',
+        "show_profile_complete_modal": show_modal,  # 팝업 표시 여부
     }
     
     return render(request, 'member/info_edit.html', context)

@@ -5,6 +5,108 @@
 <link rel="stylesheet" href="{% static 'member/css/mypage_info_edit.css' %}" />
 <style>
 .btn-edit-complete:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 정보 입력 안내 모달 */
+.profile-complete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-complete-modal.show {
+    display: flex;
+}
+
+.profile-complete-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-complete-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.profile-complete-modal-icon {
+    width: 40px;
+    height: 40px;
+    background: #4A90E2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.profile-complete-modal-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1A2A43;
+    margin: 0;
+}
+
+.profile-complete-modal-body {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.profile-complete-modal-body ul {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.profile-complete-modal-body li {
+    margin: 8px 0;
+}
+
+.profile-complete-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.profile-complete-modal-btn {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.profile-complete-modal-btn:hover {
+    background: #357ABD;
+}
 </style>
 {% endblock %}
 
@@ -13,11 +115,37 @@
 <script>
     const MEMBER_EDIT_URL = '{% url "member:edit" %}';
     const MEMBER_INFO_URL = '{% url "member:info" %}';
+    const SHOW_PROFILE_MODAL = {{ show_profile_complete_modal|yesno:"true,false" }};
 </script>
 <script src="{% static 'member/js/info_edit.js' %}"></script>
 {% endblock %}
 
 {% block contents %}
+<!-- 정보 입력 안내 모달 -->
+<div id="profileCompleteModal" class="profile-complete-modal">
+    <div class="profile-complete-modal-content">
+        <div class="profile-complete-modal-header">
+            <div class="profile-complete-modal-icon">ℹ️</div>
+            <h3 class="profile-complete-modal-title">추가 정보 입력이 필요합니다</h3>
+        </div>
+        <div class="profile-complete-modal-body">
+            <p>카카오 로그인으로 가입하신 것을 환영합니다!</p>
+            <p>서비스를 원활하게 이용하시려면 아래 정보를 입력해주세요:</p>
+            <ul>
+                <li><strong>닉네임</strong>: 다른 사용자에게 표시될 이름</li>
+                <li><strong>생년월일</strong>: 서비스 이용을 위한 필수 정보</li>
+                <li><strong>성별</strong>: 맞춤 서비스 제공을 위한 정보</li>
+                <li><strong>주소</strong>: 시설 예약 및 모집글 작성 시 필요</li>
+                <li><strong>전화번호</strong>: 예약 확인 및 연락을 위한 정보</li>
+            </ul>
+            <p>정보를 입력하신 후 수정 완료 버튼을 눌러주세요.</p>
+        </div>
+        <div class="profile-complete-modal-footer">
+            <button type="button" class="profile-complete-modal-btn" onclick="closeProfileModal()">확인</button>
+        </div>
+    </div>
+</div>
+
 <div class="register-container">
   <div class="register-wrapper">
 
@@ -113,4 +241,36 @@
 
   </div>
 </div>
+
+<script>
+// 페이지 로드 시 모달 표시
+if (SHOW_PROFILE_MODAL) {
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('profileCompleteModal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    });
+}
+
+// 모달 닫기 함수
+function closeProfileModal() {
+    const modal = document.getElementById('profileCompleteModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// 모달 배경 클릭 시 닫기
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('profileCompleteModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeProfileModal();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
