@@ -1,0 +1,105 @@
+{% extends 'common/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'board/css/board_list.css' %}" />
+<link rel="stylesheet" href="{% static 'board/css/post_write.css' %}" />
+{% endblock %}
+
+{% block script1 %}
+<script src="{% static 'board/js/post_write.js' %}"></script>
+{% endblock %}
+
+{% block title %}
+{{ b_name }}게시글 작성 - 할래말래
+{% endblock %}
+
+{% block contents %}
+
+<!-- Hero 섹션 -->
+<div class="board-hero post-hero">
+    <h2>게시글 작성</h2>
+</div>
+
+<!-- 서브 컨테이너 -->
+<div class="sub-container">
+    <div class="sub-content">
+        <div class="form-wrapper">
+            <form method="post" action=" {% if is_edit %}
+            {% url 'board:update' board_name article.article_id %}
+        {% else %}
+            {% url 'board:write' board_name %}
+        {% endif %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- 제목 -->
+                <div class="form-group full-row">
+                    <label class="form-label">제목</label>
+                    <input type="text" name="title" class="form-input" placeholder="제목을 입력하세요"
+                        value="{% if is_edit %}{{ article.title }}{% endif %}" required>
+                </div>
+
+                <!-- 내용 -->
+                <div class="form-group full-row">
+                    <label class="form-label">내용</label>
+                    <textarea name="context" class="form-textarea" rows="15" placeholder="내용을 입력하세요"
+                        required>{% if is_edit %}{{ article.contents }}{% endif %}</textarea>
+                </div>
+
+                <!-- 파일 첨부 -->
+                <div class="form-group full-row">
+                    <label class="form-label">첨부파일</label>
+
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="file" id="fileInput" class="file-input" multiple>
+                        <label for="fileInput" class="file-upload-btn">
+                            <span>📎 파일 선택</span>
+                        </label>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+
+                    {% if is_edit and existing_files %}
+                    <div class="existing-files" style="margin-top: 10px;">
+                        <label class="form-label" style="font-size: 14px;">기존 첨부파일:</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px;">
+                            {% for file in existing_files %}
+                            <div class="exist-file-item"
+                                style="padding: 5px 10px; background: #f5f5f5; border-radius: 4px; font-size: 13px; display:flex; align-items:center; gap:8px;">
+
+                                <a href="{{ file.url }}" target="_blank" style="text-decoration:none; color:#2f5c9c;">
+                                    {{ file.name }}
+                                </a>
+
+                                <button type="button" class="delete-existing-btn" data-file-id="{{ file.id }}"
+                                    style="background:#ff4d4d; color:white; border:none; padding:2px 6px; cursor:pointer; border-radius:3px;">
+                                    X
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 버튼 -->
+                <div class="btn-row">
+                    <div class="btn-left">
+                        <span class='article-list'>
+                            <a href="{% url 'board:list' board_name %}" class="btn btn-list">목록으로</a>
+                        </span>
+                    </div>
+
+                    <div class="btn-right">
+                        <button type="submit" class="btn btn-submit">작성</button>
+                        {% if article.article_id %}
+                        <a href="{% url 'board:detail' board_name article.article_id %}" class="btn btn-list">취소</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

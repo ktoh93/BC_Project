@@ -53,6 +53,8 @@ urlpatterns = [
     # 삭제 API
     path('api/articles/delete/', views.delete_articles, name='delete_articles'),
     path('api/communities/delete/', views.delete_communities, name='delete_communities'),
+
+    # 첨부파일 다운로드
     path('download/file/<int:file_id>/', views.facility_file_download, name='download'),
     
     path("logout/", views.logout, name="logout"),

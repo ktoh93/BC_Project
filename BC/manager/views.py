@@ -2183,8 +2183,8 @@ def update_article(request, article, board_id, pk):
         pin_top = request.POST.get('pin_top', '0')
 
         always_on = 0 if notice_type == 'always' else 1
-        if pin_top == '1':
-            always_on = 0
+        print("notice_type : ", notice_type)
+        print("always_on : ", always_on)
 
         article.always_on = always_on
         article.start_date = parse_datetime(start_date) if start_date else None

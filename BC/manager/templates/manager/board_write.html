@@ -38,6 +38,19 @@
 
                 {% csrf_token %}
 
+                <!-- 제목 -->
+                <div class="form-group full-row">
+                    <label class="form-label">제목</label>
+                    <input type="text" name="title" class="form-input" placeholder="제목 입력"
+                           value="{% if is_edit %}{{ article.title }}{% endif %}">
+                </div>
+
+                <!-- 내용 -->
+                <div class="form-group full-row">
+                    <label class="form-label">내용 / 설명</label>
+                    <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea>
+                </div>
+                
                 <!-- 파일 첨부 -->
                 <div class="form-group full-row">
                     <label class="form-label">첨부파일</label>
@@ -74,20 +87,6 @@
                     </div>
                     {% endif %}
                 </div>
-
-                <!-- 제목 -->
-                <div class="form-group full-row">
-                    <label class="form-label">제목</label>
-                    <input type="text" name="title" class="form-input" placeholder="제목 입력"
-                           value="{% if is_edit %}{{ article.title }}{% endif %}">
-                </div>
-
-                <!-- 내용 -->
-                <div class="form-group full-row">
-                    <label class="form-label">내용 / 설명</label>
-                    <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}{{ article.contents }}{% endif %}</textarea>
-                </div>
-
                 {% if boardId == 2 %}
                 <!-- 상단 고정 -->
                 <div class="form-group full-row">
