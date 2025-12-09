@@ -123,7 +123,7 @@ def article_list(request, board_name):
         page_obj = paginator.get_page(page)
 
         
-        page_start = total - (page_obj.start_index() - 1)
+        page_start = (page_obj.number - 1) * per_page + 1
 
     except Exception as e:
         print({str(e)})
@@ -263,7 +263,7 @@ def article_detail(request, board_name:str, article_id:int):
             "is_manager" : is_manager_user
         }
         
-        return render(request, 'board/view.html', context)
+        return render(request, 'board/detail.html', context)
     
     except Exception as e:
         messages.error(request, f"게시글을 불러오는 중 오류가 발생했습니다: {str(e)}")

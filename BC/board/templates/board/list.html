@@ -122,9 +122,21 @@
 
         </section>
         {% if board_id == 4 %}
-        <div class="write-btn-container">
-            <a href="{% url 'board:write' board_name %}" class="write-btn">작성하기</a>
-        </div>
+            {% if is_manager %}
+            <div class="write-btn-container">
+                <a href="{% url 'manager:board_list' board_id %}" class="write-btn">관리자 페이지로 가기</a>
+            </div>
+            {% else %}
+            <div class="write-btn-container">
+                <a href="{% url 'board:write' board_name %}" class="write-btn">작성하기</a>
+            </div>
+            {% endif %}
+        {% else %}
+            {% if is_manager %}
+            <div class="write-btn-container">
+                <a href="{% url 'manager:board_list' board_id %}" class="write-btn">관리자 페이지로 가기</a>
+            </div>
+            {% endif %}
         {% endif %}
         <!-- Pagination -->
         <div class="pagination">
