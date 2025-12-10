@@ -68,5 +68,7 @@ urlpatterns = [
     # path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
 
     # 회원관리
-    path('member_list/', views.member_list, name='member_list')
+    path('member_list/', views.member_list, name='member_list'),
+    path("member/delete/", views.member_delete, name="member_delete"),
+    path("member/restore/", views.member_restore, name="member_restore"),
 ]

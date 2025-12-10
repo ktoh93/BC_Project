@@ -180,6 +180,7 @@ def login(request):
         password = request.POST.get("password")
         remember = request.POST.get("remember")  # 체크박스 여부
         next_url = request.POST.get("next") or request.GET.get("next", "")  # 이전 페이지 URL
+        deleted_by_manager = Member.objects.filter(delete_yn=2)
 
         try:
             user = Member.objects.get(
@@ -187,7 +188,6 @@ def login(request):
                 delete_yn=0,
                 delete_date__isnull = True
                 )
-
         except Member.DoesNotExist:
             messages.error(request, "존재하지 않는 아이디입니다.")
             context = {"next": next_url} if next_url else {}
@@ -199,6 +199,13 @@ def login(request):
             context = {"next": next_url} if next_url else {}
             return render(request, "common/login.html", context)
 
+        # 관리자에 의해 탈퇴 되었을때 
+        if deleted_by_manager:
+            messages.error(request, "관리자에의해 탈퇴된 회원입니다. 관리자에게 문의하세요.")
+            context = {"next": next_url} if next_url else {}
+            return render(request, "common/login.html", context)
+
+        
         # 로그인 성공 → 세션에 저장
         request.session["user_id"] = user.user_id
         request.session["user_name"] = user.name

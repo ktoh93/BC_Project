@@ -350,7 +350,6 @@
 
 /* 선택된 날짜 테두리 */
 .fc-day-selected .fc-daygrid-day-frame {
-    border: 2px solid #2563eb;      /* 강조색 테두리 */
+    border: 2px solid var(--color-deep-blue);
     box-sizing: border-box;
-          /* 부드러운 모서리 */
 }
