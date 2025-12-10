@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.utils import timezone
-from django.core.paginator import Paginator
+
+from common.paging import pager
+
+
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -31,7 +34,6 @@ ALWAYS_OPEN_DATE = date(2099, 1, 1)
 
 
 from django.db.models import Q
-from django.core.paginator import Paginator
 
 from common.utils import check_login
 
@@ -92,15 +94,11 @@ def recruitment_list(request):
     # 페이지네이션
     per_page = int(request.GET.get("per_page", 15))
     page = int(request.GET.get("page", 1))
-    paginator = Paginator(qs, per_page)
-    page_obj = paginator.get_page(page)
 
-    # 블록 페이징
-    block_size = 5
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
-    block_range = range(block_start, block_end + 1)
+    paging = pager(request, qs, per_page=per_page)
+    page_obj = paging['page_obj']
+
+
 
     # 템플릿용 마감 상태
     for obj in page_obj:
@@ -109,11 +107,8 @@ def recruitment_list(request):
 
 
 
-
-
     context = {
         "page_obj": page_obj,
-        "paginator": paginator,
         "page": page,
         "per_page": per_page,
         "sort": sort,
@@ -122,9 +117,9 @@ def recruitment_list(request):
         "sido": sido,
         "sigungu": sigungu,
         "status": status,
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
+        "block_range": paging['block_range'],
+        "block_start": paging['block_start'],
+        "block_end": paging['block_end'],
     }
 
     return render(request, "recruitment/recruitment_list.html", context)

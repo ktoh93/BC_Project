@@ -55,7 +55,7 @@
         <hr class="detail-hr">
 
         <!-- 본문 -->
-        <div class="detail-content-box">{{ recruit.contents|linebreaksbr }}</div>
+        <div class="detail-content-box">{{ recruit.contents|safe }}</div>
         <!--         
             <section class="chat-section">
             {% if recruit.chat_url %}

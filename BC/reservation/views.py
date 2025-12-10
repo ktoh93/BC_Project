@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.core.paginator import Paginator
+from common.paging import pager
 from .models import Reservation, TimeSlot
 import json, random
 from django.http import JsonResponse
@@ -86,31 +86,21 @@ def reservation_list(request):
     page = int(request.GET.get("page", 1))
 
     # 페이징 처리
-    paginator = Paginator(facility_list, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, facility_list, per_page=per_page)
+    page_obj = paging['page_obj']
 
-    # 블록 페이징 처리
-    block_size = 5
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-
-    block_range = range(block_start, block_end + 1)
+ 
 
     context = {
         "page_obj": page_obj,
-        "paginator": paginator,
         "per_page": per_page,
         "sido" : sido,
         "sigungu" : sigungu,
         "page": page,
         "sort": sort,
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
+        "block_range": paging['block_range'],
+        "block_start": paging['block_start'],
+        "block_end": paging['block_end'],
         "sportsList" : sports_list,
         "sport" : sport
     }

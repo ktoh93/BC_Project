@@ -17,6 +17,9 @@ from board.models import Article, Board, Category
 from board.utils import get_board_by_name
 from common.models import Comment, AddInfo
 from member.models import Member
+
+from common.paging import pager
+
 # TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
 from common.utils import get_notice_pinned_posts, get_event_pinned_posts, get_post_dummy_list
 
@@ -118,10 +121,12 @@ def article_list(request, board_name):
 
         # 페이징
         per_page = int(request.GET.get("per_page", 15))
-        page = int(request.GET.get("page", 1))
+        
+        paging = pager(request, articleList, per_page=per_page)
+        
+        #page = int(request.GET.get("page", 1))
 
-        paginator = Paginator(articleList, per_page)
-        page_obj = paginator.get_page(page)
+        page_obj = paging['page_obj']
 
         
         page_start = (page_obj.number - 1) * per_page + 1
@@ -129,15 +134,8 @@ def article_list(request, board_name):
     except Exception as e:
         print({str(e)})
         articleList = []
-        paginator = Paginator(articleList, 15)
-        page_obj = paginator.get_page(1)
-
-    # 페이지 기준 블록
-    block_size = 5
-    current_block = (page_obj.number - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
-    block_range = range(block_start, block_end + 1)
+        paging = pager(request, articleList, per_page=per_page)
+        page_obj = paging['page_obj']
 
     bName = b_name(board_name)
 
@@ -148,14 +146,13 @@ def article_list(request, board_name):
 
     context = {
         "page_obj": page_obj,
-        "paginator": paginator,
         "per_page": per_page,
         "page_start": page_start,
         "page": page_obj.number,
         "sort": sort,
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
+        "block_range": paging['block_range'],
+        "block_start": paging['block_start'],
+        "block_end": paging['block_end'],
         "noticeList": noticeList,
         "board_id": b_id,
         "board_name" : board_name,
@@ -603,5 +600,5 @@ def delete_comment(request):
         print(traceback.format_exc())
         return JsonResponse({'status': 'error', 'msg': f'삭제 중 오류가 발생했습니다: {str(e)}'}, status=500)
 
-def faq(request):
-    return render(request, 'board/faq.html')
+# def faq(request):
+#     return render(request, 'board/faq.html')

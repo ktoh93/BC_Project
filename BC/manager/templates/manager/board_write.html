@@ -163,8 +163,8 @@
 <script>
     window.initialContent = `{% if is_edit %}{{ article.contents|escapejs }}{% endif %}`;
 </script>
-<script src="{% static 'manager/js/board_write.js' %}"></script>
 <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 <script src="{% static 'common/js/board/editor.js' %}"></script>
 <script src="{% static 'common/js/board/fileupload.js' %}"></script>
+<script src="{% static 'manager/js/board_write.js' %}"></script>
 {% endblock %}

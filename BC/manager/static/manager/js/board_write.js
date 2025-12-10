@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+
+    /** ==========================
+     * 1) 공지사항 옵션 처리
+     * ========================== */
     const pinTopCheckbox = document.querySelector("input[name='pin_top']");
     const noticeSection = document.querySelector(".notice-section");
     const noticeTypeRadios = document.querySelectorAll("input[name='notice_type']");
@@ -6,72 +10,89 @@ document.addEventListener('DOMContentLoaded', function () {
     const startDateInput = document.querySelector("input[name='start_date']");
     const endDateInput = document.querySelector("input[name='end_date']");
 
-    if (!pinTopCheckbox || !noticeSection) return;
+    if (pinTopCheckbox && noticeSection) {
 
-    function toggleDateInputs() {
-        const checked = document.querySelector("input[name='notice_type']:checked");
+        function toggleDateInputs() {
+            const checked = document.querySelector("input[name='notice_type']:checked");
+            if (!checked) return;
 
-        if (checked.value === "always") {
-            dateSection.classList.add("hidden");
-            startDateInput.disabled = true;
-            endDateInput.disabled = true;
-        } else {
-            dateSection.classList.remove("hidden");
-            startDateInput.disabled = false;
-            endDateInput.disabled = false;
+            if (checked.value === "always") {
+                dateSection.classList.add("hidden");
+                startDateInput.disabled = true;
+                endDateInput.disabled = true;
+            } else {
+                dateSection.classList.remove("hidden");
+                startDateInput.disabled = false;
+                endDateInput.disabled = false;
+            }
         }
+
+        function toggleNoticeSection() {
+            const isPinned = pinTopCheckbox.checked;
+
+            if (!isPinned) {
+                noticeSection.classList.add("hidden");
+                dateSection.classList.add("hidden");
+
+                noticeTypeRadios.forEach(r => r.disabled = true);
+                startDateInput.disabled = true;
+                endDateInput.disabled = true;
+            } else {
+                noticeSection.classList.remove("hidden");
+
+                noticeTypeRadios.forEach(r => r.disabled = false);
+                toggleDateInputs();
+            }
+        }
+
+        pinTopCheckbox.addEventListener("change", toggleNoticeSection);
+        noticeTypeRadios.forEach(radio => {
+            radio.addEventListener("change", toggleDateInputs);
+        });
+
+        toggleNoticeSection();
     }
 
-    function toggleNoticeSection() {
-        const isPinned = pinTopCheckbox.checked;
 
-        if (!isPinned) {
-            noticeSection.classList.add("hidden");
-            dateSection.classList.add("hidden");
+    /** ==========================
+     * 2) 글쓰기 / 수정 submit 처리
+     * ========================== */
 
-            noticeTypeRadios.forEach(r => r.disabled = true);
-            startDateInput.disabled = true;
-            endDateInput.disabled = true;
-        } else {
-            noticeSection.classList.remove("hidden");
-
-            noticeTypeRadios.forEach(r => r.disabled = false);
-
-            toggleDateInputs();
-        }
-    }
-
-    pinTopCheckbox.addEventListener("change", toggleNoticeSection);
-    noticeTypeRadios.forEach(radio => {
-        radio.addEventListener("change", toggleDateInputs);
-    });
-
-    toggleNoticeSection();
-
-    const form = document.querySelector('form');
+    const form = document.querySelector("form");
     const contextInput = document.querySelector("#contextInput");
+    const fileInput = document.getElementById("fileInput");
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    if (!form) return;
 
-        if (window.editorInstance) {
+    form.addEventListener("submit", function () {
+
+        /** ==========================
+         * (A) FAQ (boardId == 5)
+         * textarea만 있음 → 그대로 제출
+         * ========================== */
+        const faqTextarea = document.querySelector("textarea[name='context']");
+        if (faqTextarea) {
+            // 아무것도 건드릴 필요 없음
+            return;
+        }
+
+        /** ==========================
+         * (B) 에디터 사용 게시판
+         * ========================== */
+        if (window.editorInstance && contextInput) {
             contextInput.value = window.editorInstance.getHTML();
         }
 
-        const formData = new FormData(form);
+        /** ==========================
+         * (C) 파일 업로드
+         * ========================== */
+        if (window.selectedFiles && fileInput) {
+            const dt = new DataTransfer();
+            window.selectedFiles.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+        }
 
-        selectedFiles.forEach(file => {
-            formData.append("file", file);
-        });
-
-        fetch(form.action, {
-            method: "POST",
-            body: formData
-        })
-            .then(res => {
-                if (res.redirected) window.location.href = res.url;
-            });
+        // 🔥 fetch 사용 금지! 기본 form submit 사용
     });
-
 
 });

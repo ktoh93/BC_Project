@@ -7,7 +7,7 @@ import urllib.parse
 import re, time
 from django.core.cache import cache
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.paginator import Paginator
+
 from django.conf import settings
 from django.contrib import messages
 
@@ -17,6 +17,9 @@ from facility.models import Facility
 from facility.models import FacilityInfo
 from member.models import Member
 from common.models import AddInfo,Comment
+
+
+from common.paging import pager
 
 # 시설 api 가져오기
 FACILITY_CACHE_TIMEOUT = 60 * 10  # 10분
@@ -190,34 +193,26 @@ def facility_list(request):
     per_page = int(request.GET.get("per_page", 10))
     page = int(request.GET.get("page", 1))
 
-    paginator = Paginator(facilities, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, facilities, per_page=per_page)
+    
+    page_obj = paging['page_obj']
 
     # 지도용 데이터 (lat/lng 정상값만)
     page_facilities = kakao_for_map(page_obj)
 
-    # ----------------------------
-    # 페이징 블록 계산
-    # ----------------------------
-    block_size = 10
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
-    block_range = range(block_start, block_end + 1)
 
     context = {
         "page_obj": page_obj,
         "page_facilities": page_facilities,
-        "paginator": paginator,
         "per_page": per_page,
         "cpNm": cp_nm,
         "cpbNm": cpb_nm,
         "keyword": keyword,
         "page": page,
         "merged_count": len(facilities),
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
+        "block_range": paging['block_range'],
+        "block_start": paging['block_start'],
+        "block_end": paging['block_end'],
         "no_result": no_result,
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     }

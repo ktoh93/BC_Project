@@ -25,6 +25,7 @@ from recruitment.models import Community, EndStatus, Rating, JoinStat
 from reservation.models import Reservation, TimeSlot
 from board.models import Article, Board, Category
 from common.models import Comment, AddInfo
+from common.paging import pager
 from manager.models import HeroImg
 from facility.models import FacilityInfo
 
@@ -164,17 +165,10 @@ def facility(request):
     registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
     queryset = queryset.exclude(faci_cd__in=registered_ids)
 
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
 
-    block_size = 10
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
 
-    block_range = range(block_start, block_end + 1)
+    paging = pager(request, queryset, per_page=per_page)
+    page_obj = paging['page_obj']
 
 
     # 번호 계산
@@ -213,10 +207,10 @@ def facility(request):
         "keyword": keyword,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "sports_json": sports_json,
-        "block_range": block_range,
-        "block_start": block_start,
-        "block_end": block_end,
-        "paginator": paginator,
+        "block_range": paging['block_range'],
+        "block_start": paging['block_start'],
+        "block_end": paging['block_end'],
+        "paginator": paging['paginator'],
         "apply_sports" : apply_sports,
     }
     return render(request, "manager/facility_add_manager.html", context)
@@ -336,17 +330,9 @@ def facility_list(request):
     if keyword:
         queryset = queryset.filter(faci_nm__icontains=keyword)
 
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, queryset, per_page=per_page)
+    page_obj = paging['page_obj']
 
-    block_size = 10
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
-
-    block_range = range(block_start, block_end + 1)
 
     start_index = (page_obj.number - 1) * per_page
     facility_page = []
@@ -382,13 +368,13 @@ def facility_list(request):
         })
 
     context = {
-        "page_obj": page_obj,
+        "page_obj": paging['page_obj'],
         "per_page": per_page,
         "sido": sido,
         "sigungu": sigungu,
         "keyword": keyword,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
-        "block_range": block_range,
+        "block_range": paging['block_range'],
     }
 
     return render(request, "manager/facility_list_manager.html", context)
@@ -1274,22 +1260,14 @@ def facility_inspection_grade_detail(request):
             if grade_filter:
                 facilities = facilities.filter(schk_tot_grd_nm=grade_filter)
             
-            # 페이징 적용
-            paginator = Paginator(facilities, per_page)
-            page_obj = paginator.get_page(page)
+            paging = pager(request, facilities, per_page=per_page)
             
-            # 페이지 블록 계산
-            block_size = 10
-            current_block = (page - 1) // block_size
-            block_start = current_block * block_size + 1
-            block_end = min(block_start + block_size - 1, paginator.num_pages)
-            block_range = range(block_start, block_end + 1)
             
             # 시설 목록 생성 (values()로 성능 개선)
-            start_index = (page_obj.number - 1) * per_page
+            start_index = (paging['page_obj'].number - 1) * per_page
             facilities_list = []
             
-            for idx, fac in enumerate(page_obj.object_list):
+            for idx, fac in enumerate(paging['page_obj'].object_list):
                 # 점검일자 포맷팅
                 visit_date = fac.schk_visit_ymd
                 if visit_date and len(visit_date) == 8:
@@ -1335,10 +1313,10 @@ def facility_inspection_grade_detail(request):
     
     context = {
         'facilities_list': facilities_list,
-        'page_obj': page_obj,
-        'paginator': paginator,
+        'page_obj': paging['page_obj'],
+        'paginator': paging['paginator'],
         'per_page': per_page,
-        'block_range': block_range,
+        'block_range': paging['block_range'],
         'years': years,
         'regions': regions,
         'sports': sports,
@@ -1425,23 +1403,22 @@ def reservation_list_manager(request):
         queryset = queryset.order_by('-reg_date')
     
     # 페이징
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, queryset, per_page=per_page)
     
     # 페이지 블록
     block_size = 10
     current_block = (page - 1) // block_size
     block_start = current_block * block_size + 1
     block_end = block_start + block_size - 1
-    if block_end > paginator.num_pages:
-        block_end = paginator.num_pages
+    if block_end > paging['paginator'].num_pages:
+        block_end = paging['paginator'].num_pages
     block_range = range(block_start, block_end + 1)
     
     # 데이터 변환
-    start_index = (page_obj.number - 1) * per_page
+    start_index = (paging['page_obj'].number - 1) * per_page
     reservation_page = []
     
-    for idx, reservation in enumerate(page_obj.object_list):
+    for idx, reservation in enumerate(paging['page_obj'].object_list):
         # 시설 정보 가져오기 (TimeSlot을 통해) - 취소된 예약도 포함
         timeslots = TimeSlot.objects.filter(
             reservation_id=reservation
@@ -1527,8 +1504,8 @@ def reservation_list_manager(request):
             pass
     
     context = {
-        "page_obj": page_obj,
-        "per_page": per_page,
+        "page_obj": paging['page_obj'],
+        "per_page": paging['per_page'],
         "facility_id": facility_id,
         "reservation_type": reservation_type,
         "status": status,
@@ -1571,20 +1548,16 @@ def recruitment_manager(request):
     except:
         page = 1
 
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, queryset, per_page=per_page)
 
-    # 페이지 블록
-    block_size = 5
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
+
+ 
 
     # facility_json 형식으로 데이터 변환
-    start_index = (page_obj.number - 1) * per_page
+    start_index = (paging['page_obj'].number - 1) * per_page
     facility_page = []
     
-    for idx, community in enumerate(page_obj.object_list):
+    for idx, community in enumerate(paging['page_obj'].object_list):
         delete_date_str = None
         if community.delete_date:
             # 이미 한국 시간으로 저장되어 있음
@@ -1599,10 +1572,10 @@ def recruitment_manager(request):
         })
 
     context = {
-        "page_obj": page_obj,
+        "page_obj": paging['page_obj'],
         "per_page": per_page,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
-        "block_range": range(block_start, block_end + 1),
+        "block_range": paging['block_range'],
     }
     return render(request, 'manager/recruitment_manager.html', context)
 
@@ -1760,16 +1733,10 @@ def hard_delete_articles(request):
     try:
         data = json.loads(request.body)
         article_ids = data.get("ids", [])
-        #board_type = data.get("board_type", "")  # 'notice', 'event', 'post'
         
         if not article_ids:
             return JsonResponse({"status": "error", "msg": "영구 삭제할 항목 없음"})
         
-        # 게시판 확인
-        # try:
-        #     board = get_board_by_name(board_type)
-        # except Exception:
-        #     return JsonResponse({"status": "error", "msg": f"잘못된 게시판 타입: {board_type}"})
         
         # 게시글 조회 및 삭제 처리
         articles = Article.objects.filter(
@@ -1790,6 +1757,7 @@ def hard_delete_articles(request):
         print(f"[ERROR] hard_delete_articles 오류: {str(e)}")
         print(traceback.format_exc())
         return JsonResponse({"status": "error", "msg": str(e)})
+
 
 @csrf_exempt
 def restore_articles(request):
@@ -1976,8 +1944,8 @@ def banner_manager(request):
     # 모델 그대로 가져오기 ( dict로 재조립 절대 안함 )
     queryset = HeroImg.objects.filter(delete_date__isnull=True).order_by('-img_id')
 
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, queryset, per_page=per_page)
+    page_obj = paging['page_obj']
 
     # row_no 계산 (import 없음)
     start_index = (page_obj.number - 1) * per_page
@@ -1986,17 +1954,11 @@ def banner_manager(request):
     for idx, obj in enumerate(page_obj.object_list):
         obj.row_no = start_index + idx + 1
 
-    # 블록 페이징
-    block_size = 5
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
-
     context = {
         "page_obj": page_obj,
         "banner_list": page_obj.object_list,   # 모델 객체 그대로 전달!
         "per_page": per_page,
-        "block_range": range(block_start, block_end + 1),
+        "block_range": paging['block_range'],
     }
 
     return render(request, "manager/banner_manager.html", context)
@@ -2203,14 +2165,8 @@ def board_list(request, id):
     except:
         page = 1
 
-    paginator = Paginator(queryset, per_page)
-    page_obj = paginator.get_page(page)
-
-    # 페이지 블록
-    block_size = 5
-    current_block = (page - 1) // block_size
-    block_start = current_block * block_size + 1
-    block_end = min(block_start + block_size - 1, paginator.num_pages)
+    paging = pager(request, queryset, per_page=per_page)
+    page_obj = paging['page_obj']
 
     # json 형식으로 데이터 변환
     start_index = (page_obj.number - 1) * per_page
@@ -2236,7 +2192,7 @@ def board_list(request, id):
         "per_page": per_page,
         "boardName":boardName,
         "article_list": json.dumps(article_list, ensure_ascii=False),
-        "block_range": range(block_start, block_end + 1),
+        "block_range": paging['block_range'],
         "boardId":id
     }
 
@@ -2561,15 +2517,14 @@ def member_list(request):
         # join할 때 None, 공백 제거
         m.full_address = " ".join([p for p in [a1, a2, a3] if p])
 
-    paginator = Paginator(members, per_page)
-    page = request.GET.get("page", 1)
-    page_obj = paginator.get_page(page)
+    paging = pager(request, members, per_page=per_page)
+   
+    page_obj = paging['page_obj']
 
-    page_range = paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1)
     context = {
         "member_list": page_obj,     
         "page_obj": page_obj,
-        "page_range": page_range,
+        "page_range": paging['page_range'],
         "per_page": per_page,
         "search": search,
         "q": q,
