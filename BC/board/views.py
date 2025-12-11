@@ -20,8 +20,7 @@ from member.models import Member
 
 from common.paging import pager
 
-# TODO: DB 연결 이후 쿼리로 교체하고 삭제 필요
-from common.utils import get_notice_pinned_posts, get_event_pinned_posts, get_post_dummy_list
+
 
 
 def b_name(board_name:str):
