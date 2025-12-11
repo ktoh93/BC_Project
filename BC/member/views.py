@@ -10,6 +10,9 @@ from datetime import datetime
 import re
 import json
 from member.models import Member
+from common.models import Comment
+from recruitment.models import Community
+from board.models import Article
 from facility.models import FacilityInfo
 from reservation.models import Reservation, TimeSlot
 from common.utils import check_login
@@ -865,6 +868,15 @@ def withdraw(request):
         user.delete_yn = 1
         user.delete_date = timezone.now()
         user.save()
+
+        # 회원 탈퇴시 관련된것들 다 삭제
+        if user:
+            Comment.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Article.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Community.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=user).update(delete_date=timezone.now().date())
+            Reservation.objects.filter(member_id__in=user).update(delete_yn=1)
+
         request.session.flush()
 
         # 카카오 사용자 안내 메세지
