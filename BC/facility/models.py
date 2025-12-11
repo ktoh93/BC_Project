@@ -21,6 +21,7 @@ class FacilityInfo(models.Model):
     # 예약가능한상태인지(0: 불가 1: 가능)
     rs_posible = models.IntegerField(default=0) 
     faci_gb_nm = models.CharField(max_length=200,null=True, blank=True)
+    faci_stat_nm = models.CharField(max_length=200,null=True, blank=True)
     reg_date = models.DateTimeField(auto_now_add=True)
     view_cnt = models.IntegerField(default=0)
     class Meta:

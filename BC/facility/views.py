@@ -22,76 +22,12 @@ from common.models import AddInfo,Comment
 from common.paging import pager
 
 # 시설 api 가져오기
-FACILITY_CACHE_TIMEOUT = 60 * 10  # 10분
+
 GEO_CACHE_TTL = 60 * 30  # 30분
+
+FACILITY_LIST_CACHE_TTL = 60 * 5
+
 _geo_cache = {}
-
-
-# 공공 api 안쓸거여
-def facility(data, rows=200):
-
-    DATA_API_KEY = os.getenv("DATA_API_KEY")  
-    cp_nm = (data.get('cp_nm') or "").strip()
-    cpb_nm = (data.get('cpb_nm') or "").strip()
-    keyword = (data.get('keyword') or "").strip()
-
-    cache_key = f"facility:{cp_nm}:{cpb_nm}:{keyword}:{rows}"
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
-    API_URL = "https://apis.data.go.kr/B551014/SRVC_API_FACI_SCHK_RESULT/TODZ_API_FACI_SAFETY"
-    params = {
-        "serviceKey": DATA_API_KEY,
-        "numOfRows": rows,
-        "pageNo": 1,
-        "faci_gb_nm": "공공",
-        "cp_nm": cp_nm or None,
-        "cpb_nm": cpb_nm or None,
-        "resultType": "json"
-    }
-    if keyword:
-        params["faci_nm"] = keyword
-
-    # None 값은 API 호출 시 제외
-    params = {k: v for k, v in params.items() if v not in (None, "")}
-
-    facilities = []
-
-    try:
-        res = requests.get(API_URL, params=params, timeout=5)
-        res.raise_for_status()
-        data = res.json()
-        items = data["response"]["body"]["items"].get("item", [])
-
-        if isinstance(items, dict):
-            items = [items]
-
-        for item in items:
-            facilities.append({
-                "id": item.get("faci_cd", ""),
-                "name": item.get("faci_nm", ""),
-                "address": item.get("faci_road_addr", ""), 
-                "sido": item.get("cp_nm", ""),
-                "sigungu": item.get("cpb_nm", ""), 
-                "phone": item.get("faci_tel_no", ""),# 전화번호
-                "fcob_nm" : item.get("fcob_nm",""), # 종목
-                "homepage" : item.get("faci_homepage",""), # 홈페이지
-                "faci_stat_nm" : item.get("faci_stat_nm",""), # 정상운영인지 아닌지
-                "schk_tot_grd_nm" : item.get("schk_tot_grd_nm",""), # 주의인지 정상인지
-                "schk_open_ymd": item.get("schk_open_ymd",""), # 안전점검공개일자
-                "faci_gfa" : item.get("faci_gfa",""),
-                "lat": None,
-                "lng": None,
-            })
-
-        cache.set(cache_key, facilities, FACILITY_CACHE_TIMEOUT)
-
-    except Exception as e:
-        print("공공데이터 API 오류:", e)
-
-    return facilities
-
 
 
 def facility_list(request):
@@ -100,16 +36,11 @@ def facility_list(request):
 
     cp_nm = request.GET.get('cpNm')
     cpb_nm = request.GET.get('cpbNm')
-    keyword = request.GET.get('keyword')
-    keyword = keyword or ''
+    keyword = (request.GET.get('keyword') or "").strip()
 
-    
-
-    # ----------------------------
-    # 로그인 기본 주소
-    # ----------------------------
     user = request.session.get("user_id")
 
+    # 로그인 사용자 지역 기본값
     if not keyword:
         if not cp_nm or not cpb_nm:
             if user:
@@ -132,74 +63,81 @@ def facility_list(request):
                     "경남": "경상남도",
                     "제주": "제주특별자치도",
                 }
-                
+
                 try:
                     member = Member.objects.get(user_id=user)
                     addr1_raw = (member.addr1 or "").strip()
-                    # addr1 = 서울특별시 / addr2 = 강남구 이런 구조라고 가정
                     if not cp_nm:
                         cp_nm = SIDO_MAP.get(addr1_raw, addr1_raw)
                     if not cpb_nm:
-                        cpb_nm = member.addr2.strip()
-                except Member.DoesNotExist:
+                        cpb_nm = (member.addr2 or "").strip()
+                except:
                     pass
 
-    # ----------------------------
     # 비로그인 기본값
-    # ----------------------------
     if not keyword:
         if not cp_nm:
             cp_nm = "서울특별시"
         if not cpb_nm:
             cpb_nm = "강남구"
 
-    # ----------------------------
-    # DB 조회
-    # ----------------------------
-    qs = Facility.objects.all()
+    # 캐시생성
+    cache_key = f"facility_list:{cp_nm}:{cpb_nm}:{keyword}"
+    cached_facilities = cache.get(cache_key)
 
-    if cp_nm:
-        qs = qs.filter(cp_nm=cp_nm)
-    if cpb_nm:
-        # '성남시 분당구'가 faci_road_addr에 포함되어 있다면 
-        print(qs.filter(cpb_nm=cpb_nm).exists())
-        if not qs.filter(cpb_nm=cpb_nm).exists():
-            qs = qs.filter(faci_road_addr__icontains=cpb_nm)
-        else :
-             qs = qs.filter(cpb_nm=cpb_nm)
-        
-    if keyword:
-        qs = qs.filter(faci_nm__icontains=keyword)
 
-    #qs = qs.filter(faci_stat_nm__icontains='정상운영')
+    if cached_facilities:
+        facilities = cached_facilities
 
-    # ----------------------------
-    # 데이터 가공
-    # ----------------------------
-    facilities = []
-    for f in qs:
-        facilities.append({
-            "id": f.faci_cd,
-            "name": f.faci_nm or "",
-            "address": f.faci_road_addr or f.faci_addr or "",
-            "sido": f.cp_nm or "",
-            "sigungu": f.cpb_nm or "",
-            "phone": f.faci_tel_no or "",
-            "lat": f.faci_lat,
-            "lng": f.faci_lot,
-        })
-    no_result = (len(facilities) == 0)
+    else:
+        qs = Facility.objects.all()
 
+        if cp_nm:
+            qs = qs.filter(cp_nm=cp_nm)
+
+        if cpb_nm:
+            if not qs.filter(cpb_nm=cpb_nm).exists():
+                qs = qs.filter(faci_road_addr__icontains=cpb_nm)
+            else:
+                qs = qs.filter(cpb_nm=cpb_nm)
+
+        if keyword:
+            qs = qs.filter(faci_nm__icontains=keyword)
+
+        qs = qs.filter(faci_stat_nm__icontains='정상운영')
+
+        # 데이터 구성
+        facilities = []
+        for f in qs:
+            facilities.append({
+                "id": f.faci_cd,
+                "name": f.faci_nm or "",
+                "address": f.faci_road_addr or f.faci_addr or "",
+                "sido": f.cp_nm or "",
+                "sigungu": f.cpb_nm or "",
+                "phone": f.faci_tel_no or "",
+                "lat": f.faci_lat,
+                "lng": f.faci_lot,
+            })
+
+        # FacilityInfo 있는 시설 먼저 정렬
+        info_ids = set(FacilityInfo.objects.values_list("facility_id", flat=True))
+        facilities = sorted(
+            facilities,
+            key=lambda x: x["id"] not in info_ids
+        )
+
+        # 캐시저장
+        cache.set(cache_key, facilities, FACILITY_LIST_CACHE_TTL)
+
+    # -----------------------------
+    # 페이징 + 지도좌표 처리
+    # -----------------------------
     per_page = int(request.GET.get("per_page", 10))
-    page = int(request.GET.get("page", 1))
-
     paging = pager(request, facilities, per_page=per_page)
-    
+
     page_obj = paging['page_obj']
-
-    # 지도용 데이터 (lat/lng 정상값만)
     page_facilities = kakao_for_map(page_obj)
-
 
     context = {
         "page_obj": page_obj,
@@ -208,16 +146,14 @@ def facility_list(request):
         "cpNm": cp_nm,
         "cpbNm": cpb_nm,
         "keyword": keyword,
-        "page": page,
         "merged_count": len(facilities),
         "block_range": paging['block_range'],
         "block_start": paging['block_start'],
         "block_end": paging['block_end'],
-        "no_result": no_result,
+        "no_result": len(facilities) == 0,
         "KAKAO_SCRIPT_KEY": KAKAO_SCRIPT_KEY,
     }
-    
-    
+
     return render(request, "facility/facility_list.html", context)
 
 
@@ -361,7 +297,7 @@ def kakao_for_map(page_obj):
     return result
 
 def facility_detail(request, fk):
-
+    user_id = request.session.get('user_id')
     KAKAO_SCRIPT_KEY = os.getenv("KAKAO_SCRIPT_KEY")
 
     try:
@@ -489,6 +425,7 @@ def facility_detail(request, fk):
             "reserve_message": reserve_message,
             "comments": comments,
             "facility_id": fk,
+            "user_id": user_id,
             "comment_fk": fk,   # 댓글 URL에서 반드시 이 변수 사용
         })
 

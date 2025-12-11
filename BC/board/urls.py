@@ -11,6 +11,7 @@ urlpatterns = [
     path('<str:board_name>/write/', views.article_write, name='write'),
     path('<str:board_name>/write/<int:article_id>', views.article_write, name='update'),
     path('<str:board_name>/<int:article_id>/', views.article_detail, name = 'detail'),
+    
     path('<str:board_name>/<int:article_id>/comment/', views.article_comment, name='comment'),
     
     # 첨부파일

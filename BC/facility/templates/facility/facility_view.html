@@ -135,7 +135,7 @@
             <li class="comment-empty">아직 등록된 댓글이 없습니다.</li>
             {% endfor %}
         </ul>
-
+        {% if user_id %}
         <form method="post" action="{% url 'facility:facility_comment' facility_id %}" class="comment-form">
             {% csrf_token %}
             <label for="comment">댓글 쓰기</label>
@@ -144,6 +144,7 @@
                 <button type="submit" class="btn btn-submit">등록</button>
             </div>
         </form>
+        {% endif %}
     </section>
 
 </div>

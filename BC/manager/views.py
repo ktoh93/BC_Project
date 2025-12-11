@@ -161,6 +161,9 @@ def facility(request):
     if keyword:
         queryset = queryset.filter(faci_nm__icontains=keyword)
 
+    # 공공시설만 받기 
+    queryset.filter(faci_gb_nm='공공')
+
     # 이미 등록된 시설 제외
     registered_ids = FacilityInfo.objects.values_list("facility_id", flat=True)
     queryset = queryset.exclude(faci_cd__in=registered_ids)
@@ -289,6 +292,7 @@ def facility_register(request):
                 faci_nm=fac.faci_nm or "",
                 address=fac.faci_road_addr or "",
                 sido = fac.cp_nm or "",
+                faci_gb_nm = fac.faci_gb_nm or "",
                 sigugun = fac.cpb_nm or "",
                 tel=fac.faci_tel_no or "",
                 homepage=fac.faci_homepage or "",

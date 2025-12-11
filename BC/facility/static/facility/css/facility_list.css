@@ -392,3 +392,62 @@
     /* 간격 */
     margin: 40px auto;
 }
+
+.overlay-wrap {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%) translateY(-90%);
+    white-space: nowrap;
+}
+
+/* 말풍선 박스 */
+.overlay-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    border: 1px solid #d7dbe3;
+}
+
+/* 제목 */
+.overlay-title {
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1A2A43;
+}
+
+/* 빨간 버튼 */
+.overlay-btn {
+    background: #e74a3b;
+    padding: 12px 18px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ▼ 아래 꼬리 */
+.overlay-tail {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 14px solid #ffffff;
+}
+
+.mini-overlay {
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    transform: translateY(-8px);
+}
