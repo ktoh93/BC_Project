@@ -23,6 +23,66 @@ document.addEventListener("DOMContentLoaded", () => {
         handle_withdraw();
     });
 
+    // 탈퇴 관련 이벤트
+    const withdrawSection = document.getElementById("withdrawSection");
+    const cancelWithdrawBtn = document.getElementById("cancelWithdraw");
+    const confirmWithdrawBtn = document.getElementById("confirmWithdraw");
+    const reasonRadios = document.querySelectorAll('input[name="delete_reason"]');
+    const otherReasonBox = document.getElementById("otherReasonBox");
+    const otherReasonText = document.getElementById("otherReasonText");
+
+    // 라디오 버튼 변경 시 기타 입력창 표시/숨김
+    reasonRadios.forEach(radio => {
+        radio.addEventListener("change", function() {
+            if (this.value === '6') {
+                otherReasonBox.style.display = 'block';
+                otherReasonText.required = true;
+            } else {
+                otherReasonBox.style.display = 'none';
+                otherReasonText.required = false;
+                otherReasonText.value = '';
+            }
+        });
+    });
+
+    // 취소 버튼
+    cancelWithdrawBtn.addEventListener("click", function() {
+        withdrawSection.style.display = 'none';
+        // 폼 초기화
+        document.getElementById("withdrawReasonForm").reset();
+        otherReasonBox.style.display = 'none';
+        otherReasonText.value = '';
+    });
+
+    // 탈퇴 확인 버튼
+    confirmWithdrawBtn.addEventListener("click", function() {
+        const selectedReason = document.querySelector('input[name="delete_reason"]:checked');
+        
+        if (!selectedReason) {
+            alert('탈퇴 사유를 선택해주세요.');
+            return;
+        }
+
+        // 6번(기타) 선택 시 입력값 확인
+        if (selectedReason.value === '6') {
+            const otherText = otherReasonText.value.trim();
+            if (!otherText) {
+                alert('기타 사유를 입력해주세요.');
+                return;
+            }
+            // "6:직접 입력한 내용" 형태로 저장
+            document.getElementById("delete_reason_input").value = '6:' + otherText;
+        } else {
+            // 1~5번은 번호만 전송 (서버에서 내용으로 변환)
+            document.getElementById("delete_reason_input").value = selectedReason.value;
+        }
+
+        // 최종 확인
+        const ok = confirm('정말 회원 탈퇴를 진행하시겠습니까?');
+        if (ok) {
+            document.getElementById("withdrawForm").submit();
+        }
+    });
 
 });
 
@@ -49,9 +109,13 @@ function handle_password_change() {
 }
 
 function handle_withdraw(){
-    const ok = confirm('정말 회원 탈퇴를 진행하시겠습니까?')
-    if (ok){
-            document.getElementById("withdrawForm").submit();
+    // 탈퇴 섹션 표시
+    const withdrawSection = document.getElementById("withdrawSection");
+    if (withdrawSection.style.display === 'none' || !withdrawSection.style.display) {
+        withdrawSection.style.display = 'block';
+        // 스크롤 이동
+        withdrawSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        withdrawSection.style.display = 'none';
     }
-    
 }

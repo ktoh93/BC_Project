@@ -256,3 +256,31 @@
   background: var(--color-deep-blue-hover);
   border-color: var(--color-deep-blue-hover);
 }
+
+/* ===========================
+   탈퇴 섹션
+   =========================== */
+.withdraw-section {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reason-options label:hover {
+    background-color: #f8f9fa;
+    border-color: #ff4d4f;
+}
+
+.reason-options input[type="radio"]:checked + span {
+    color: #ff4d4f;
+    font-weight: 600;
+}

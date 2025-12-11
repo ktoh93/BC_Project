@@ -841,7 +841,28 @@ def withdraw(request):
         # 카카오 유저 여부 확인(user_id가 'kakao_'로 시작함)
         is_kakao_user = login_id.startswith('kakao_') if login_id else False
 
-        user.delete_yn =1
+        # 탈퇴 사유 받기
+        delete_reason = request.POST.get('delete_reason', '')
+        
+        # 탈퇴 사유 매핑 (1~5번은 객관식 내용으로 변환)
+        reason_map = {
+            '1': '서비스 이용이 불편함',
+            '2': '원하는 기능이 없음',
+            '3': '이용 빈도가 낮음',
+            '4': '개인정보 보호 우려',
+            '5': '다른 서비스 이용',
+        }
+        
+        # 1~5번 선택 시 해당 내용으로 변환, 6번(기타)은 직접 입력값 사용
+        if delete_reason in reason_map:
+            user.delete_reason = reason_map[delete_reason]
+        elif delete_reason.startswith('6:'):
+            # 6번 선택 시 "6:직접입력내용" 형식으로 전송되므로 ":" 이후만 저장
+            user.delete_reason = delete_reason.split(':', 1)[1] if ':' in delete_reason else delete_reason
+        else:
+            user.delete_reason = delete_reason
+
+        user.delete_yn = 1
         user.delete_date = timezone.now()
         user.save()
         request.session.flush()
