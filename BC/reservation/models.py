@@ -9,7 +9,8 @@ class Reservation(models.Model):
     delete_yn = models.IntegerField(default=0)          # 예약상태 (0=예약중, 1=취소)
     reg_date = models.DateTimeField(auto_now_add=True)
     delete_date = models.DateTimeField(null=True, blank=True)
-    expire_yn = models.IntegerField(default=0)
+    expire_yn = models.IntegerField(default=0) 
+    payment = models.IntegerField(default=0) 
    
 
     member = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)

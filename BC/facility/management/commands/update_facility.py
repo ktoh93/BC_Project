@@ -80,7 +80,7 @@ class Command(BaseCommand):
                     faci_daddr=item.get("faci_daddr"),
                     faci_road_daddr=item.get("faci_road_daddr"),
                     faci_zip=item.get("faci_zip"),
-
+                    faci_gb_nm=item.get("faci_gb_nm"),
                     faci_lat=item.get("faci_lat"),
                     faci_lot=item.get("faci_lot"),
 
