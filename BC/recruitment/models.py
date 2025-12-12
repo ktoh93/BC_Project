@@ -53,7 +53,7 @@ class Rating(models.Model):
 
     community_id = models.ForeignKey(Community, null=True, blank=True, on_delete=models.DO_NOTHING)
     member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
-    reservation_id = models.ForeignKey("reservation.Reservation",on_delete=models.CASCADE) 
+    reservation_id = models.ForeignKey("reservation.Reservation", null=True, blank=True, on_delete=models.CASCADE) 
      
     class Meta:
         db_table = "rating"
