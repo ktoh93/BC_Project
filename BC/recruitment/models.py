@@ -48,15 +48,23 @@ class Rating(models.Model):
     rating_id = models.AutoField(primary_key=True)
     facility = models.CharField(max_length=100)
     rated = models.IntegerField(default=0)
-    comments = models.TextField()
-    reg_date = models.DateTimeField(auto_now=True)
-
+    comments = models.TextField(null=True, blank=True)
+    reg_date = models.DateTimeField(auto_now_add=True)  # auto_now_add 권장 (생성 시점만)
+    # update_date는 불필요 (별개 평점이므로)
+    
     community_id = models.ForeignKey(Community, null=True, blank=True, on_delete=models.DO_NOTHING)
     member_id = models.ForeignKey("member.Member", on_delete=models.DO_NOTHING)
-    reservation_id = models.ForeignKey("reservation.Reservation", null=True, blank=True, on_delete=models.CASCADE) 
-     
+    reservation_id = models.ForeignKey("reservation.Reservation", null=True, blank=True, on_delete=models.CASCADE)
+    
     class Meta:
         db_table = "rating"
+        constraints = [  # 필요! (같은 예약에 중복 방지)
+            models.UniqueConstraint(
+                fields=["member_id", "reservation_id"],
+                condition=models.Q(reservation_id__isnull=False),
+                name="unique_rating_per_reservation"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.facility} - {self.rated}점"
