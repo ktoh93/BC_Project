@@ -14,7 +14,6 @@ from reservation.models import *
 from member.models import Member
 from common.models import *
 from facility.models import FacilityInfo
-from common.utils import is_manager
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -312,35 +311,9 @@ def write(request):
         )
 
 
-
         files = request.FILES.getlist("files")
+        upload_files(request, recruit, file_field="files", sub_dir="uploads/community")
 
-        for f in files:
-            original_name = f.name                      # 원본 파일명
-            ext = os.path.splitext(original_name)[1]    # 확장자 (.jpg, .pdf 등)
-            encoded_name = f"{uuid.uuid4().hex}{ext}"   # 서버에 저장할 랜덤 이름
-
-            # 실제 저장 경로(원하는 폴더로 바꿔도 됨)
-            save_dir = "upload/recruit"                 # MEDIA_ROOT 기준 하위 폴더
-            save_path = os.path.join(save_dir, encoded_name)
-            full_path = os.path.join(settings.MEDIA_ROOT, save_path)
-
-            # 디렉터리 없으면 생성
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            # 파일 실제 저장
-            with open(full_path, "wb+") as dest:
-                for chunk in f.chunks():
-                    dest.write(chunk)
-
-            # add_info 테이블에 메타데이터 저장
-            AddInfo.objects.create(
-                community_id = recruit,     # FK 는 인스턴스로 넘기는 게 정석
-                path         = save_path,   # 나중에 MEDIA_URL + path 로 접근
-                file_name    = original_name,
-                encoded_name = encoded_name,
-                # reg_date 는 model 에 auto_now_add=True 면 안 넣어도 됨
-            )
         return redirect("recruitment:recruitment_detail", pk=recruit.pk)
     today = date.today().isoformat()
     # 3) GET 요청이면 작성 폼 + 내 예약 목록 넘기기
@@ -543,33 +516,9 @@ def update(request, pk):
                 community.reservation_id = slot.reservation_id
 
         # ✅ 3) 새 첨부파일 업로드 처리
-        files = request.FILES.getlist("files")  # <input type="file" name="files" multiple>
+        files = request.FILES.getlist("files")
+        upload_files(request, community, file_field="files", sub_dir="uploads/community")
 
-        for f in files:
-            if not f:
-                continue
-
-            original_name = f.name
-            ext = os.path.splitext(original_name)[1]
-            encoded_name = f"{uuid.uuid4().hex}{ext}"
-
-            # 저장 경로 (MEDIA_ROOT 기준)
-            save_dir = "upload/recruit"
-            save_path = os.path.join(save_dir, encoded_name)
-            full_path = os.path.join(settings.MEDIA_ROOT, save_path)
-
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            with open(full_path, "wb+") as dest:
-                for chunk in f.chunks():
-                    dest.write(chunk)
-
-            AddInfo.objects.create(
-                community_id=community,   # FK 인스턴스
-                path=save_path,
-                file_name=original_name,
-                encoded_name=encoded_name,
-            )
 
         # ✅ 시설 이름 최종 반영 + 저장
         community.facility = facility_name

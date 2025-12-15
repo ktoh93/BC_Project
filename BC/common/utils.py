@@ -605,6 +605,8 @@ def upload_files(request, instance, file_field="file", sub_dir="uploads/common")
     fk_field = None
     if hasattr(instance, "article_id"):  # Article PK 존재
         fk_field = "article_id"
+    elif hasattr(instance, "community_id"):  # Community PK 존재
+        fk_field = "community_id"
     elif hasattr(instance, "facility_id") or hasattr(instance, "faci_nm"):
         fk_field = "facility_id"
     else:
