@@ -787,13 +787,48 @@ def find_id(request):
                 "error": "전화번호는 숫자만 입력해야 하며 3-4-4 자리여야 합니다."
             })
 
-        phone_num = phone1 + phone2 + phone3
+        # 생년월일을 DB 포맷(YYYY-MM-DD)으로 변환
+        birthday_db = f"{birthday[0:4]}-{birthday[4:6]}-{birthday[6:8]}"
+        
+        # 전화번호를 DB 포맷(010-0000-0000)으로 변환
+        phone_num = f"{phone1}-{phone2}-{phone3}"
 
-        # TODO: DB에서 이름, 생년월일, phone_num 이 일치하는 정보 찾기
-
-        return render(request, 'common/findID.html', {
-            "result_id": "ID"
-        })
+        # DB에서 회원 정보 조회 (탈퇴하지 않은 회원만)
+        try:
+            user = Member.objects.get(
+                name=name,
+                birthday=birthday_db,
+                phone_num=phone_num,
+                delete_yn=0  # 탈퇴하지 않은 회원만
+            )
+            
+            # 아이디 찾기 성공
+            return render(request, 'common/findID.html', {
+                "result_id": user.user_id
+            })
+            
+        except Member.DoesNotExist:
+            return render(request, "common/findID.html", {
+                "error": "입력하신 정보와 일치하는 회원을 찾을 수 없습니다."
+            })
+        except Member.MultipleObjectsReturned:
+            # 중복된 정보가 있는 경우 (이론적으로는 발생하지 않아야 함)
+            # 첫 번째 회원의 아이디 반환
+            user = Member.objects.filter(
+                name=name,
+                birthday=birthday_db,
+                phone_num=phone_num,
+                delete_yn=0
+            ).first()
+            
+            if user:
+                return render(request, 'common/findID.html', {
+                    "result_id": user.user_id
+                })
+            else:
+                return render(request, "common/findID.html", {
+                    "error": "입력하신 정보와 일치하는 회원을 찾을 수 없습니다."
+                })
 
     return render(request, 'common/findID.html')
 
