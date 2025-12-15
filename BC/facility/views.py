@@ -105,7 +105,8 @@ def facility_list(request):
             qs = qs.filter(faci_nm__icontains=keyword)
 
         qs = qs.filter(faci_stat_nm__icontains='정상운영')
-
+        qs = qs.filter(faci_gb_nm__icontains='공공')
+        
         # 데이터 구성
         facilities = []
         for f in qs:

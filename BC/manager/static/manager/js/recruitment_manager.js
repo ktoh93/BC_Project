@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch('/manager/communities/delete/', {
+        fetch('/manager/recruitment/delete/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch('/manager/communities/harddelete/', {
+        fetch('/manager/recruitment/harddelete/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch('/manager/communities/restore/', {
+        fetch('/manager/recruitment/restore/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
