@@ -83,7 +83,7 @@ mypage base
     {% for join_stat in page_obj %}
       <!-- 한 줄 전체가 클릭되는 행 -->
       <a href="/recruitment/detail/{{ join_stat.community_id.community_id }}/" class="mypage-board-row">
-        <span class="col-number">{{ forloop.counter0|add:page_obj.start_index }}</span>
+        <span class="col-number">{{ page_obj.start_index|add:forloop.counter0 }}</span>
         <span class="col-title">{{ join_stat.community_id.title }}</span>
         <span class="col-date">{{ join_stat.community_id.reg_date|date:"Y-m-d" }}</span>
         <span class="col-views">

@@ -711,15 +711,15 @@ def myjoin(request):
     paging = pager(request, join_stats, per_page=per_page)
     page_obj = paging['page_obj']
    
-    
     context = {
-        "page_obj": page_obj,
+        "page_obj": paging["page_obj"],
         "per_page": per_page,
         "page": page,
         "sort": sort,
-        "block_range": paging['page_obj'],
-        "block_start": paging['block_start'],
-        "block_end": paging['block_end'],
+        "block_range": paging["block_range"],
+        "block_start": paging["block_start"],
+        "block_end": paging["block_end"],
+        "paginator": paging["paginator"],   # ⭐ 반드시 추가
     }
     
     return render(request, 'member/myjoin.html', context)
