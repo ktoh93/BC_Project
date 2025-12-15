@@ -223,34 +223,6 @@ function handle_list() {
     // alert("정보 수정 기능 준비중");
 }
 
-// Editor 내용을 form submit 시 hidden input에 저장
-// document.addEventListener('DOMContentLoaded', function () {
-//     const form = document.getElementById('recruit-form');
-//     const contentInput = document.getElementById('contentInput');
-
-//     if (form && contentInput) {
-//         form.addEventListener('submit', function (e) {
-//             const editor = window.editorInstance;
-//             const html = editor ? (editor.getHTML() || "") : "";
-//             const text = editor ? (editor.getText() || "") : "";
-
-//             // hidden input에 값 주입 (서버로 넘어가게)
-//             contentInput.value = html;
-
-//             // 공백/줄바꿈만 있으면 막기
-//             if (!text.trim()) {
-//                 e.preventDefault();
-//                 alert("내용은 필수 입력입니다.");
-//                 // 커서 이동(있으면)
-//                 if (editor) editor.focus();
-//                 return false;
-//             }
-//             // if (window.editorInstance) {
-//             //     contentInput.value = window.editorInstance.getHTML();
-//             // }
-//         });
-//     }
-// });
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("recruit-form");
@@ -267,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const md = (editor.getMarkdown() || "");
     // ✅ 실제 글자(한글/영문/숫자)가 하나라도 있는지 체크
-    const has_real_text = /[0-9A-Za-z가-힣]/.test(md);
+    const has_real_text = /[0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ]/.test(md);
     const html = editor.getHTML();
     const text = html
         .replace(/<br\s*\/?>/gi, "")
