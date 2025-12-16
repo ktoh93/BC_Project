@@ -1,0 +1,45 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        const IMP = window.IMP;
+        IMP.init("imp25447025");  // ← 네 가맹점 식별코드
+    </script>
+    <h2>결제 진행</h2>
+    <p>결제 금액: {{ amount }}원</p>
+
+    <button onclick="pay()">결제하기</button>
+
+    <script>
+        async function pay() {
+            const res1 = await fetch("/payment/try/{{ order_no }}/", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            });
+            const data1 = await res1.json();
+
+            const res2 = await fetch("/payment/approve/" + data1.payment_id + "/", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            });
+            const data2 = await res2.json();
+
+            if (data2.result === "SUCCESS") {
+                location.href = "/member/myreservation/";
+            } else {
+                alert("결제 실패. 다시 시도하세요.");
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>

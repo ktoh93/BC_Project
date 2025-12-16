@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isAuth !== "1") {
         alert("로그인 후 이용 가능합니다.");
         location.href = "/login/";
-        return;
+        return; 
     }
 
 
@@ -180,58 +180,37 @@ document.addEventListener("DOMContentLoaded", function () {
     /* ---------------------------
         5) 예약 버튼
     ---------------------------- */
-    document.getElementById("reserve-button").addEventListener("click", function (event) {
-        event.preventDefault(); // 브라우저 기본 동작 방지 추가
+    document.getElementById("reserve-button").addEventListener("click", function () {
+
         const date = selectedDateEl.textContent;
+
         if (date === "-" || selectedSlots.length === 0) {
             alert("날짜와 시간을 선택해주세요.");
             return;
         }
 
-        // ✅ 1. 클릭 이벤트 안에서 바로 결제창 오픈
-        const merchantUid = "tmp_" + Date.now();
-
-        IMP.request_pay({
-            pg: "html5_inicis",
-            pay_method: "card",
-            merchant_uid: merchantUid,
-            name: "시설 예약 결제",
-            amount: Number(document.getElementById("total-price")
-                .innerText.replace(/[^0-9]/g, ""))
-        }, function (rsp) {
-
-            if (!rsp.success) {
-                alert("결제가 취소되었습니다.");
-                return;
-            }
-
-            // ✅ 2. 결제 성공 후 서버에 예약 요청
-            fetch("/reservation/save/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie("csrftoken")
-                },
-                body: JSON.stringify({
-                    date: date,
-                    slots: selectedSlots,
-                    facility_id: facilityId
-                })
+        fetch("/reservation/save/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                date: date,
+                slots: selectedSlots,
+                facility_id: facilityId
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.result === "ok") {
-                        location.href = `/reservation/complete/${data.reservation_id}/`;
-                    } else {
-                        alert("예약 생성 실패");
-                    }
-                });
-        });
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === "ok") {
+                    alert("예약이 완료되었습니다!");
+                    window.location.href = `/member/myreservation`;
+                } else {
+                    alert(data.msg);
+                }
+            });
     });
-
-
-
-
 
     /* ---------------------------
         6) CSRF

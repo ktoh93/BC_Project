@@ -1,6 +1,17 @@
 {% extends 'common/base.html' %}
 {% load static %}
-
+{% block script1 %}
+<script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+<script>
+  window.addEventListener("load", function () {
+    if (!window.IMP) {
+      alert("결제 모듈 로딩 실패");
+      return;
+    }
+    IMP.init("imp25447025");
+  });
+</script>
+{% endblock %}
 {% block title %}예약 상세{% endblock %}
 
 {% block css %}
@@ -19,9 +30,9 @@
     <div class="facility-top">
         <div class="facility-photo">
             {% if facility.photo %}
-                <img src="{{ facility.photo.url }}" alt="facility image">
+            <img src="{{ facility.photo.url }}" alt="facility image">
             {% else %}
-                <div class="no-photo">사진 없음</div>
+            <div class="no-photo">사진 없음</div>
             {% endif %}
         </div>
 
@@ -40,40 +51,40 @@
     <div class="divider"></div>
 
     {% if facility.rs_posible == 1 %}
-        <!-- 기존 예약 UI 전체 시작 -->
-        <div class="reservation-section">
-            <div class="calendar-box">
-                <div id="calendar"></div>
-            </div>
-
-            <div class="time-slot-box">
-                <div class="time-slot-title">시간 선택</div>
-                <div class="slot-grid" id="time-slot-grid"></div>
-            </div>
+    <!-- 기존 예약 UI 전체 시작 -->
+    <div class="reservation-section">
+        <div class="calendar-box">
+            <div id="calendar"></div>
         </div>
 
-        <div class="result-box">
-            <div>선택된 날짜: <strong id="selected-date">-</strong></div>
-            <div>선택된 시간: <strong id="selected-time">-</strong></div>
-
-            <div class="total-price">
-                총 결제금액: <span id="total-price">0원</span>
-            </div>
+        <div class="time-slot-box">
+            <div class="time-slot-title">시간 선택</div>
+            <div class="slot-grid" id="time-slot-grid"></div>
         </div>
+    </div>
 
-        <div class="reservation-buttons">
-            <button class="btn-reserve" id="reserve-button">예약하기</button>
-            <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+    <div class="result-box">
+        <div>선택된 날짜: <strong id="selected-date">-</strong></div>
+        <div>선택된 시간: <strong id="selected-time">-</strong></div>
+
+        <div class="total-price">
+            총 결제금액: <span id="total-price">0원</span>
         </div>
-        <!-- 기존 예약 UI 전체 끝 -->
+    </div>
+
+    <div class="reservation-buttons">
+        <button class="btn-reserve" id="reserve-button">예약하기</button>
+        <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+    </div>
+    <!-- 기존 예약 UI 전체 끝 -->
 
     {% else %}
-        <div style="padding: 3rem; text-align: center; font-size: 1.6rem; color: #b30000; font-weight: 700;">
-            예약이 불가능한 시설입니다.
-        </div>
-        <div class="reservation-buttons">
-            <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
-        </div>
+    <div style="padding: 3rem; text-align: center; font-size: 1.6rem; color: #b30000; font-weight: 700;">
+        예약이 불가능한 시설입니다.
+    </div>
+    <div class="reservation-buttons">
+        <a href="{% url 'reservation:reservation_list' %}" class="btn-back">목록으로 돌아가기</a>
+    </div>
     {% endif %}
 
 
@@ -91,6 +102,7 @@
 {% endblock %}
 
 {% block script3 %}
+
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <script src="{% static 'reservation/js/reservation_detail.js' %}"></script>
 {% endblock %}

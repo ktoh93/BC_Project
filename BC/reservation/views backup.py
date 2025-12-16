@@ -136,33 +136,66 @@ def reservation_detail(request, facility_id):
         "reserved_json": json.dumps(reserved_list)
     })
 
-
 @csrf_exempt
 def reservation_save(request):
+        # 로그인 체크
+    res = check_login(request)
+    if res:
+        return res
+    
+    if request.method != "POST":
+        return JsonResponse({"result": "error", "msg": "잘못된 요청"})
+
     data = json.loads(request.body)
 
-    date = data["date"]
-    slots = data["slots"]
-    facility_id = data["facility_id"]
+    date = data.get("date")
+    slots = data.get("slots")
+    facility_code = data.get("facility_id")
 
+    if not (date and slots and facility_code):
+        return JsonResponse({"result": "error", "msg": "필수 데이터 누락"})
+
+    try:
+        facility = FacilityInfo.objects.get(facility_id=facility_code)
+    except FacilityInfo.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "시설을 찾을 수 없습니다."})
+
+    # 날짜 파싱 및 요일별 요금 확인
+    try:
+        res_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        return JsonResponse({"result": "error", "msg": "잘못된 날짜 형식"})
+
+    day_key = res_date.strftime("%A").lower()
+    day_info = (facility.reservation_time or {}).get(day_key, {})
+    if not day_info.get("active"):
+        return JsonResponse({"result": "error", "msg": "해당 요일은 예약 불가합니다."})
+
+    price_per_slot = int(day_info.get("payment") or 0)
+    total_payment = price_per_slot * len(slots)
+
+    # 예약 생성
     reservation_num = str(random.randint(10000000, 99999999))
-    amount = 150000  # 계산된 금액
+    reservation = Reservation.objects.create(
+        reservation_num=reservation_num,
+        member=Member.objects.get(user_id=request.session["user_id"]),
+        payment=total_payment
+    )
 
-    # ✅ 결제 전 임시 저장
-    request.session[f"pay:{reservation_num}"] = {
-        "date": date,
-        "slots": slots,
-        "facility_id": facility_id,
-        "amount": amount
-    }
+    for slot in slots:
+        start = slot["start"]
+        end = slot["end"]
 
-    return JsonResponse({
-        "result": "ok",
-        "order_no": reservation_num,
-        "amount": amount
-    })
+        TimeSlot.objects.create(
+            facility_id=facility,
+            date=res_date,
+            start_time=start,
+            end_time=end,
+            reservation_id=reservation,
+            delete_yn=0
+        )
 
-
+    return JsonResponse({"result": "ok", "payment": total_payment})
 
 
 

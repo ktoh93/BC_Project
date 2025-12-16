@@ -51,3 +51,7 @@ class TimeSlot(models.Model):
 
     def __str__(self):
         return f"시간슬롯 {self.t_id}"
+    
+
+
+# 결제시스템

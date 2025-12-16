@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, facility_manager, recruitment_manager, board, inspection, member
+from . import views, facility_manager, recruitment_manager, board, inspection, member, payment
 
 app_name = 'manager'
 
@@ -73,4 +73,8 @@ urlpatterns = [
     path('facility_inspection_stats/yearly/', inspection.facility_inspection_yearly_detail, name='facility_inspection_yearly_detail'),
     path('facility_inspection_stats/grade/', inspection.facility_inspection_grade_detail, name='facility_inspection_grade_detail'),
 
+
+    # 결제
+    path("payments/", payment.manager_payment_list, name="manager_payment_list"),
+    path("payments/<str:order_no>/", payment.manager_payment_detail, name="manager_payment_detail"),
 ]

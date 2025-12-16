@@ -1,0 +1,63 @@
+{% extends 'manager/manager_base.html' %}
+{% load static %}
+
+{% block title %}결제 상세페이지{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'manager/css/banner_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-main">
+
+    <h2>결제 상세</h2>
+
+    <h3>결제 정보</h3>
+    <ul>
+        <li>주문번호: {{ order.order_no }}</li>
+        <li>사용자: {{ order.member.nickname }}</li>
+        <li>금액: {{ order.amount }}원</li>
+        <li>현재 상태: {{ order.get_status_display }}</li>
+    </ul>
+
+    <hr>
+
+    <h3>결제 상태 변경</h3>
+    <form method="post">
+        {% csrf_token %}
+        <select name="status">
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if value == order.status %} selected {% endif %} >
+                {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit">상태 변경</button>
+    </form>
+
+    <hr>
+
+    <h3>결제 시도</h3>
+    <ul>
+        {% for p in payments %}
+        <li>
+            {{ p.payment_key }} /
+            {{ p.get_status_display }} /
+            {{ p.requested_at|date:"Y-m-d H:i" }}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3>결제 로그</h3>
+    <ul>
+        {% for log in logs %}
+        <li>
+            [{{ log.reg_date|date:"Y-m-d H:i:s" }}]
+            {{ log.event_type }} - {{ log.message }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
