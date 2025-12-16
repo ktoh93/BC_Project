@@ -22,6 +22,7 @@ from reservation.models import Reservation
 from board.models import Article
 from common.models import Comment
 from common.paging import pager
+from facility.models import Facility
 
 
 
@@ -449,6 +450,32 @@ def facility_inspection_stats(request):
     """
     시설 안전점검 통계 페이지
     """
+    import os
+    import json as json_lib
+    from datetime import datetime
+    
+    # #region agent log
+    log_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.cursor', 'debug.log')
+    try:
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write(json_lib.dumps({
+                "id": f"log_{int(datetime.now().timestamp() * 1000)}_start",
+                "timestamp": int(datetime.now().timestamp() * 1000),
+                "location": "inspection.py:444",
+                "message": "facility_inspection_stats 함수 시작",
+                "data": {"region_filter": request.GET.get('region', ''), "sport_filter": request.GET.get('sport', '')},
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "ALL"
+            }, ensure_ascii=False) + "\n")
+        print(f"[DEBUG] Log written to {log_path}")
+    except Exception as log_err:
+        print(f"[DEBUG LOG ERROR] {log_err}")
+        import traceback
+        traceback.print_exc()
+    # #endregion
+    
     # 필터 파라미터
     region_filter = request.GET.get('region', '')
     sport_filter = request.GET.get('sport', '')
@@ -473,27 +500,137 @@ def facility_inspection_stats(request):
         try:
             facilities = Facility.objects.exclude(schk_visit_ymd__isnull=True).exclude(schk_visit_ymd='')
             
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    f.write(json_lib.dumps({
+                        "id": f"log_{int(datetime.now().timestamp() * 1000)}_query",
+                        "timestamp": int(datetime.now().timestamp() * 1000),
+                        "location": "inspection.py:474",
+                        "message": "facilities 쿼리 생성 후",
+                        "data": {"facilities_count": facilities.count(), "region_filter": region_filter, "sport_filter": sport_filter},
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "A"
+                    }, ensure_ascii=False) + "\n")
+            except: pass
+            # #endregion
+            
             # 필터 적용
             if region_filter:
                 facilities = facilities.filter(cp_nm=region_filter)
             if sport_filter:
                 facilities = facilities.filter(fcob_nm=sport_filter)
             
-            if facilities.exists():
+            facilities_exists = facilities.exists()
+            
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    f.write(json_lib.dumps({
+                        "id": f"log_{int(datetime.now().timestamp() * 1000)}_exists",
+                        "timestamp": int(datetime.now().timestamp() * 1000),
+                        "location": "inspection.py:482",
+                        "message": "facilities.exists() 체크",
+                        "data": {"exists": facilities_exists, "count_after_filter": facilities.count() if facilities_exists else 0},
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "A"
+                    }, ensure_ascii=False) + "\n")
+            except: pass
+            # #endregion
+            
+            if facilities_exists:
                 df_facilities = read_frame(facilities.values(
                     'schk_visit_ymd', 'schk_tot_grd_nm', 'cp_nm', 'fcob_nm'
                 ))
+                
+                # #region agent log
+                try:
+                    sample_data = []
+                    if not df_facilities.empty:
+                        sample_data = df_facilities['schk_visit_ymd'].head(5).tolist()
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        f.write(json_lib.dumps({
+                            "id": f"log_{int(datetime.now().timestamp() * 1000)}_df",
+                            "timestamp": int(datetime.now().timestamp() * 1000),
+                            "location": "inspection.py:485",
+                            "message": "DataFrame 변환 후",
+                            "data": {"df_empty": df_facilities.empty, "df_shape": list(df_facilities.shape) if not df_facilities.empty else [0, 0], "sample_schk_visit_ymd": sample_data},
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "B"
+                        }, ensure_ascii=False) + "\n")
+                except: pass
+                # #endregion
                 
                 if not df_facilities.empty:
                     # 연도별 점검 추세 (2000~2025년만)
                     df_facilities['year'] = df_facilities['schk_visit_ymd'].str[:4]
                     df_facilities['year_int'] = pd.to_numeric(df_facilities['year'], errors='coerce')
+                    
+                    # #region agent log
+                    try:
+                        year_stats = {
+                            "total_rows": len(df_facilities),
+                            "year_nan_count": df_facilities['year_int'].isna().sum(),
+                            "year_min": float(df_facilities['year_int'].min()) if df_facilities['year_int'].notna().any() else None,
+                            "year_max": float(df_facilities['year_int'].max()) if df_facilities['year_int'].notna().any() else None,
+                            "sample_years": df_facilities[['schk_visit_ymd', 'year', 'year_int']].head(5).to_dict('records') if not df_facilities.empty else []
+                        }
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            f.write(json_lib.dumps({
+                                "id": f"log_{int(datetime.now().timestamp() * 1000)}_year",
+                                "timestamp": int(datetime.now().timestamp() * 1000),
+                                "location": "inspection.py:490",
+                                "message": "연도 추출 후",
+                                "data": year_stats,
+                                "sessionId": "debug-session",
+                                "runId": "run1",
+                                "hypothesisId": "C"
+                            }, ensure_ascii=False) + "\n")
+                    except: pass
+                    # #endregion
+                    
                     valid_df = df_facilities[(df_facilities['year_int'] >= 2000) & (df_facilities['year_int'] <= 2025)]
+                    
+                    # #region agent log
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            f.write(json_lib.dumps({
+                                "id": f"log_{int(datetime.now().timestamp() * 1000)}_valid",
+                                "timestamp": int(datetime.now().timestamp() * 1000),
+                                "location": "inspection.py:491",
+                                "message": "valid_df 필터링 후",
+                                "data": {"valid_df_empty": valid_df.empty, "valid_df_count": len(valid_df), "original_count": len(df_facilities)},
+                                "sessionId": "debug-session",
+                                "runId": "run1",
+                                "hypothesisId": "C"
+                            }, ensure_ascii=False) + "\n")
+                    except: pass
+                    # #endregion
+                    
                     yearly_trend = valid_df.groupby('year').size()
                     
                     # 최초 년도와 최종 년도 확인
                     min_year = int(valid_df['year'].min()) if not valid_df['year'].empty else 2020
                     max_year = 2025  # 올해
+                    
+                    # #region agent log
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            f.write(json_lib.dumps({
+                                "id": f"log_{int(datetime.now().timestamp() * 1000)}_minmax",
+                                "timestamp": int(datetime.now().timestamp() * 1000),
+                                "location": "inspection.py:495",
+                                "message": "min_year, max_year 계산 후",
+                                "data": {"min_year": min_year, "max_year": max_year, "valid_df_year_empty": valid_df['year'].empty, "yearly_trend_dict": yearly_trend.to_dict()},
+                                "sessionId": "debug-session",
+                                "runId": "run1",
+                                "hypothesisId": "F"
+                            }, ensure_ascii=False) + "\n")
+                    except: pass
+                    # #endregion
                     
                     # 모든 년도에 대해 데이터 채우기 (없으면 0)
                     yearly_inspection_trend = {}
@@ -531,10 +668,65 @@ def facility_inspection_stats(request):
             sports = list(all_facilities_sport.values_list('fcob_nm', flat=True).distinct())
             
         except Exception as e:
+            # #region agent log
+            try:
+                import traceback
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    f.write(json_lib.dumps({
+                        "id": f"log_{int(datetime.now().timestamp() * 1000)}_error",
+                        "timestamp": int(datetime.now().timestamp() * 1000),
+                        "location": "inspection.py:533",
+                        "message": "예외 발생",
+                        "data": {"error": str(e), "error_type": type(e).__name__, "traceback": traceback.format_exc()},
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "E"
+                    }, ensure_ascii=False) + "\n")
+            except: pass
+            # #endregion
             print(f"[시설 안전점검 통계] 오류: {e}")
             pass
-    except Exception:
+    except Exception as outer_e:
+        # #region agent log
+        try:
+            import traceback
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(json_lib.dumps({
+                    "id": f"log_{int(datetime.now().timestamp() * 1000)}_outer_error",
+                    "timestamp": int(datetime.now().timestamp() * 1000),
+                    "location": "inspection.py:536",
+                    "message": "외부 예외 발생",
+                    "data": {"error": str(outer_e), "error_type": type(outer_e).__name__, "traceback": traceback.format_exc()},
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "E"
+                }, ensure_ascii=False) + "\n")
+        except: pass
+        # #endregion
         pass
+    
+    # #region agent log
+    try:
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write(json_lib.dumps({
+                "id": f"log_{int(datetime.now().timestamp() * 1000)}_context",
+                "timestamp": int(datetime.now().timestamp() * 1000),
+                "location": "inspection.py:539",
+                "message": "context 생성 전",
+                "data": {
+                    "yearly_inspection_trend": yearly_inspection_trend,
+                    "grade_distribution": grade_distribution,
+                    "region_inspection_stats": region_inspection_stats,
+                    "sport_inspection_stats": sport_inspection_stats,
+                    "regions_count": len(regions),
+                    "sports_count": len(sports)
+                },
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "ALL"
+            }, ensure_ascii=False) + "\n")
+    except: pass
+    # #endregion
     
     context = {
         'yearly_inspection_trend': json.dumps(yearly_inspection_trend),
