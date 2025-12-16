@@ -128,54 +128,69 @@ def logout(request):
     messages.success(request, "로그아웃되었습니다.")
     return redirect('manager:manager_login')
 
-
 def info_edit(request):
     if not is_manager(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('manager:manager_login')
-    
+
     login_id = request.session.get('user_id')
 
     try:
         manager = Member.objects.get(
-            user_id = login_id,
-            manager_yn = 1
+            user_id=login_id,
+            manager_yn=1
         )
     except Member.DoesNotExist:
         messages.error(request, "관리자 정보를 찾을 수 없습니다.")
         return redirect('manager:manager_login')
-    
+
     if request.method == "POST":
-            edit_type = request.POST.get("edit_type")  
-            phone_num = request.POST.get("phone_num")
-            current_password = request.POST.get("current_password")
+        edit_type = request.POST.get("edit_type")
+        phone_num = request.POST.get("phone_num")
 
+        # 수정 유형에 따라 기존 비밀번호 분리
+        if edit_type == "info":
+            current_password = request.POST.get("current_password_1")
+        elif edit_type == "password":
+            current_password = request.POST.get("current_password_2")
+        else:
+            messages.error(request, "잘못된 요청입니다.")
+            return redirect("manager:info_edit")
 
-            if edit_type == "info":
-                manager.phone_num = phone_num
-                manager.save()
-                messages.success(request, "관리자 정보가 수정되었습니다.")
+        if not current_password:
+            messages.error(request, "기존 비밀번호를 입력해 주세요.")
+            return redirect("manager:info_edit")
+
+        if not check_password(current_password, manager.password):
+            messages.error(request, "기존 비밀번호가 일치하지 않습니다.")
+            return redirect("manager:info_edit")
+
+        # 정보 수정
+        if edit_type == "info":
+            manager.phone_num = phone_num
+            manager.save()
+            messages.success(request, "관리자 정보가 수정되었습니다.")
+            return redirect("manager:info_edit")
+
+        # 비밀번호 변경
+        if edit_type == "password":
+            new_password = request.POST.get("new_password")
+            new_password_confirm = request.POST.get("new_password_confirm")
+
+            if not new_password or not new_password_confirm:
+                messages.error(request, "새 비밀번호를 입력해 주세요.")
                 return redirect("manager:info_edit")
 
-            elif edit_type == "password":
-                new_password = request.POST.get("new_password")
-                new_password_confirm = request.POST.get("new_password_confirm")
-                
-                if not new_password or not new_password_confirm:
-                    messages.error(request, "새 비밀번호를 입력해 주세요.")
-                    return redirect("manager:info_edit")
-                
-                if new_password != new_password_confirm:
-                    messages.error(request, "새 비밀번호가 일치하지 않습니다.")
-                    return redirect("manager:info_edit")
+            if new_password != new_password_confirm:
+                messages.error(request, "새 비밀번호가 일치하지 않습니다.")
+                return redirect("manager:info_edit")
 
-                manager.password = make_password(new_password)
-                manager.save()
+            manager.password = make_password(new_password)
+            manager.save()
 
-                messages.success(request, "비밀번호가 변경되었습니다.")
-                return redirect('manager:dashboard')
-            
+            messages.success(request, "비밀번호가 변경되었습니다.")
+            return redirect("manager:info_edit")
+
     return render(request, 'manager/info_edit.html', {
         'member': manager
     })
-        

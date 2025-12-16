@@ -5,14 +5,27 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'manager/css/info_edit.css' %}">
+<link rel="stylesheet" href="{% static 'common/css/toast.css' %}">
 {% endblock %}
 
 {% block content %}
 
 {% if messages %}
-  <div class="message-area">
+  <div id="toast-container">
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      <div class="toast toast-{{ message.tags }}">
+        <div class="toast-content">
+          <div class="toast-icon">
+            {% if message.tags == "success" %}✓{% endif %}
+            {% if message.tags == "error" %}!{% endif %}
+            {% if message.tags == "info" %}i{% endif %}
+            {% if message.tags == "warning" %}!{% endif %}
+          </div>
+          <div class="toast-message">
+            {{ message }}
+          </div>
+        </div>
+      </div>
     {% endfor %}
   </div>
 {% endif %}
@@ -61,7 +74,7 @@
           <label class="form-label">비밀번호</label>
           <input
             type="password"
-            name="current_password"
+            name="current_password_1"
             class="form-input"
           >
         </div>
@@ -73,7 +86,7 @@
           <label class="form-label">기존 비밀번호</label>
           <input
             type="password"
-            name="current_password"
+            name="current_password_2"
             class="form-input"
           >
         </div>
@@ -99,7 +112,7 @@
 
       <!-- 버튼 영역 -->
       <div class="form-actions">
-        <button type="submit" class="btn btn--primary">저장</button>
+        <button type="submit" class="btn btn--primary">수정</button>
         <a href="{% url 'manager:dashboard' %}" class="btn btn--outline">취소</a>
       </div>
 
@@ -135,6 +148,23 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   toggleAreas(); // 최초 로딩
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const toasts = document.querySelectorAll(".toast");
+
+  toasts.forEach((toast, index) => {
+    // 순서대로 등장
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, index * 150);
+
+    // 3초 후 사라짐
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000 + index * 150);
+  });
 });
 </script>
 {% endblock %}
