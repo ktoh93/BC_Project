@@ -1,0 +1,140 @@
+{% extends 'manager/manager_base.html' %}
+{% load static %}
+
+{% block title %}관리자 정보수정{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'manager/css/info_edit.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+  <div class="message-area">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<section class="main">
+
+  <div class="page-title-section">
+    <h1 class="page-title">관리자 정보 수정</h1>
+    <p class="page-subtitle">
+      관리자 계정의 기본정보 및 비밀번호를 수정할 수 있습니다.
+    </p>
+  </div>
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- 수정 유형 선택 -->
+      <div class="form-group">
+        <label class="form-label">수정 유형</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="edit_type" value="info" checked>
+            정보 수정
+          </label>
+          <label>
+            <input type="radio" name="edit_type" value="password">
+            비밀번호 변경
+          </label>
+        </div>
+      </div>
+
+      <!-- 정보 수정 영역 -->
+      <div class="info-area">
+        <div class="form-group">
+          <label class="form-label">휴대폰 번호</label>
+          <input
+            type="text"
+            name="phone_num"
+            class="form-input"
+            value="{{ member.phone_num }}"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">비밀번호</label>
+          <input
+            type="password"
+            name="current_password"
+            class="form-input"
+          >
+        </div>
+      </div>
+
+      <!-- 비밀번호 변경 영역 -->
+      <div class="password-area" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">기존 비밀번호</label>
+          <input
+            type="password"
+            name="current_password"
+            class="form-input"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">새 비밀번호</label>
+          <input
+            type="password"
+            name="new_password"
+            class="form-input"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">새 비밀번호 확인</label>
+          <input
+            type="password"
+            name="new_password_confirm"
+            class="form-input"
+          >
+        </div>
+      </div>
+
+      <!-- 버튼 영역 -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary">저장</button>
+        <a href="{% url 'manager:dashboard' %}" class="btn btn--outline">취소</a>
+      </div>
+
+    </form>
+  </div>
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const infoArea = document.querySelector(".info-area");
+  const passwordArea = document.querySelector(".password-area");
+  const radios = document.querySelectorAll('input[name="edit_type"]');
+
+  function toggleAreas() {
+    const selected = document.querySelector('input[name="edit_type"]:checked');
+
+    if (selected.value === "password") {
+      infoArea.style.display = "none";
+      passwordArea.style.display = "block";
+      infoArea.querySelectorAll("input").forEach(i => i.value = "");
+    } else {
+      infoArea.style.display = "block";
+      passwordArea.style.display = "none";
+      passwordArea.querySelectorAll("input").forEach(i => i.value = "");
+    }
+  }
+
+  radios.forEach(radio => {
+    radio.addEventListener("change", toggleAreas);
+  });
+
+  toggleAreas(); // 최초 로딩
+});
+</script>
+{% endblock %}

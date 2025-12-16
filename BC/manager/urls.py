@@ -6,6 +6,7 @@ app_name = 'manager'
 urlpatterns = [
     path('', views.manager, name='manager_login'),
     path("logout/", views.logout, name="logout"),
+    path("edit/", views.info_edit, name="info_edit"),
 
 
     # 공공시설추가페이지
