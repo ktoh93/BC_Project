@@ -220,12 +220,17 @@ def facility_list(request):
     sigungu = request.GET.get("sigungu", "")
     keyword = request.GET.get("keyword", "")
     per_page = int(request.GET.get("per_page", 15))
-    page = int(request.GET.get("page", 1))
+    rsPosible = request.GET.get("rsPosible","")
 
-    
-    # 시설 api 정보
     queryset = FacilityInfo.objects.all()
-    
+    # 시설 api 정보
+    if rsPosible == '1' :
+        queryset = queryset.order_by('-rs_posible','-reg_date')
+    elif rsPosible == '0' :
+        queryset = queryset.order_by('rs_posible','-reg_date')
+    else :
+        queryset = queryset.order_by('-reg_date')
+
     if sido:
         queryset = queryset.filter(sido__icontains=sido)
 
@@ -235,10 +240,11 @@ def facility_list(request):
     if keyword:
         queryset = queryset.filter(faci_nm__icontains=keyword)
 
+
     paging = pager(request, queryset, per_page=per_page)
     page_obj = paging['page_obj']
 
-
+ 
     start_index = (page_obj.number - 1) * per_page
     facility_page = []
     
@@ -278,6 +284,7 @@ def facility_list(request):
         "sido": sido,
         "sigungu": sigungu,
         "keyword": keyword,
+        "rsPosible": rsPosible,
         "facility_json": json.dumps(facility_page, ensure_ascii=False),
         "block_range": paging['block_range'],
     }

@@ -29,6 +29,12 @@
 
 
         <div class="facility-box">
+            <select id="rsPosible" class="filter-rs-posible">
+                <option value="" >전체</option>
+                <option value="1" {% if rsPosible == '1' %} selected {% endif %}>활성</option>
+                <option value="0"{% if rsPosible == '0' %} selected {% endif %}>비활성</option>
+               
+            </select>
             <h1 class="box-header">시설 관리</h1>
 
             <select id="perPageSelect" class="filter-select">
@@ -56,7 +62,7 @@
             <div class="pagination">
                 {% if page_obj.has_previous %}
                     <a class="page-btn arrow"
-                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}">◀ 이전</a>
+                        href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&rsPosible={{ rsPosible }}&keyword={{ keyword }}">◀ 이전</a>
                 {% else %}
                     <span class="page-btn arrow disabled">◀ 이전</span>
                 {% endif %}
@@ -66,13 +72,13 @@
                         <span class="page-btn active">{{ num }}</span>
                     {% else %}
                         <a class="page-btn"
-                           href="?page={{ num }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}">{{ num }}</a>
+                           href="?page={{ num }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&rsPosible={{ rsPosible }}&keyword={{ keyword }}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
                     <a class="page-btn arrow"
-                       href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&keyword={{ keyword }}">다음 ▶</a>
+                       href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sido={{ sido }}&sigungu={{ sigungu }}&rsPosible={{ rsPosible }}&keyword={{ keyword }}">다음 ▶</a>
                 {% else %}
                     <span class="page-btn arrow disabled">다음 ▶</span>
                 {% endif %}

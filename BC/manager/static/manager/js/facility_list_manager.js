@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidoEl = document.getElementById("sido");
     const sigunguEl = document.getElementById("sigungu");
     const perPageEl = document.getElementById("perPageSelect");
+    const rsPosible = document.getElementById('rsPosible');
 
     /* 시도 옵션 채우기 */
     Object.keys(regionData).forEach(sido => {
@@ -102,6 +103,14 @@ document.addEventListener("DOMContentLoaded", function () {
     renderSigungu(nowSido);
 
     if (nowSigungu) sigunguEl.value = nowSigungu;
+    
+    /*  활성 비활성 변경 */
+    rsPosible.addEventListener("change", function () {
+        params.set("rsPosible", this.value);
+        params.set("page", 1);
+        window.location.search = params.toString();
+    });
+
 
     /* 시도 변경 */
     sidoEl.addEventListener("change", function () {

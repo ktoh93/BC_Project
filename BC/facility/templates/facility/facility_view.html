@@ -37,7 +37,7 @@
                 {% if facility.image_url %}
                 <img src="{{ facility.image_url }}" alt="{{ facility.name }}">
                 {% else %}
-                <img src="{% static 'common/img/no_image.png' %}" alt="사진 없음">
+                <img src="{% static '/media/uploads/facility/photo/default.png' %}" alt="사진 없음">
                 {% endif %}
             </section>
 

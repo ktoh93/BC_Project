@@ -305,7 +305,7 @@ def facility_detail(request, fk):
             "schk_tot_grd_nm": "",
             "lat": None,
             "lng": None,
-            "image_url": "/media/default.png",
+            "image_url": "/media/uploads/facility/photo/default.png",
         }
 
         can_reserve = False
