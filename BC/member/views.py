@@ -355,9 +355,6 @@ def edit_password(request):
 
 
 
-
-
-
 # ---------- 마이 페이지 예약 ----------------------
 def myreservation(request):
 
@@ -723,11 +720,6 @@ def myarticle(request):
         "block_start": paging['block_start'],
         "block_end": paging['block_end'],
     })
-
-
-
-
-
 
 
 def myjoin(request):
