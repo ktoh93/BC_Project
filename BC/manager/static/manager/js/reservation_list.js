@@ -86,12 +86,30 @@ document.addEventListener("DOMContentLoaded", function () {
         // 취소 모드 초기화
         cancelCancelMode();
 
-        // 전체 취소 여부 확인해서 "예약 취소" 버튼 숨김 처리
+        // 전체 취소 여부 확인
         const allCancelled = data.slot_list && data.slot_list.length > 0 &&
             data.slot_list.every(slot => slot.is_cancelled);
+        
+        // 예약 날짜가 지났는지 확인 (is_past 값 사용)
+        const isPast = data.is_past === true;
+        
         const startCancelBtn = document.getElementById('startCancelBtn');
         if (startCancelBtn) {
-            startCancelBtn.style.display = allCancelled ? 'none' : 'inline-block';
+            // 전체 취소되었거나 예약 날짜가 지난 경우 버튼 숨김
+            if (allCancelled || isPast) {
+                startCancelBtn.style.display = 'none';
+            } else {
+                startCancelBtn.style.display = 'inline-block';
+            }
+            
+            // 예약 날짜가 지난 경우 비활성화 및 툴팁 추가
+            if (isPast) {
+                startCancelBtn.disabled = true;
+                startCancelBtn.title = '예약 날짜가 지나 취소할 수 없습니다.';
+            } else {
+                startCancelBtn.disabled = false;
+                startCancelBtn.title = '';
+            }
         }
 
         modal.classList.add('show');

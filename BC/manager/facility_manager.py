@@ -643,6 +643,10 @@ def reservation_list_manager(request):
         is_past = False
         if earliest_date and earliest_date < today:
             is_past = True
+            # 예약 날짜가 지난 경우 자동으로 expire_yn 업데이트
+            if reservation.expire_yn == 0:  # 아직 만료 처리되지 않은 경우만
+                reservation.expire_yn = 1
+                reservation.save(update_fields=['expire_yn'])
         
         # 회원 정보
         member_name = reservation.member.nickname if reservation.member else "알 수 없음"
@@ -691,3 +695,81 @@ def reservation_list_manager(request):
     }
     
     return render(request, "manager/reservation_list_manager.html", context)
+
+
+@csrf_exempt
+def manager_cancel_timeslot(request, reservation_num):
+    """
+    관리자용 예약 시간대 취소 API
+    """
+    # 관리자 권한 확인
+    if not is_manager(request):
+        return JsonResponse({"result": "error", "msg": "관리자 권한이 필요합니다."}, status=403)
+    
+    if request.method != "POST":
+        return JsonResponse({"result": "error", "msg": "POST만 가능합니다."}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        slots = data.get("slots", [])
+        
+        reservation = Reservation.objects.get(reservation_num=reservation_num)
+        
+        # 예약 날짜가 지났는지 확인
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # 예약된 모든 슬롯 중 가장 빠른 날짜 확인
+        all_slots = TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0)
+        if all_slots.exists():
+            earliest_date = min(slot.date for slot in all_slots if slot.date)
+            if earliest_date and earliest_date < today:
+                return JsonResponse({"result": "error", "msg": "예약 날짜가 지나 취소할 수 없습니다."})
+        
+        # 선택한 시간대 취소 처리
+        for s in slots:
+            TimeSlot.objects.filter(
+                reservation_id=reservation,
+                date=s["date"],
+                start_time=s["start"],
+                end_time=s["end"]
+            ).update(delete_yn=1)
+        
+        # 남은 슬롯 집계
+        remaining_slots = TimeSlot.objects.filter(reservation_id=reservation, delete_yn=0)
+        
+        # 모두 취소되었다면 예약도 취소 처리
+        if not remaining_slots.exists():
+            reservation.delete_yn = 1
+            reservation.delete_date = timezone.now()
+            reservation.payment = 0
+            reservation.save()
+            return JsonResponse({"result": "ok", "msg": "선택한 시간대가 취소되었습니다.", "payment": 0})
+        
+        # 남은 슬롯 기반으로 결제 금액 재계산
+        facility = remaining_slots.first().facility_id
+        rt = facility.reservation_time or {}
+        
+        total_payment = 0
+        for slot in remaining_slots:
+            day_key = slot.date.strftime("%A").lower()
+            day_info = rt.get(day_key, {})
+            price_per_slot = int(day_info.get("payment") or 0)
+            total_payment += price_per_slot
+        
+        reservation.payment = total_payment
+        reservation.save()
+        
+        return JsonResponse({
+            "result": "ok",
+            "msg": "선택한 시간대가 취소되었습니다.",
+            "payment": total_payment
+        })
+        
+    except Reservation.DoesNotExist:
+        return JsonResponse({"result": "error", "msg": "예약을 찾을 수 없습니다."}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] 관리자 예약 취소 오류: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"result": "error", "msg": "취소 실패"})

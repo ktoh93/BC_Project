@@ -50,7 +50,7 @@
             <button class="detail-btn btn-ok"
                     onclick="location.href='/member/myreservation/'">확인</button>
 
-            {% if not all_cancelled %}
+            {% if not all_cancelled and not is_past %}
             <button class="detail-btn btn-cancel"
                     onclick="startCancelMode()">예약 취소</button>
             {% endif %}

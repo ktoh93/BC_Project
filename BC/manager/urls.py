@@ -58,7 +58,7 @@ urlpatterns = [
     path("banner_download/<int:img_id>/", board.banner_download, name="banner_download"),
 
     # 예약 취소 API
-    # path('api/reservations/cancel-timeslot/<str:reservation_num>/', views.manager_cancel_timeslot, name='manager_cancel_timeslot'),
+    path('api/reservations/cancel-timeslot/<str:reservation_num>/', facility_manager.manager_cancel_timeslot, name='manager_cancel_timeslot'),
 
     
     # 회원관리
