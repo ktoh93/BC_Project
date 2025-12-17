@@ -21,7 +21,7 @@ def member_list(request):
         messages.error(request, "관리자 권한이 필요합니다.")
         return redirect('manager:manager_login')
     
-    members = Member.objects.all().order_by('delete_yn', 'member_id')
+    members = Member.objects.filter(manager_yn = 0).order_by('delete_yn', 'member_id')
     search = request.GET.get("search", "name")
     q = request.GET.get("q", "")
     member_type = request.GET.get("member_type", "")
