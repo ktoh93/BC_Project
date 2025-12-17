@@ -1,16 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* ---------------------------
-        0) 로그인 체크
-    ---------------------------- */
-    const isAuth = document.getElementById("is-authenticated").value;
-    if (isAuth !== "1") {
-        alert("로그인 후 이용 가능합니다.");
-        location.href = "/login/";
-        return; 
-    }
-
-
     const rsPossible = document.getElementById("rs-possible").value;
     if (rsPossible !== "1") {
         return;

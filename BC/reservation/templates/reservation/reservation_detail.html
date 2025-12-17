@@ -12,7 +12,6 @@
 
 <div class="facility-detail-container">
 
-    <input type="hidden" id="is-authenticated" value="{% if request.session.user_id %}1{% else %}0{% endif %}">
     <input type="hidden" id="facility-id" value="{{ facility.facility_id }}">
     <input type="hidden" id="rs-possible" value="{{ facility.rs_posible }}">
     <!-- 기본 정보 -->
