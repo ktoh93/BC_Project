@@ -50,7 +50,7 @@
                 <div class="form-group full-row">
                     <label class="form-label">내용 / 설명</label>
                     {% if boardId == 5 %}
-                    <textarea name="context" class="form-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}<pre>{{ article.contents }}</pre>{% endif %}</textarea>
+                    <textarea  name="context" class="content-textarea" placeholder="본문 내용을 입력하세요">{% if is_edit %}{{ article.contents }}{% endif %}</textarea>
                     {% else %}
                     <div id="editor"></div>
                     <input type="hidden" name="context" id="contextInput">
