@@ -77,7 +77,6 @@ def facility(request):
         for s in selected_sports
         if isinstance(s, str) and s.strip()
     ]
-    print("selected_sports", selected_sports)
     # -------------------------------
     # 종목 필터 적용 (IN ONLY)
     # ※ 공공 조건은 build_facility_queryset에서 이미 처리됨
@@ -86,7 +85,6 @@ def facility(request):
         queryset = queryset.filter(
             ftype_nm__in=selected_sports
         )
-    print("queryset",queryset)
     # -------------------------------
     # 페이징
     # -------------------------------

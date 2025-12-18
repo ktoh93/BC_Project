@@ -1,283 +1,349 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     /* -------------------------------
-     * 1. 기존 시간 JSON 파싱 및 데이터 구조 변환
+     * 0. 공통 상수 / 유틸
      * ------------------------------- */
-    let raw = document.getElementById("timeJson")?.textContent.trim();
-    let timeData = {};
+    const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const ORDERED_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    const DAY_LABELS = {
+        sunday: "일요일",
+        monday: "월요일",
+        tuesday: "화요일",
+        wednesday: "수요일",
+        thursday: "목요일",
+        friday: "금요일",
+        saturday: "토요일"
+    };
+
+    const DEFAULT_INTERVAL = 60; // 기본 60
+    const ALLOWED_INTERVALS = new Set([30, 60]);
+
+    function timeToMinutes(t) {
+        const [h, m] = String(t).split(":").map(Number);
+        return h * 60 + m;
+    }
+
+    function minutesToTime(min) {
+        const h = String(Math.floor(min / 60)).padStart(2, "0");
+        const m = String(min % 60).padStart(2, "0");
+        return `${h}:${m}`;
+    }
+
+    function normalizePaymentDigits(value) {
+        const digits = String(value ?? "").replace(/[^\d]/g, "");
+        return digits === "" ? null : digits;
+    }
+
+    function formatWon(digitsOrAny) {
+        const digits = String(digitsOrAny ?? "").replace(/[^\d]/g, "");
+        if (!digits) return "";
+        return `₩${Number(digits).toLocaleString("ko-KR")}`;
+    }
+
+    function getIntervalFromEl(el, fallback = DEFAULT_INTERVAL) {
+        const v = Number(el?.value);
+        return ALLOWED_INTERVALS.has(v) ? v : fallback;
+    }
+
+    function isReservationEnabled() {
+        const rs = document.getElementById("rsPosible");
+        if (!rs) return true;
+
+        // checkbox/radio
+        if (typeof rs.checked === "boolean") return rs.checked;
+
+        // select (value "1"=활성, "0"=비활성 패턴 지원)
+        if (rs.tagName === "SELECT") return String(rs.value) === "1";
+
+        return Boolean(rs.value);
+    }
+
+    function attachPaymentFormatter(inputEl) {
+        if (!inputEl) return;
+
+        inputEl.addEventListener("input", function () {
+            const raw = this.value.replace(/[^\d]/g, "");
+            if (raw === "") {
+                this.value = "0";
+                return;
+            }
+            this.value = "₩ " + Number(raw).toLocaleString("ko-KR");
+        });
+
+        inputEl.addEventListener("focus", function () {
+            const raw = this.value.replace(/[^\d]/g, "");
+            this.value = raw === "" ? "0" : raw;
+        });
+
+        inputEl.addEventListener("blur", function () {
+            const raw = this.value.replace(/[^\d]/g, "");
+            this.value = raw === "" || raw === "0" ? "0" : ("₩ " + Number(raw).toLocaleString("ko-KR"));
+        });
+    }
+
+    /* -------------------------------
+     * 1. 핵심: range 기반 슬롯 생성 (공백 보존)
+     *    - 절대 open~close 연속 슬롯 생성 금지
+     * ------------------------------- */
+    function buildSlotsFromRanges(ranges, interval) {
+        const slotSet = new Set();
+        const slots = [];
+
+        (ranges || []).forEach((r) => {
+            if (!r?.start || !r?.end) return;
+
+            const startMin = timeToMinutes(r.start);
+            const endMin = timeToMinutes(r.end);
+            if (!(startMin < endMin)) return;
+
+            for (let t = startMin; t + interval <= endMin; t += interval) {
+                const s = minutesToTime(t);
+                const e = minutesToTime(t + interval);
+                const key = `${s}-${e}-${r.payment ?? ""}`; // payment까지 포함하여 완전 중복 방지
+
+                if (slotSet.has(key)) continue;
+                slotSet.add(key);
+
+                slots.push({
+                    start: s,
+                    end: e,
+                    payment: r.payment ?? null
+                });
+            }
+        });
+
+        // 시간 순 정렬
+        slots.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+        return slots;
+    }
+
+    /* -------------------------------
+     * 2. 데이터 구조
+     *    timeData[day] = {
+     *      interval: 30|60,
+     *      ranges: [{start,end,payment}, ...]
+     *    }
+     * ------------------------------- */
+    const timeData = {};
+    DAYS.forEach((d) => {
+        timeData[d] = { interval: DEFAULT_INTERVAL, ranges: [] };
+    });
+
+    /* -------------------------------
+     * 3. 기존 JSON 파싱 (레거시/확장 모두 대응)
+     *    - 레거시: parsed[day].open/close...
+     *    - 확장:  parsed.ranges[day] 배열
+     * ------------------------------- */
+    const raw = document.getElementById("timeJson")?.textContent.trim();
 
     try {
         const parsed = raw ? JSON.parse(raw) : {};
-        
-        // 기존 구조를 새 구조로 변환
-        // 기존: { monday: { open, close, interval, payment, active } }
-        // 새: { monday: { slots: [{ start, end, interval, payment }], active }, dateExceptions: [...] }
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        
-        // slots 구조가 있으면 사용, 없으면 기존 구조 변환
-        if (parsed.slots && typeof parsed.slots === 'object') {
-            // 새 구조: parsed.slots.monday = [...]
-            days.forEach(day => {
-                if (parsed.slots[day] && Array.isArray(parsed.slots[day])) {
-                    timeData[day] = {
-                        slots: parsed.slots[day],
-                        active: parsed[day]?.active !== false
-                    };
-                } else {
-                    timeData[day] = {
-                        slots: [],
-                        active: false
-                    };
+
+        // 확장 구조 우선
+        if (parsed?.ranges && typeof parsed.ranges === "object") {
+            DAYS.forEach((day) => {
+                const arr = Array.isArray(parsed.ranges[day]) ? parsed.ranges[day] : [];
+                timeData[day].ranges = arr
+                    .filter(r => r && r.start && r.end)
+                    .map(r => ({
+                        start: r.start,
+                        end: r.end,
+                        payment: normalizePaymentDigits(r.payment)
+                    }));
+
+                const iv = Number(parsed?.intervalByDay?.[day]);
+                if (ALLOWED_INTERVALS.has(iv)) timeData[day].interval = iv;
+                else {
+                    const legacyIv = Number(parsed?.[day]?.interval);
+                    if (ALLOWED_INTERVALS.has(legacyIv)) timeData[day].interval = legacyIv;
                 }
             });
         } else {
-            // 기존 구조: parsed.monday = { open, close, ... }
-            days.forEach(day => {
-                if (parsed[day]) {
-                    const old = parsed[day];
-                    if (old.open && old.close) {
-                        // 기존 구조 → 새 구조로 변환
-                        timeData[day] = {
-                            slots: [{
-                                start: old.open,
-                                end: old.close,
-                                interval: old.interval || 60,
-                                payment: old.payment || null
-                            }],
-                            active: old.active === true
-                        };
-                    } else {
-                        timeData[day] = {
-                            slots: [],
-                            active: false
-                        };
-                    }
-                } else {
-                    timeData[day] = {
-                        slots: [],
-                        active: false
-                    };
+            // 레거시 구조만 있으면, day.open/close -> ranges 1개로 변환
+            DAYS.forEach((day) => {
+                const old = parsed?.[day];
+                if (old?.open && old?.close) {
+                    timeData[day].ranges = [{
+                        start: old.open,
+                        end: old.close,
+                        payment: normalizePaymentDigits(old.payment)
+                    }];
+                    const iv = Number(old.interval);
+                    if (ALLOWED_INTERVALS.has(iv)) timeData[day].interval = iv;
                 }
             });
         }
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:data-init:complete',message:'timeData initialization complete',data:{timeDataKeys:Object.keys(timeData),mondaySlots:timeData.monday?.slots?.length,tuesdaySlots:timeData.tuesday?.slots?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-        
-        // 날짜별 예외는 제거 (우측 패널이 활성화된 요일 표시로 변경됨)
-        
     } catch (e) {
         console.warn("시간 JSON 파싱 실패. 기본값 사용", e);
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        days.forEach(day => {
-            timeData[day] = { slots: [], active: false };
-        });
-        // 날짜별 예외는 제거
     }
 
     /* -------------------------------
-     * 2. DOM 요소
+     * 4. DOM 요소
      * ------------------------------- */
     const dayTabs = document.querySelectorAll(".day-tab");
     const timeSlotsList = document.getElementById("timeSlotsList");
-    const btnAddSlot = document.getElementById("btnAddSlot");
     const activeDaysSummary = document.getElementById("activeDaysSummary");
     const reservationHidden = document.getElementById("reservationTimeInput");
 
-    let currentDay = null; // 기본 선택 요일 (표시용) - 초기에는 비어있음
-    let selectedDays = new Set(); // 다중 선택된 요일들 - 초기에는 비어있음
+    // 단일 추가
+    const btnSingleAdd = document.getElementById("btnSingleAdd");
+    const singleStartTime = document.getElementById("singleStartTime");
+    const singleEndTime = document.getElementById("singleEndTime");
+    const singlePayment = document.getElementById("singlePayment");
+    const singleIntervalEl = document.getElementById("singleInterval") || document.getElementById("intervalSelect");
+
+    // 일괄 추가
+    const btnBatchAdd = document.getElementById("btnBatchAdd");
+    const batchStartTime = document.getElementById("batchStartTime");
+    const batchEndTime = document.getElementById("batchEndTime");
+    const batchPayment = document.getElementById("batchPayment");
+    const batchIntervalEl = document.getElementById("batchInterval") || document.getElementById("batchIntervalSelect");
+
+    // 예약 활성화
+    const rsEl = document.getElementById("rsPosible");
+    const timeBox = document.getElementById("timeSettingBox");
+
+    attachPaymentFormatter(singlePayment);
+    attachPaymentFormatter(batchPayment);
 
     /* -------------------------------
-     * 3. 요일 탭 전환 (단순 클릭 토글 방식 - 예약 화면처럼)
+     * 5. 선택 상태
      * ------------------------------- */
-    dayTabs.forEach(tab => {
-        tab.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const day = this.dataset.day;
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:dayTab-click:entry',message:'day tab clicked',data:{day:day,selectedDaysHasDay:selectedDays.has(day),timeDataDayExists:!!timeData[day],timeDataDaySlots:timeData[day]?.slots?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-            // #endregion
-            
-            // 단순 클릭 토글 (예약 화면의 시간 선택처럼)
-            if (selectedDays.has(day)) {
-                // 이미 선택된 요일이면 해제
-                selectedDays.delete(day);
-                this.classList.remove("active");
-                
-                // 모든 요일이 해제되면 빈 상태로 유지
-                if (selectedDays.size === 0) {
-                    currentDay = null;
-                    timeSlotsList.innerHTML = `
-                        <div class="no-slots-message">요일을 선택해주세요.</div>
-                    `;
-                } else {
-                    // 다른 선택된 요일 중 하나를 표시
-                    const firstSelected = Array.from(selectedDays)[0];
-                    currentDay = firstSelected;
-                    renderTimeSlots(firstSelected);
-                }
-            } else {
-                // 선택되지 않은 요일이면 추가
-                selectedDays.add(day);
-                this.classList.add("active");
-                currentDay = day;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:dayTab-click:add-day',message:'adding day to selection',data:{day:day,timeDataDayExists:!!timeData[day],timeDataDay:timeData[day],selectedDaysSize:selectedDays.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,E'})}).catch(()=>{});
-                // #endregion
-                renderTimeSlots(day);
-            }
-            
-            // 다중 선택 상태 업데이트
-            updateMultiSelectUI();
-            // 활성화된 요일과 시간 표시 업데이트
-            updateActiveDaysSummary();
+    let currentDay = null;
+    let selectedDays = new Set();
+
+    /* -------------------------------
+     * 6. 겹침(오버랩) 체크
+     *    - 요구가 “중복되지 않는다면 더 담기”이므로
+     *      기본은 겹치면 막는다.
+     * ------------------------------- */
+    function isOverlapping(day, start, end) {
+        const s = timeToMinutes(start);
+        const e = timeToMinutes(end);
+        return (timeData[day].ranges || []).some(r => {
+            const rs = timeToMinutes(r.start);
+            const re = timeToMinutes(r.end);
+            return s < re && rs < e; // overlap
         });
-    });
-    
-    /* -------------------------------
-     * 3-1. 다중 선택 UI 업데이트
-     * ------------------------------- */
-    function updateMultiSelectUI() {
-        const multiSelectActions = document.getElementById("multiSelectActions");
-        const singleDayAddSection = document.getElementById("singleDayAddSection");
-        const selectedDaysCount = document.getElementById("selectedDaysCount");
-        
-        if (selectedDays.size > 1) {
-            // 다중 선택 모드
-            multiSelectActions.style.display = "block";
-            singleDayAddSection.style.display = "none";
-            selectedDaysCount.textContent = selectedDays.size;
-        } else if (selectedDays.size === 1) {
-            // 단일 선택 모드
-            multiSelectActions.style.display = "none";
-            singleDayAddSection.style.display = "block";
-            const day = Array.from(selectedDays)[0];
-            currentDay = day;
-            renderTimeSlots(day);
-        } else {
-            // 선택 없음
-            multiSelectActions.style.display = "none";
-            singleDayAddSection.style.display = "none";
-        }
     }
-    
+
     /* -------------------------------
-     * 3-2. 활성화된 요일과 시간 표시 업데이트
+     * 7. 좌측: range 목록 렌더 (개별 삭제)
+     * ------------------------------- */
+    function renderTimeRanges(day) {
+        if (!timeSlotsList) return;
+
+        if (!day) {
+            timeSlotsList.innerHTML = `<div class="no-slots-message">요일을 선택해주세요.</div>`;
+            return;
+        }
+
+        const ranges = (timeData[day].ranges || []).slice().sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+        if (ranges.length === 0) {
+            timeSlotsList.innerHTML = `<div class="no-slots-message">아래 입력으로 시간 구간을 추가하세요.</div>`;
+            return;
+        }
+
+        timeSlotsList.innerHTML = ranges.map((r, idx) => {
+            const pay = r.payment ? ` (${formatWon(r.payment)})` : "";
+            return `
+                <div class="time-slot-row" data-index="${idx}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                    <div>${r.start} ~ ${r.end}${pay}</div>
+                    <button type="button" class="btn-delete-range" data-index="${idx}" title="삭제">삭제</button>
+                </div>
+            `;
+        }).join("");
+
+        timeSlotsList.querySelectorAll(".btn-delete-range").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const idx = Number(this.dataset.index);
+                if (Number.isNaN(idx)) return;
+
+                const sorted = (timeData[day].ranges || []).slice().sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+                const target = sorted[idx];
+                if (!target) return;
+
+                timeData[day].ranges = (timeData[day].ranges || []).filter(r =>
+                    !(r.start === target.start && r.end === target.end && (r.payment ?? null) === (target.payment ?? null))
+                );
+
+                renderTimeRanges(day);
+                updateReservationTime();
+                updateActiveDaysSummary();
+            });
+        });
+    }
+
+    /* -------------------------------
+     * 8. 우측: 슬롯 요약 렌더 (공백 유지)
      * ------------------------------- */
     function updateActiveDaysSummary() {
         if (!activeDaysSummary) return;
-        
-        // 예약 비활성화 상태면 비우기
-        const rsCheck = document.getElementById("rsPosible");
-        if (!rsCheck || !rsCheck.checked) {
-            activeDaysSummary.innerHTML = `
-                <div class="no-active-days">예약하기가 비활성화되어 있습니다.</div>
-            `;
+
+        if (!isReservationEnabled()) {
+            activeDaysSummary.innerHTML = `<div class="no-active-days">예약하기가 비활성화되어 있습니다.</div>`;
             return;
         }
-        
-        const dayLabels = {
-            "sunday": "일요일",
-            "monday": "월요일",
-            "tuesday": "화요일",
-            "wednesday": "수요일",
-            "thursday": "목요일",
-            "friday": "금요일",
-            "saturday": "토요일"
-        };
-        
-        const activeDays = [];
-        // 월요일부터 시작하도록 순서 변경
-        const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-        
-        days.forEach(day => {
-            const dayData = timeData[day];
-            // slots가 있고, 실제로 시간이 설정된 구간이 있는 경우만 표시
-            if (dayData && dayData.slots && Array.isArray(dayData.slots) && dayData.slots.length > 0) {
-                // 유효한 시간 구간만 필터링 (start와 end가 모두 있는 경우)
-                const validSlots = dayData.slots.filter(slot => 
-                    slot && slot.start && slot.end && slot.start.trim() !== "" && slot.end.trim() !== ""
-                );
-                
-                if (validSlots.length > 0) {
-                    const slots = validSlots.map((slot, index) => {
-                        const payment = slot.payment && slot.payment !== null && slot.payment !== "" 
-                            ? ` (₩${Number(slot.payment).toLocaleString("ko-KR")})` 
-                            : "";
-                        return `${slot.start} ~ ${slot.end}${payment}`;
-                    }).join(", ");
-                    
-                    activeDays.push({
-                        day: day,
-                        label: dayLabels[day],
-                        slots: slots,
-                        validSlots: validSlots
-                    });
-                }
-            }
+
+        const items = [];
+
+        ORDERED_DAYS.forEach(day => {
+            const ranges = timeData[day].ranges || [];
+            if (ranges.length === 0) return;
+
+            const interval = timeData[day].interval || DEFAULT_INTERVAL;
+            const slots = buildSlotsFromRanges(ranges, interval);
+
+            // 핵심: ranges 기반 슬롯이므로 13~15 같은 공백은 생성되지 않음
+            if (slots.length === 0) return;
+
+            const slotText = slots.map(s => {
+                const pay = s.payment ? ` (${formatWon(s.payment)})` : "";
+                return `${s.start}~${s.end}${pay}`;
+            }).join("<br> ");
+
+            items.push({ day, slotText, interval });
         });
-        
-        // 기존 내용 완전히 제거 후 새로 렌더링 (누적 방지)
-        activeDaysSummary.innerHTML = "";
-        
-        if (activeDays.length === 0) {
-            activeDaysSummary.innerHTML = `
-                <div class="no-active-days">설정된 예약 가능 시간이 없습니다.</div>
-            `;
+
+        if (items.length === 0) {
+            activeDaysSummary.innerHTML = `<div class="no-active-days">설정된 예약 가능 시간이 없습니다.</div>`;
             return;
         }
-        
-        // 정렬된 순서로 표시 (삭제 버튼 포함)
-        activeDays.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "active-day-item";
-            div.setAttribute("data-day", item.day);
-            div.innerHTML = `
-                <div class="active-day-header">
-                    <div class="active-day-label">${item.label}</div>
-                    <button type="button" class="btn-delete-day" data-day="${item.day}" title="이 요일의 모든 시간 구간 삭제">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
-                            <path d="M3 4h10M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2m-5 4v4m4-4v4M5 4l1 8a1 1 0 001 1h4a1 1 0 001-1l1-8" stroke-width="1.5"/>
-                        </svg>
-                    </button>
+
+        activeDaysSummary.innerHTML = items.map(it => `
+            <div class="active-day-item" data-day="${it.day}">
+                <div class="active-day-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                    <div class="active-day-label">${DAY_LABELS[it.day]} (interval: ${it.interval}분)</div>
+                    <button type="button" class="btn-delete-day" data-day="${it.day}" title="이 요일의 모든 시간 구간 삭제">삭제</button>
                 </div>
-                <div class="active-day-slots">${item.slots}</div>
-            `;
-            activeDaysSummary.appendChild(div);
-        });
-        
-        // 삭제 버튼 이벤트 리스너 추가
+                <div class="active-day-slots">${it.slotText}</div>
+            </div>
+        `).join("");
+
+        // 요일 전체 삭제
         activeDaysSummary.querySelectorAll(".btn-delete-day").forEach(btn => {
             btn.addEventListener("click", function () {
                 const day = this.dataset.day;
-                if (confirm(`${dayLabels[day]}의 모든 시간 구간을 삭제하시겠습니까?`)) {
-                    // 해당 요일의 모든 슬롯 삭제
-                    if (timeData[day]) {
-                        timeData[day].slots = [];
-                        timeData[day].active = false;
-                    }
-                    
-                    // 선택된 요일에서도 제거
+                if (!day) return;
+
+                if (confirm(`${DAY_LABELS[day]}의 모든 시간 구간을 삭제하시겠습니까?`)) {
+                    timeData[day].ranges = [];
+
                     selectedDays.delete(day);
-                    const dayTab = document.querySelector(`.day-tab[data-day="${day}"]`);
-                    if (dayTab) {
-                        dayTab.classList.remove("active");
+                    const tab = document.querySelector(`.day-tab[data-day="${day}"]`);
+                    if (tab) tab.classList.remove("active");
+
+                    if (currentDay === day) {
+                        if (selectedDays.size > 0) {
+                            currentDay = Array.from(selectedDays)[0];
+                            renderTimeRanges(currentDay);
+                        } else {
+                            currentDay = null;
+                            renderTimeRanges(null);
+                        }
                     }
-                    
-                    // 현재 표시 중인 요일이 삭제된 요일이면 다른 요일로 변경
-                    if (currentDay === day && selectedDays.size > 0) {
-                        currentDay = Array.from(selectedDays)[0];
-                        renderTimeSlots(currentDay);
-                    } else if (currentDay === day) {
-                        // 삭제된 요일이 현재 표시 중인 요일이면 비어있는 상태로
-                        currentDay = null;
-                        renderTimeSlots(null);
-                    }
-                    
+
                     updateReservationTime();
                     updateActiveDaysSummary();
                     updateMultiSelectUI();
@@ -287,415 +353,253 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* -------------------------------
-     * 4. 시간 구간 렌더링
+     * 9. hidden 저장 JSON 생성 (서버 호환 + 확장 ranges)
+     *    - server 호환: day.open/close/interval/payment/active
+     *    - 확장: ranges, intervalByDay
      * ------------------------------- */
-    function renderTimeSlots(day) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:renderTimeSlots:entry',message:'renderTimeSlots called',data:{day:day,timeDataExists:!!timeData[day],timeDataDay:timeData[day]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-        // #endregion
-        
-        if (!day) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:renderTimeSlots:null-check',message:'day is null',data:{day:day},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-            timeSlotsList.innerHTML = `
-                <div class="no-slots-message">요일을 선택해주세요.</div>
-            `;
+    function updateReservationTime() {
+        if (!reservationHidden) return;
+
+        if (!isReservationEnabled()) {
+            reservationHidden.value = "{}";
             return;
         }
-        
-        const dayData = timeData[day];
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:renderTimeSlots:dayData-check',message:'dayData retrieved',data:{day:day,dayDataExists:!!dayData,dayData:dayData,slotsLength:dayData?.slots?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,E'})}).catch(()=>{});
-        // #endregion
-        
-        const slots = dayData.slots || [];
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:renderTimeSlots:slots-check',message:'slots array check',data:{day:day,slotsLength:slots.length,slots:slots},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A,D'})}).catch(()=>{});
-        // #endregion
-        
-        if (slots.length === 0) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:renderTimeSlots:empty-slots',message:'showing empty slots with add button hint',data:{day:day,slotsLength:0},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-v2',hypothesisId:'A,D'})}).catch(()=>{});
-            // #endregion
-            // 빈 배열일 때는 안내 메시지와 함께 표시 (추가 버튼은 HTML에 항상 있으므로 사용 가능)
-            timeSlotsList.innerHTML = `
-                <div class="no-slots-message">아래 + 버튼을 클릭하여 시간 구간을 추가하세요.</div>
-            `;
-            // return하지 않음 - 추가 버튼이 이미 DOM에 있으므로 사용자가 시간을 추가할 수 있음
-            return;
-        }
-        
-        timeSlotsList.innerHTML = slots.map((slot, index) => `
-            <div class="time-slot-row" data-index="${index}">
-                <div class="time-range-inputs">
-                    <input type="time" class="slot-start" value="${slot.start || ''}" data-index="${index}">
-                    <span class="time-separator">~</span>
-                    <input type="time" class="slot-end" value="${slot.end || ''}" data-index="${index}">
-                </div>
-                <div class="slot-actions">
-                    <button type="button" class="btn-delete-slot" data-index="${index}" title="삭제">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
-                            <path d="M3 4h10M6 4V2a1 1 0 011-1h2a1 1 0 011 1v2m-5 4v4m4-4v4M5 4l1 8a1 1 0 001 1h4a1 1 0 001-1l1-8" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join("");
-        
-        // 이벤트 리스너 추가
-        timeSlotsList.querySelectorAll(".slot-start, .slot-end").forEach(input => {
-            input.addEventListener("change", function () {
-                const index = parseInt(this.dataset.index);
-                const slot = timeData[day].slots[index];
-                if (this.classList.contains("slot-start")) {
-                    slot.start = this.value;
-                } else {
-                    slot.end = this.value;
-                }
-                updateReservationTime();
-                updateActiveDaysSummary();
-            });
+
+        const output = {};
+
+        DAYS.forEach(day => {
+            const ranges = (timeData[day].ranges || []).filter(r => r?.start && r?.end && r.start < r.end);
+            const interval = timeData[day].interval || DEFAULT_INTERVAL;
+
+            if (ranges.length === 0) {
+                output[day] = { open: null, close: null, interval, payment: null, active: false };
+                return;
+            }
+
+            // 서버용 open/close는 min/max로만 제공 (연속 슬롯 생성 금지)
+            const starts = ranges.map(r => timeToMinutes(r.start));
+            const ends = ranges.map(r => timeToMinutes(r.end));
+            const open = minutesToTime(Math.min(...starts));
+            const close = minutesToTime(Math.max(...ends));
+
+            // payment는 구간별로 다를 수 있으니 단일값이면 유지, 다르면 null
+            const paySet = new Set(ranges.map(r => r.payment ?? ""));
+            let paymentOut = null;
+            if (paySet.size === 1) {
+                const only = Array.from(paySet)[0];
+                paymentOut = only === "" ? null : only;
+            }
+
+            output[day] = { open, close, interval, payment: paymentOut, active: true };
         });
-        
-        timeSlotsList.querySelectorAll(".btn-delete-slot").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const index = parseInt(this.dataset.index);
-                deleteTimeSlot(day, index);
-            });
+
+        // 확장 데이터(관리 화면 재진입/수정용)
+        output.ranges = {};
+        output.intervalByDay = {};
+        DAYS.forEach(day => {
+            output.ranges[day] = (timeData[day].ranges || []).map(r => ({
+                start: r.start,
+                end: r.end,
+                payment: r.payment ?? null
+            }));
+            output.intervalByDay[day] = timeData[day].interval || DEFAULT_INTERVAL;
         });
+
+        console.log("저장되는 데이터:", output);
+        reservationHidden.value = JSON.stringify(output);
     }
 
     /* -------------------------------
-     * 5. 단일 요일 시간 및 요금 추가
+     * 10. 요일 탭 클릭: 다중 선택 토글
      * ------------------------------- */
-    const btnSingleAdd = document.getElementById("btnSingleAdd");
-    const singleStartTime = document.getElementById("singleStartTime");
-    const singleEndTime = document.getElementById("singleEndTime");
-    const singlePayment = document.getElementById("singlePayment");
-    
-    // 단일 요일 요금 입력 포맷팅
-    if (singlePayment) {
-        singlePayment.addEventListener("input", function (e) {
-            let raw = this.value.replace(/[^\d]/g, "");
-            
-            if (raw === "") {
-                this.value = "0";
-                return;
-            }
-            
-            const numValue = Number(raw);
-            if (!isNaN(numValue)) {
-                this.value = "₩ " + numValue.toLocaleString("ko-KR");
-            }
-        });
-        
-        singlePayment.addEventListener("blur", function () {
-            let raw = this.value.replace(/[^\d]/g, "");
-            if (raw === "" || raw === "0") {
-                this.value = "0";
+    dayTabs.forEach(tab => {
+        tab.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const day = this.dataset.day;
+            if (!day) return;
+
+            if (selectedDays.has(day)) {
+                selectedDays.delete(day);
+                this.classList.remove("active");
+
+                if (selectedDays.size === 0) {
+                    currentDay = null;
+                    renderTimeRanges(null);
+                } else {
+                    currentDay = Array.from(selectedDays)[0];
+                    renderTimeRanges(currentDay);
+                }
             } else {
-                this.value = "₩ " + Number(raw).toLocaleString("ko-KR");
+                selectedDays.add(day);
+                this.classList.add("active");
+                currentDay = day;
+                renderTimeRanges(day);
             }
+
+            updateMultiSelectUI();
+            updateActiveDaysSummary();
         });
-        
-        singlePayment.addEventListener("focus", function () {
-            let raw = this.value.replace(/[^\d]/g, "");
-            this.value = raw === "" || raw === "0" ? "0" : raw;
-        });
+    });
+
+    /* -------------------------------
+     * 10-1. 다중 선택 UI 업데이트
+     * ------------------------------- */
+    function updateMultiSelectUI() {
+        const multiSelectActions = document.getElementById("multiSelectActions");
+        const singleDayAddSection = document.getElementById("singleDayAddSection");
+        const selectedDaysCount = document.getElementById("selectedDaysCount");
+
+        if (!multiSelectActions || !singleDayAddSection || !selectedDaysCount) return;
+
+        if (selectedDays.size > 1) {
+            multiSelectActions.style.display = "block";
+            singleDayAddSection.style.display = "none";
+            selectedDaysCount.textContent = selectedDays.size;
+        } else if (selectedDays.size === 1) {
+            multiSelectActions.style.display = "none";
+            singleDayAddSection.style.display = "block";
+            const day = Array.from(selectedDays)[0];
+            currentDay = day;
+            renderTimeRanges(day);
+        } else {
+            multiSelectActions.style.display = "none";
+            singleDayAddSection.style.display = "none";
+        }
     }
-    
+
+    /* -------------------------------
+     * 11. 단일 구간 추가 (겹침 방지 + interval 저장)
+     * ------------------------------- */
     if (btnSingleAdd) {
         btnSingleAdd.addEventListener("click", function () {
             if (selectedDays.size !== 1) {
                 alert("요일을 하나만 선택해주세요.");
                 return;
             }
-            
-            const day = currentDay;
+
+            const day = currentDay || Array.from(selectedDays)[0];
             if (!day) {
                 alert("요일을 선택해주세요.");
                 return;
             }
-            
-            const start = singleStartTime.value;
-            const end = singleEndTime.value;
-            
+
+            const start = singleStartTime?.value;
+            const end = singleEndTime?.value;
+
             if (!start || !end) {
                 alert("시작 시간과 종료 시간을 모두 입력해주세요.");
                 return;
             }
-            
             if (start >= end) {
                 alert("시작 시간은 종료 시간보다 빨라야 합니다.");
                 return;
             }
-            
-            // 요금 추출 (기본값 0원)
-            let paymentValue = singlePayment.value.trim();
-            const paymentRaw = paymentValue.replace(/[^\d]/g, "");
-            const payment = paymentRaw === "" || paymentRaw === "0" ? "0" : paymentRaw;
-            
-            if (!timeData[day].slots) {
-                timeData[day].slots = [];
+
+            const interval = getIntervalFromEl(singleIntervalEl, timeData[day].interval || DEFAULT_INTERVAL);
+            timeData[day].interval = interval;
+
+            const payment = normalizePaymentDigits(singlePayment?.value);
+
+            // 핵심: 겹치지 않으면 추가 가능
+            if (isOverlapping(day, start, end)) {
+                alert("이미 설정된 시간 구간과 겹칩니다. 겹치지 않게 설정해주세요.");
+                return;
             }
-            
-            // 중복 체크
-            const isDuplicate = timeData[day].slots.some(slot => 
-                slot.start === start && slot.end === end
-            );
-            
-            if (!isDuplicate) {
-                timeData[day].slots.push({
-                    start: start,
-                    end: end,
-                    interval: 60,
-                    payment: payment
-                });
-            } else {
-                // 중복이면 요금만 업데이트
-                const existingSlot = timeData[day].slots.find(slot => 
-                    slot.start === start && slot.end === end
-                );
-                if (existingSlot) {
-                    existingSlot.payment = payment;
-                }
+
+            // 완전 동일 구간 중복 방지(겹침과 별개)
+            const exactDup = (timeData[day].ranges || []).some(r => r.start === start && r.end === end && (r.payment ?? null) === (payment ?? null));
+            if (!exactDup) {
+                timeData[day].ranges.push({ start, end, payment });
             }
-            
-            // 시간 구간이 추가되면 해당 요일을 활성화
-            timeData[day].active = true;
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:btnSingleAdd:after-add',message:'single day slot added',data:{day:day,slotsLength:timeData[day].slots.length,active:timeData[day].active},timestamp:Date.now(),sessionId:'debug-session',runId:'data-check',hypothesisId:'active'})}).catch(()=>{});
-            // #endregion
-            
-            renderTimeSlots(day);
+
+            renderTimeRanges(day);
             updateReservationTime();
             updateActiveDaysSummary();
         });
     }
-    
+
     /* -------------------------------
-     * 5-1. 일괄 시간 및 요금 추가 (다중 선택된 요일들)
+     * 12. 일괄 구간 추가 (다중 요일)
      * ------------------------------- */
-    const btnBatchAdd = document.getElementById("btnBatchAdd");
-    const batchStartTime = document.getElementById("batchStartTime");
-    const batchEndTime = document.getElementById("batchEndTime");
-    const batchPayment = document.getElementById("batchPayment");
-    
-    // 요금 입력 포맷팅 (숫자만 입력해도 자동 원화 표시)
-    if (batchPayment) {
-        batchPayment.addEventListener("input", function (e) {
-            let raw = this.value.replace(/[^\d]/g, "");
-            
-            if (raw === "") {
-                this.value = "0";
-                return;
-            }
-            
-            // 숫자만 있으면 자동으로 원화 표시 적용
-            const numValue = Number(raw);
-            if (!isNaN(numValue)) {
-                this.value = "₩ " + numValue.toLocaleString("ko-KR");
-            }
-        });
-        
-        // 포커스 아웃 시에도 포맷팅 적용
-        batchPayment.addEventListener("blur", function () {
-            let raw = this.value.replace(/[^\d]/g, "");
-            if (raw === "" || raw === "0") {
-                this.value = "0";
-            } else {
-                this.value = "₩ " + Number(raw).toLocaleString("ko-KR");
-            }
-        });
-        
-        // 포커스 인 시 숫자만 표시
-        batchPayment.addEventListener("focus", function () {
-            let raw = this.value.replace(/[^\d]/g, "");
-            this.value = raw === "" || raw === "0" ? "0" : raw;
-        });
-    }
-    
     if (btnBatchAdd) {
         btnBatchAdd.addEventListener("click", function () {
             if (selectedDays.size < 2) {
                 alert("여러 요일을 선택해주세요.");
                 return;
             }
-            
-            const start = batchStartTime.value;
-            const end = batchEndTime.value;
-            
+
+            const start = batchStartTime?.value;
+            const end = batchEndTime?.value;
+
             if (!start || !end) {
                 alert("시작 시간과 종료 시간을 모두 입력해주세요.");
                 return;
             }
-            
             if (start >= end) {
                 alert("시작 시간은 종료 시간보다 빨라야 합니다.");
                 return;
             }
-            
-            // 요금 추출 (기본값 0원)
-            let paymentValue = batchPayment.value.trim();
-            const paymentRaw = paymentValue.replace(/[^\d]/g, "");
-            const payment = paymentRaw === "" || paymentRaw === "0" ? "0" : paymentRaw;
-            
-            // 선택된 모든 요일에 동일한 시간 구간 및 요금 추가
-            selectedDays.forEach(day => {
-                if (!timeData[day].slots) {
-                    timeData[day].slots = [];
+
+            const interval = getIntervalFromEl(batchIntervalEl, DEFAULT_INTERVAL);
+            const payment = normalizePaymentDigits(batchPayment?.value);
+
+            // 안전: 하나라도 겹치면 중단
+            for (const day of selectedDays) {
+                if (isOverlapping(day, start, end)) {
+                    alert(`${DAY_LABELS[day]}에 이미 겹치는 시간 구간이 있습니다. 먼저 삭제하거나 겹치지 않게 설정하세요.`);
+                    return;
                 }
-                
-                // 중복 체크 (동일한 시간 구간이 이미 있는지)
-                const isDuplicate = timeData[day].slots.some(slot => 
-                    slot.start === start && slot.end === end
-                );
-                
-                if (!isDuplicate) {
-                    timeData[day].slots.push({
-                        start: start,
-                        end: end,
-                        interval: 60,
-                        payment: payment
-                    });
-                } else {
-                    // 중복이면 요금만 업데이트
-                    const existingSlot = timeData[day].slots.find(slot => 
-                        slot.start === start && slot.end === end
-                    );
-                    if (existingSlot) {
-                        existingSlot.payment = payment;
-                    }
-                }
-                
-                // 시간 구간이 추가되면 해당 요일을 활성화
-                timeData[day].active = true;
-            });
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:btnBatchAdd:after-add',message:'batch slots added',data:{selectedDaysSize:selectedDays.size,firstDay:Array.from(selectedDays)[0],firstDayActive:timeData[Array.from(selectedDays)[0]]?.active},timestamp:Date.now(),sessionId:'debug-session',runId:'data-check',hypothesisId:'active'})}).catch(()=>{});
-            // #endregion
-            
-            // 추가 완료 후 선택된 요일 모두 해제
-            const selectedDaysArray = Array.from(selectedDays);
-            selectedDays.clear();
-            dayTabs.forEach(tab => {
-                tab.classList.remove("active");
-            });
-            
-            // 비어있는 상태로 초기화
-            currentDay = null;
-            renderTimeSlots(null);
-            
-            // 다중 선택 UI 숨기기
-            updateMultiSelectUI();
-            
-            // 데이터 업데이트
-            updateReservationTime();
-            updateActiveDaysSummary();
-            
-            alert(`${selectedDaysArray.length}개 요일에 시간 구간이 추가되었습니다.`);
-        });
-    }
-
-    /* -------------------------------
-     * 6. 시간 구간 삭제
-     * ------------------------------- */
-    function deleteTimeSlot(day, index) {
-        if (timeData[day].slots && timeData[day].slots[index]) {
-            timeData[day].slots.splice(index, 1);
-            renderTimeSlots(day);
-            updateReservationTime();
-            updateActiveDaysSummary();
-        }
-    }
-
-
-    /* -------------------------------
-     * 11. 저장 데이터 업데이트 (기존 호환성 유지)
-     * ------------------------------- */
-    function updateReservationTime() {
-        // 기존 구조와 호환되도록 변환
-        const output = {};
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        
-        days.forEach(day => {
-            const dayData = timeData[day];
-            // 유효한 슬롯이 있는지 확인 (start와 end가 모두 있는 경우)
-            const validSlots = dayData.slots && Array.isArray(dayData.slots) 
-                ? dayData.slots.filter(slot => 
-                    slot && slot.start && slot.end && slot.start.trim() !== "" && slot.end.trim() !== ""
-                )
-                : [];
-            
-            if (validSlots.length > 0) {
-                // 첫 번째 구간을 기본값으로 사용 (기존 호환성 - 예약 화면에서 사용)
-                const firstSlot = validSlots[0];
-                
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:updateReservationTime:active-check',message:'checking active field',data:{day:day,dayDataActive:dayData.active,validSlotsLength:validSlots.length,willSetActive:true},timestamp:Date.now(),sessionId:'debug-session',runId:'data-check',hypothesisId:'active'})}).catch(()=>{});
-                // #endregion
-                
-                // active 필드는 validSlots가 있으면 무조건 true (예약 화면에서 사용)
-                output[day] = {
-                    open: firstSlot.start,
-                    close: firstSlot.end,
-                    interval: firstSlot.interval || 60,
-                    payment: firstSlot.payment && firstSlot.payment !== "" && firstSlot.payment !== "0" ? String(firstSlot.payment) : (firstSlot.payment === "0" ? "0" : null),
-                    active: true  // validSlots가 있으면 무조건 활성화
-                };
-            } else {
-                output[day] = {
-                    open: null,
-                    close: null,
-                    interval: 60,
-                    payment: null,
-                    active: false
-                };
             }
+
+            selectedDays.forEach(day => {
+                timeData[day].interval = interval;
+
+                const exactDup = (timeData[day].ranges || []).some(r => r.start === start && r.end === end && (r.payment ?? null) === (payment ?? null));
+                if (!exactDup) {
+                    timeData[day].ranges.push({ start, end, payment });
+                }
+            });
+
+            const selectedCount = selectedDays.size;
+
+            // UX 유지: 완료 후 선택 해제/초기화
+            selectedDays.clear();
+            dayTabs.forEach(t => t.classList.remove("active"));
+            currentDay = null;
+            renderTimeRanges(null);
+
+            updateMultiSelectUI();
+            updateReservationTime();
+            updateActiveDaysSummary();
+
+            alert(`${selectedCount}개 요일에 시간 구간이 추가되었습니다.`);
         });
-        
-        // 새 구조 데이터도 포함 (여러 구간 지원)
-        output.slots = {};
-        days.forEach(day => {
-            const dayData = timeData[day];
-            const validSlots = dayData.slots && Array.isArray(dayData.slots)
-                ? dayData.slots.filter(slot => 
-                    slot && slot.start && slot.end && slot.start.trim() !== "" && slot.end.trim() !== ""
-                ).map(slot => ({
-                    start: slot.start,
-                    end: slot.end,
-                    interval: slot.interval || 60,
-                    payment: slot.payment && slot.payment !== "" && slot.payment !== "0" ? String(slot.payment) : (slot.payment === "0" ? "0" : null)
-                }))
-                : [];
-            output.slots[day] = validSlots;
-        });
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/1892e383-4af3-4b95-88cc-370032f82f04',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'facility_modify.js:updateReservationTime:output',message:'saving reservation time data',data:{output:output,mondayData:output.monday,tuesdayData:output.tuesday},timestamp:Date.now(),sessionId:'debug-session',runId:'data-check',hypothesisId:'data-save'})}).catch(()=>{});
-        // #endregion
-        
-        // 디버깅용 콘솔 출력 (개발 중에만)
-        console.log("저장되는 데이터:", output);
-        
-        reservationHidden.value = JSON.stringify(output);
     }
 
     /* -------------------------------
-     * 12. 초기 렌더링
+     * 13. 예약 활성화 토글 (rsPosible)
      * ------------------------------- */
-    // 초기에는 아무 요일도 선택하지 않음 (비어있는 상태)
-    renderTimeSlots(null);
-    updateMultiSelectUI();
-    updateActiveDaysSummary();
-    updateReservationTime();
+    function toggleTimeBox() {
+        if (!timeBox) return;
+
+        if (isReservationEnabled()) {
+            timeBox.classList.remove("time-disabled");
+        } else {
+            timeBox.classList.add("time-disabled");
+            if (reservationHidden) reservationHidden.value = "{}";
+        }
+        updateActiveDaysSummary();
+    }
+
+    if (rsEl) {
+        rsEl.addEventListener("change", toggleTimeBox);
+        rsEl.addEventListener("input", toggleTimeBox); // select 대응
+    }
 
     /* -------------------------------
-     * 13. 저장 버튼 → JSON 저장
+     * 14. 저장 버튼 → JSON 저장
      * ------------------------------- */
     const saveBtn = document.querySelector(".btn-save-all");
     if (saveBtn) {
@@ -705,7 +609,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* -------------------------------
-     * 14. 이미지 미리보기
+     * 15. 이미지 미리보기
      * ------------------------------- */
     const photoInput = document.getElementById("photoInput");
     const previewImage = document.getElementById("previewImage");
@@ -724,15 +628,17 @@ document.addEventListener("DOMContentLoaded", function () {
             const reader = new FileReader();
             reader.onload = function (e) {
                 if (previewPlaceholder) previewPlaceholder.style.display = "none";
-                previewImage.style.display = "block";
-                previewImage.src = e.target.result;
+                if (previewImage) {
+                    previewImage.style.display = "block";
+                    previewImage.src = e.target.result;
+                }
             };
             reader.readAsDataURL(file);
         });
     }
 
     /* -------------------------------
-     * 15. 폼 submit (첨부파일 포함)
+     * 16. 폼 submit (첨부파일 포함)
      * ------------------------------- */
     const form = document.getElementById("modifyForm");
 
@@ -759,25 +665,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /* -------------------------------
-     * 16. 예약 활성화 토글
+     * 17. 초기 렌더링
      * ------------------------------- */
-    const rsCheck = document.getElementById("rsPosible");
-    const timeBox = document.getElementById("timeSettingBox");
-
-    function toggleTimeBox() {
-        if (rsCheck.checked) {
-            timeBox.classList.remove("time-disabled");
-            // 활성화 시 현재 데이터 표시
-            updateActiveDaysSummary();
-        } else {
-            timeBox.classList.add("time-disabled");
-            reservationHidden.value = "{}";
-            // 비활성화 시 우측 패널 비우기
-            updateActiveDaysSummary();
-        }
-    }
-
+    renderTimeRanges(null);
+    updateMultiSelectUI();
     toggleTimeBox();
-    rsCheck.addEventListener("change", toggleTimeBox);
-
+    updateReservationTime();
+    updateActiveDaysSummary();
 });

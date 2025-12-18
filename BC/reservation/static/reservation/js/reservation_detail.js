@@ -1,136 +1,162 @@
 document.addEventListener("DOMContentLoaded", function () {
+    /* ---------------------------
+        0) 예약 가능 여부 체크
+    ---------------------------- */
+    const rsPossibleEl = document.getElementById("rs-possible");
+    const rsPossible = rsPossibleEl ? rsPossibleEl.value : "1";
+    if (rsPossible !== "1") return;
 
-    const rsPossible = document.getElementById("rs-possible").value;
-    if (rsPossible !== "1") {
-        return;
-    }
     /* ---------------------------
         1) 데이터 로드
     ---------------------------- */
-    const reservationTime = JSON.parse(
-        document.getElementById("reservation-json").textContent
-    );
+    const reservationJsonEl = document.getElementById("reservation-json");
+    const reservedJsonEl = document.getElementById("reserved-json");
 
-    const reservedData = JSON.parse(
-        document.getElementById("reserved-json").textContent
-    );
+    const reservationTime = JSON.parse(reservationJsonEl?.textContent || "{}");
+    const reservedData = JSON.parse(reservedJsonEl?.textContent || "[]");
 
-    const facilityId = document.getElementById("facility-id").value;
+    const facilityId = document.getElementById("facility-id")?.value;
 
     const slotGrid = document.getElementById("time-slot-grid");
     const selectedDateEl = document.getElementById("selected-date");
     const selectedTimeEl = document.getElementById("selected-time");
+
     let pricePerSlot = 0;
     let selectedSlots = []; // [{start, end}]
 
-    // 총 금액 및 선택 시간 표시
-    function updateTotal() {
-        const total = selectedSlots.length * pricePerSlot;
-        document.getElementById("total-price").textContent =
-            `${total.toLocaleString("ko-KR")}원`;
-        document.getElementById("selected-time").textContent =
-            selectedSlots.length
-                ? selectedSlots.map(s => `${s.start} ~ ${s.end}`).join(", ")
-                : "-";
+    if (!slotGrid || !selectedDateEl || !selectedTimeEl) {
+        console.error("필수 DOM 누락: time-slot-grid / selected-date / selected-time");
+        return;
     }
 
     /* ---------------------------
-        2) 캘린더 설정
+        2) 총 금액 및 선택 시간 표시
     ---------------------------- */
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    function updateTotal() {
+        const total = selectedSlots.length * pricePerSlot;
+        const totalEl = document.getElementById("total-price");
+        if (totalEl) totalEl.textContent = `${total.toLocaleString("ko-KR")}원`;
 
-    const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-        initialView: 'dayGridMonth',
-        locale: 'ko',
-        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
-
-        dateClick: function (info) {
-
-            const clicked = new Date(info.dateStr);
-            clicked.setHours(0, 0, 0, 0);
-            if (clicked < today) return;
-
-            document.querySelectorAll('.fc-day-selected')
-                .forEach(cell => cell.classList.remove('fc-day-selected'));
-
-            info.dayEl.classList.add('fc-day-selected');
-            selectedDateEl.textContent = info.dateStr;
-
-            const dayOfWeek = clicked.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
-            const dayInfo = reservationTime[dayOfWeek];
-            pricePerSlot = Number(dayInfo?.payment || 0); // 관리자가 설정한 요금
-            selectedSlots = [];
-            updateTotal();
-
-            slotGrid.innerHTML = "";
-
-            if (!dayInfo || !dayInfo.active) {
-                slotGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#777;">휴무일입니다</div>`;
-                selectedTimeEl.textContent = "-";
-                return;
-            }
-
-            generateSlots(dayInfo.open, dayInfo.close, dayInfo.interval);
-        },
-
-        dayCellDidMount: function (arg) {
-            const cellDate = new Date(arg.date);
-            cellDate.setHours(0, 0, 0, 0);
-
-            const dayOfWeek = cellDate.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
-            const dayInfo = reservationTime[dayOfWeek];
-
-            if (cellDate < today) {
-                arg.el.classList.add("fc-day-disabled");
-                return;
-            }
-
-            if (!dayInfo || !dayInfo.active) {
-                arg.el.classList.add("fc-day-unavailable");
-                return;
-            }
-
-            arg.el.classList.add("fc-day-available");
-        }
-    });
-
-    calendar.render();
-
+        selectedTimeEl.textContent = selectedSlots.length
+            ? selectedSlots.map(s => `${s.start} ~ ${s.end}`).join(", ")
+            : "-";
+    }
 
     /* ---------------------------
-        3) 슬롯 생성 함수
+        3) 시간 유틸
     ---------------------------- */
-    function generateSlots(openTime, closeTime, interval) {
+    function timeToMinutes(t) {
+        const [h, m] = String(t).split(":").map(Number);
+        return h * 60 + m;
+    }
+
+    function minutesToTime(min) {
+        const h = String(Math.floor(min / 60)).padStart(2, "0");
+        const m = String(min % 60).padStart(2, "0");
+        return `${h}:${m}`;
+    }
+
+    /* ---------------------------
+        4) range 기반 슬롯 생성 (핵심)
+        - open~close 연속 생성 금지
+    ---------------------------- */
+    function buildSlotsFromRanges(ranges, interval) {
+        const slots = [];
+        const seen = new Set();
+
+        const iv = Number(interval);
+        if (!iv || iv <= 0) return slots;
+
+        (ranges || []).forEach(r => {
+            const start = r?.start;
+            const end = r?.end;
+            if (!start || !end) return;
+
+            const startMin = timeToMinutes(start);
+            const endMin = timeToMinutes(end);
+            if (!(startMin < endMin)) return;
+
+            for (let t = startMin; t + iv <= endMin; t += iv) {
+                const s = minutesToTime(t);
+                const e = minutesToTime(t + iv);
+                const key = `${s}-${e}`;
+
+                if (seen.has(key)) continue;
+                seen.add(key);
+                slots.push({ start: s, end: e });
+            }
+        });
+
+        slots.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+        return slots;
+    }
+
+    /* ---------------------------
+        5) dayInfo + dayRanges + interval 결정
+        - 네 JSON 구조에 맞게 reservationTime.ranges[day]에서 꺼냄
+    ---------------------------- */
+    function getDayContext(dayOfWeek) {
+        const dayInfo = reservationTime?.[dayOfWeek] || null;
+
+        const rangesByDay = reservationTime?.ranges || {};
+        const dayRanges = Array.isArray(rangesByDay?.[dayOfWeek]) ? rangesByDay[dayOfWeek] : [];
+
+        const intervalByDay = reservationTime?.intervalByDay || {};
+        const interval =
+            Number(intervalByDay?.[dayOfWeek]) ||
+            Number(dayInfo?.interval) ||
+            60;
+
+        return { dayInfo, dayRanges, interval };
+    }
+
+    /* ---------------------------
+        6) 슬롯 렌더링
+        - ranges 있으면 ranges 기준
+        - 없으면 open/close fallback
+        - 결과가 0이면 메시지 출력(빈 화면 방지)
+    ---------------------------- */
+    function renderSlotsForDay(dayOfWeek, selectedDateStr) {
         slotGrid.innerHTML = "";
+        selectedSlots = [];
+        updateTotal();
 
-        let [oh, om] = openTime.split(":").map(Number);
-        let [ch, cm] = closeTime.split(":").map(Number);
+        const { dayInfo, dayRanges, interval } = getDayContext(dayOfWeek);
 
-        let start = new Date();
-        start.setHours(oh, om, 0, 0);
+        if (!dayInfo || !dayInfo.active) {
+            slotGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#777;">휴무일입니다</div>`;
+            selectedTimeEl.textContent = "-";
+            return;
+        }
 
-        let end = new Date();
-        end.setHours(ch, cm, 0, 0);
+        // 가격은 기존대로 dayInfo.payment 사용
+        pricePerSlot = Number(dayInfo.payment || 0);
 
-        const selectedDate = selectedDateEl.textContent;
+        let slots = [];
 
-        while (start < end) {
-            const next = new Date(start.getTime() + interval * 60000);
-            if (next > end) break;
+        // ✅ 1순위: ranges
+        if (dayRanges.length > 0) {
+            slots = buildSlotsFromRanges(dayRanges, interval);
+        } else if (dayInfo.open && dayInfo.close) {
+            // ⛑ fallback: 레거시 open/close
+            slots = buildSlotsFromRanges([{ start: dayInfo.open, end: dayInfo.close }], interval);
+        }
 
-            const slotText = `${formatTime(start)} ~ ${formatTime(next)}`;
-            const slotStart = formatTime(start);
-            const slotEnd = formatTime(next);
+        if (!slots.length) {
+            slotGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#777;">예약 가능한 시간이 없습니다</div>`;
+            selectedTimeEl.textContent = "-";
+            return;
+        }
 
-            let div = document.createElement("div");
+        slots.forEach(slot => {
+            const div = document.createElement("div");
             div.classList.add("slot");
-            div.textContent = slotText;
+            div.textContent = `${slot.start} ~ ${slot.end}`;
 
             const isReserved = reservedData.some(r =>
-                r.date === selectedDate &&
-                r.start === slotStart &&
-                r.end === slotEnd
+                r.date === selectedDateStr &&
+                r.start === slot.start &&
+                r.end === slot.end
             );
 
             if (isReserved) {
@@ -138,14 +164,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 div.style.pointerEvents = "none";
             } else {
                 div.addEventListener("click", function () {
-                    const key = `${slotStart}-${slotEnd}`;
+                    const key = `${slot.start}-${slot.end}`;
                     const idx = selectedSlots.findIndex(s => `${s.start}-${s.end}` === key);
 
                     if (idx >= 0) {
                         selectedSlots.splice(idx, 1);
                         div.classList.remove("selected");
                     } else {
-                        selectedSlots.push({ start: slotStart, end: slotEnd });
+                        selectedSlots.push({ start: slot.start, end: slot.end });
                         div.classList.add("selected");
                     }
                     updateTotal();
@@ -153,60 +179,113 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             slotGrid.appendChild(div);
-            start = next;
-        }
+        });
     }
 
     /* ---------------------------
-        4) 시간 format
+        7) 캘린더 설정
     ---------------------------- */
-    function formatTime(date) {
-        let h = String(date.getHours()).padStart(2, "0");
-        let m = String(date.getMinutes()).padStart(2, "0");
-        return `${h}:${m}`;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const calendarEl = document.getElementById("calendar");
+    if (!calendarEl) {
+        console.error("calendar DOM 누락");
+        return;
     }
 
-    /* ---------------------------
-        5) 예약 버튼
-    ---------------------------- */
-    document.getElementById("reserve-button").addEventListener("click", function () {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "ko",
+        headerToolbar: { left: "prev", center: "title", right: "next" },
 
-        const date = selectedDateEl.textContent;
+        dateClick: function (info) {
+            try {
+                const clicked = new Date(info.dateStr);
+                clicked.setHours(0, 0, 0, 0);
+                if (clicked < today) return;
 
-        if (date === "-" || selectedSlots.length === 0) {
-            alert("날짜와 시간을 선택해주세요.");
-            return;
+                document.querySelectorAll(".fc-day-selected")
+                    .forEach(cell => cell.classList.remove("fc-day-selected"));
+
+                info.dayEl.classList.add("fc-day-selected");
+                selectedDateEl.textContent = info.dateStr;
+
+                const dayOfWeek = clicked.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
+
+                renderSlotsForDay(dayOfWeek, info.dateStr);
+            } catch (e) {
+                console.error("dateClick 처리 중 오류", e);
+                slotGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#777;">시간 데이터를 불러오지 못했습니다</div>`;
+            }
+        },
+
+        dayCellDidMount: function (arg) {
+            try {
+                const cellDate = new Date(arg.date);
+                cellDate.setHours(0, 0, 0, 0);
+
+                if (cellDate < today) {
+                    arg.el.classList.add("fc-day-disabled");
+                    return;
+                }
+
+                const dayOfWeek = cellDate.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
+                const dayInfo = reservationTime?.[dayOfWeek];
+
+                if (!dayInfo || !dayInfo.active) arg.el.classList.add("fc-day-unavailable");
+                else arg.el.classList.add("fc-day-available");
+            } catch (e) {
+                console.error("dayCellDidMount 오류", e);
+            }
         }
+    });
 
-        fetch("/reservation/save/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken")
-            },
-            body: JSON.stringify({
-                date: date,
-                slots: selectedSlots,
-                facility_id: facilityId
+    calendar.render();
+
+    /* ---------------------------
+        8) 예약 버튼
+    ---------------------------- */
+    const reserveBtn = document.getElementById("reserve-button");
+    if (reserveBtn) {
+        reserveBtn.addEventListener("click", function () {
+            const date = selectedDateEl.textContent;
+
+            if (!date || date === "-" || selectedSlots.length === 0) {
+                alert("날짜와 시간을 선택해주세요.");
+                return;
+            }
+
+            fetch("/reservation/save/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({
+                    date: date,
+                    slots: selectedSlots,
+                    facility_id: facilityId
+                })
             })
-        })
             .then(res => res.json())
             .then(data => {
                 if (data.result === "ok") {
                     alert("예약이 완료되었습니다!");
-                    window.location.href = `/member/myreservation`;
+                    window.location.href = "/member/myreservation";
                 } else {
                     alert(data.msg);
                 }
             });
-    });
+        });
+    }
 
     /* ---------------------------
-        6) CSRF
+        9) CSRF
     ---------------------------- */
     function getCookie(name) {
         let cookieValue = null;
-        const cookies = document.cookie.split(';');
+        const cookies = document.cookie.split(";");
         for (let cookie of cookies) {
             cookie = cookie.trim();
             if (cookie.startsWith(name + "=")) {
@@ -218,22 +297,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* ---------------------------
-        7) 오늘 날짜 자동 선택
+        10) 오늘 날짜 자동 선택 (기존 방식 유지)
     ---------------------------- */
     (function selectToday() {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, "0");
-        const dd = String(today.getDate()).padStart(2, "0");
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
         const todayStr = `${yyyy}-${mm}-${dd}`;
 
         const todayCell = document.querySelector(`[data-date="${todayStr}"]`);
         if (todayCell) {
-            calendar.trigger('dateClick', {
-                date: today,
-                dateStr: todayStr,
-                dayEl: todayCell
-            });
+            // FullCalendar 내부 이벤트 시뮬레이션
+            // (기존 코드 방식 유지)
+            try {
+                calendar.trigger("dateClick", {
+                    date: d,
+                    dateStr: todayStr,
+                    dayEl: todayCell
+                });
+            } catch (e) {
+                // trigger가 없는 버전도 있어 직접 호출 fallback
+                selectedDateEl.textContent = todayStr;
+                const dayOfWeek = d.toLocaleString("en-US", { weekday: "long" }).toLowerCase();
+                renderSlotsForDay(dayOfWeek, todayStr);
+            }
         }
     })();
 });
