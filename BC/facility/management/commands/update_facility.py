@@ -10,7 +10,7 @@ from facility.models import Facility
 
 
 class Command(BaseCommand):
-    help = "전국체육시설 안전점검 API → Facility 테이블 UPSERT (t2.micro 안정화: DELETE 없음, 페이지 커밋)"
+    help = "전국체육시설 안전점검 API"
 
     def handle(self, *args, **options):
         API_KEY = os.getenv("DATA_API_KEY")
@@ -59,7 +59,6 @@ class Command(BaseCommand):
         col_sql = ", ".join(f"`{c}`" for c in columns)
         placeholders = ", ".join(["%s"] * len(columns))
 
-        # ✅ UPSERT 전제: faci_cd가 UNIQUE KEY여야 함 (너는 이미 되어 있음)
         # faci_cd(키)는 업데이트 대상에서 제외
         update_cols = [c for c in columns if c != "faci_cd"]
         update_sql = ", ".join([f"`{c}` = VALUES(`{c}`)" for c in update_cols])
@@ -78,12 +77,12 @@ class Command(BaseCommand):
                 "resultType": "json",
             }
 
-            # --- API 요청 (재시도 포함) ---
+   
             retry = 0
             while True:
                 try:
                     res = requests.get(base_url, params=params, timeout=20)
-                    # 5xx는 재시도 대상으로 처리
+           
                     if res.status_code >= 500:
                         raise requests.exceptions.HTTPError(f"Server error {res.status_code}")
                     res.raise_for_status()
@@ -156,11 +155,9 @@ class Command(BaseCommand):
                     0,
                 ]
 
-                # 빈문자/공백은 None 처리
                 row = [None if (v == "" or v == " ") else v for v in row]
                 rows.append(tuple(row))
 
-            # ✅ 핵심: 페이지 단위 트랜잭션 커밋 (전체 atomic 금지)
             if rows:
                 with transaction.atomic():
                     with connection.cursor() as cursor:

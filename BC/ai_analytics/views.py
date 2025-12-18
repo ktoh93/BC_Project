@@ -481,6 +481,14 @@ def collect_stats_data(start_date):
         'recent_communities': [],
         'top_facilities': [],
         'active_member_summary': {},
+        'safety_stats': {   
+            'total_inspected_facilities': 0,
+            'yearly_inspection_trend': {},
+            'grade_distribution': {},
+            'region_safety_stats': {},
+            'sport_safety_stats': {},
+            'recent_inspections': [],
+        },
     }
     
     try:
