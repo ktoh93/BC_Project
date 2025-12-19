@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
             for (let t = startMin; t + interval <= endMin; t += interval) {
                 const s = minutesToTime(t);
                 const e = minutesToTime(t + interval);
-                const key = `${s}-${e}-${r.payment ?? ""}`; // payment까지 포함하여 완전 중복 방지
+                const key = `${s}-${e}-${r.payment ?? ""}`; 
 
                 if (slotSet.has(key)) continue;
                 slotSet.add(key);
