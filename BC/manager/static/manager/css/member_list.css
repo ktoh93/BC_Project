@@ -192,3 +192,74 @@
     cursor: default;
 }
 
+.withdraw-row {
+    cursor: pointer;
+}
+
+
+
+
+.small-modal {
+    max-width: 800px;
+    padding: 50px 72px;    
+    width: 460px;
+}
+
+.small-modal .modal-header h3 {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 32px;
+    text-align: center;
+    color: var(--color-text-primary);
+}
+
+
+.small-modal .modal-body {
+    padding: 24px 0;
+}
+
+.small-modal .modal-body p {
+    font-size: 24px;
+    line-height: 1.7;
+    color: red;
+    text-align: center;
+    word-break: keep-all;
+    font-weight: bold;
+}
+
+.small-modal .modal-footer {
+    padding-top: 40px;
+    display: flex;
+    justify-content: flex-end;       
+}
+
+.small-modal .modal-footer .btn {
+    padding: 0.6rem 1.6rem;         
+    font-size: 14px;
+    border-radius: 999px;
+}
+
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+}
+
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--color-card-box);
+    border-radius: 16px;
+    border: 1px solid var(--color-soft-gray-line);
+    box-shadow: var(--shadow-medium);
+}
