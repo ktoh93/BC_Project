@@ -137,7 +137,7 @@ def index(request):
     try:
         from facility.models import FacilityInfo
 
-        all_facilities = FacilityInfo.objects.all()
+        all_facilities = FacilityInfo.objects.filter(rs_posible=1)
 
         if all_facilities.exists():
             facilities_list = list(all_facilities)

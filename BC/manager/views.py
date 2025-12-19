@@ -152,20 +152,20 @@ def info_edit(request):
 
         if not check_password(current_password, manager.password):
             messages.error(request, "기존 비밀번호가 올바르지 않습니다.")
-            return redirect("manager:password_change")
+            return redirect("manager:info_edit")
 
         if not new_password or not new_password_confirm:
             messages.error(request, "새 비밀번호를 입력해 주세요.")
-            return redirect("manager:password_change")
+            return redirect("manager:info_edit")
 
         if new_password != new_password_confirm:
             messages.error(request, "새 비밀번호가 일치하지 않습니다.")
-            return redirect("manager:password_change")
+            return redirect("manager:info_edit")
 
         manager.password = make_password(new_password)
         manager.save()
 
         messages.success(request, "비밀번호가 변경되었습니다.")
-        return redirect("manager:password_change")
+        return redirect("manager:info_edit")
 
     return render(request, "manager/info_edit.html")
